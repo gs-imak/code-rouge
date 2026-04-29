@@ -7,54 +7,53 @@
 
 ## Last session (2026-04-29)
 
-**Bootstrap + Chantier 01 + Chantier 02 — DONE & MERGED. CI green on main.**
+**Chantiers 01 + 02 + 03 all DONE & MERGED.** CI green on every chantier merge into `main`.
 
 ### main now has
 
 ```
+d415be4 feat: chantier 03 — local NUC server (Express + WS + SQLite + Zod) (#6)
+f67e428 chore(deps): bump the actions group with 3 updates (#4)
+952fd20 docs: mark chantier 02 fully shipped, brief chantier 03 (#5)
 35fde9a feat: chantier 02 — CI pipeline + Vitest at root (#3)
 b2218aa refactor: chantier 01 quality-gate review fixes (#2)
 86e2d91 chore: scaffold monorepo (chantier 01) (#1)
 a92df49 chore: initial bundle (CLAUDE.md, docs, rules)
 ```
 
-### Chantier 02 deliverables (PR #3)
+### Chantier 03 deliverables (PR #6)
 
-- `.github/workflows/ci.yml` — 5 jobs (lint, typecheck, test, build-android, build-windows) on Node 24 / pnpm 10 / ubuntu-latest. `permissions: contents: read`, concurrency cancels stale runs, `defaults.run.shell: bash`, `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true`.
-- Triggers: `on: push: { branches: [main] }` + `on: pull_request:` (no duplicate runs on PR pushes).
-- `pnpm audit --audit-level=high` step in test job. Currently 2 moderate, 0 high — passes.
-- pnpm-store cache via `actions/setup-node@v4` keyed on `pnpm-lock.yaml` — cache hit confirmed on run #2.
-- `vitest.config.ts` at root finds tests under `apps/**` and `packages/**`. `@vitest/coverage-v8` for coverage.
-- One trivial passing test: `packages/shared-utils/src/index.test.ts`.
-- Root `pnpm test` → `vitest run` (single process). Per-package `test` scripts removed across all 7 packages — closes the footgun where `pnpm --filter X test` would silently run the whole suite.
-- `tools/scripts/build-android.sh` + `tools/scripts/build-windows.sh` (chmod +x, exit 0 stubs). `package.json` `build:android`/`build:windows` invoke them. Chantier 04 will edit only the script files.
-- `.github/dependabot.yml` — weekly grouped github-actions ecosystem updates.
-- README CI badge: `[![CI](...badge.svg?branch=main)](...)` — renders green now.
-- `engines.node: ">=24.0.0"` (was `>=22.0.0`) — matches the Node 24 LTS decision.
+- `apps/server-nuc/src/{index,config,logger,db,session}.ts` — Express on `:8080`, route-scoped WS at `/ws`, pino, graceful shutdown with WAL checkpoint.
+- `apps/server-nuc/migrations/001_init.sql` — STRICT `sessions` + `team_state` (PK `(session_id, team_id, app)`) + relaxed `event_log` (AUTOINCREMENT, idx on `(session_id, team_id, at)`).
+- `packages/shared-types/src/messages.ts` — App↔Server discriminated unions with Zod, `parseAppToServerMessage` / `parseServerToAppMessage` / `parseMessage` (alias). 15 round-trip + negative-path tests.
+- `tools/scripts/install-nuc.sh` — idempotent NodeSource + corepack + systemd + logrotate provisioning. Hardened systemd unit (NoNewPrivileges, ProtectSystem, ProtectHome, PrivateTmp, RestrictAddressFamilies, MemoryMax=512M, CPUQuota=80%, IPAddressDeny=any with RFC-1918 allow). Hard-fails on `LISTEN_HOST=0.0.0.0`. Optional NodeSource setup-script sha256 verify (env `NODESOURCE_SETUP_SHA256`). `shellcheck tools/scripts/*.sh` step added to the lint job in CI.
+- `apps/server-nuc/README.md` — endpoints, env vars, dev quickstart, prod deploy walkthrough, filesystem layout, operator commands.
 
-### Chantier 02 ACs verified empirically
+### Chantier 03 ACs verified empirically
 
-- ✅ Push to `main` triggers a run, all 5 jobs green — run [25120907988](https://github.com/gs-imak/code-rouge/actions/runs/25120907988) (post-merge on main)
-- ✅ Cache hit on second run — `Cache restored from key: node-cache-Linux-x64-pnpm-135377...`
-- ✅ Badge renders green
-- ✅ `pnpm test` 1/1 pass locally
-- ✅ CI test job green (with `pnpm audit --audit-level=high` passing)
-- ✅ `pnpm --filter @code-rouge/shared-utils test` errors with "Lifecycle script `test` not defined" (footgun closed)
+- ✅ `pnpm dev --filter @code-rouge/server-nuc` boots clean
+- ✅ `curl /health` → 200 with `{ status, uptimeSeconds, pid, sessionId, db }`; `db: ok` via hoisted `pingStmt`
+- ✅ WS `/ws` handshake → `welcome` reply; WS `/wrong` → `HTTP/1.1 404 Not Found` then destroy
+- ✅ `state` update → row in `team_state`; `log` push → row in `event_log` (events JSON-serialised)
+- ✅ Stop + restart server (same `DATABASE_PATH`) → previous rows still in DB
+- ✅ `pnpm typecheck` → 7/7; `pnpm test` → 16/16; `pnpm -r run lint` → 0; `shellcheck install-nuc.sh` → 0
+- ✅ CI on main run [25125605549](https://github.com/gs-imak/code-rouge/actions/runs/25125605549) → 5/5 green
 
-### Quality-gate review (4 agents in parallel)
+### Quality gate (4 agents in parallel) — 11 fixes applied on the same chantier branch
 
-- **devops** — flagged duplicate-run trigger, missing `defaults.run.shell`, deprecation annotation, future-proofing for build-windows runner switch and Java/Android SDK
-- **security-auditor** — confirmed `permissions: contents: read` is sufficient (private repo + no secrets yet); added `pnpm audit` step + dependabot; SHA-pinning + signing-job gating deferred to chantier 04 with concrete YAML
-- **code-reviewer** — flagged the per-package `test` script footgun, `engines.node`/README mismatch
-- **refactoring-specialist** — vitest exclude redundancy, dead `outputs` on turbo test task, build-script extraction
+P0 (DoS / integrity): fragmented WS frame `Buffer[]` handling, `shuttingDown` flag for graceful shutdown, WS `maxPayload: 512 KB`, `resetCode` redacted in boot log (`"95****"`).
 
-All P1 + cheap P2 fixes applied in commit `0c5e6b5` on the same chantier branch before merge. Composite action / SHA-pinning / signing-job gating deferred to chantier 04.
+P1 (durability + sec): `synchronous = FULL` (was NORMAL — survives chantier 05's hard reboot), `wal_checkpoint(TRUNCATE)` on shutdown, hoisted `pingStmt` for /health, `crypto.randomInt` for `newResetCode` (was modulo-biased), per-connection token-bucket rate limit at 100 frames/sec, `LogEvent.data` tightened to bounded record, WS upgrade rejection writes HTTP 404, `install-nuc.sh` rejects 0.0.0.0, NodeSource sha256 verify, pinned pnpm via `package.json:packageManager`, post-install /health curl check.
+
+P2: `install-nuc.sh` idempotent restart (cmp + reload-or-restart), systemd MemoryMax/CPUQuota/IPAddressDeny=any, `cache_size = -32768` + `temp_store = MEMORY`, `DbHandle.db` removed from public shape.
+
+Deferred to chantier 04 with concrete code in PR #6 description: SHA-pin actions, composite setup action, gate signing jobs, drop `--prod=false` once tsx is replaced by tsc build pipeline.
 
 ---
 
 ## Currently in progress
 
-_(none — chantier 02 done, awaiting next session for chantier 03)_
+_(none — chantier 03 done, awaiting next session for chantier 04)_
 
 ---
 
@@ -64,38 +63,39 @@ _(none)_
 
 ## Notes (non-blocking)
 
-- **2 moderate vulnerabilities** in transitive deps (visible via `pnpm audit`). Below the High threshold so CI passes. Worth reviewing during chantier 03 prep — likely in dev tooling (eslint, vitest, or one of their deps). Not a blocker for the 4 May demo.
-- **Vercel-related session hooks** continue to fire on common filenames (package.json, tsconfig, workflows). Ignored — project is offline-only by spec. Worth disabling locally if they get noisy.
-- **Tools deferred for chantier 04** are all listed in PR #3 description: SHA-pin actions when keystore secrets land, composite setup action when `build-windows` switches to `windows-latest`, gate signing jobs to `push` on `main` only.
+- **2 moderate vulnerabilities** still in transitive dev deps (visible via `pnpm audit`). Below the High threshold so CI passes. Worth a 5-min triage when convenient — possibly already addressed by Dependabot.
+- **Vercel-related session hooks** continue to fire (workflow YAML, package.json, Express). Ignored — project is offline-only.
+- **CI now also runs `shellcheck`** on every push for `tools/scripts/*.sh`. Future chantier 04 RN/Electron build hooks will get the same treatment.
 
 ---
 
 ## Next concrete task
 
-**Chantier 03 — Serveur local NUC** (`docs/m1-plan.md` § Chantier 03).
+**Chantier 04 — Mode kiosque (Android + Windows)** (`docs/m1-plan.md` § Chantier 04).
 
-**Day:** J3 — Thu 30 April 2026.
+**Day:** J4 — Fri 1 May 2026.
 
-**Branch:** `feat/chantier-03-server`.
+**Branch:** `feat/chantier-04-kiosk`.
 
 In order:
-1. **3.1** — `apps/server-nuc` ESM TypeScript project. Deps: `express`, `ws`, `better-sqlite3`, `zod`, `pino`, `pino-pretty` (dev). Dev deps: `tsx`, `@types/express`, `@types/ws`, `@types/better-sqlite3`. Scripts: `dev` (tsx watch), `build` (tsc), `start` (node dist). `src/index.ts` boots Express on `:8080`, WS on `/ws`, `GET /health` returns 200.
-   - **AC:** `pnpm dev --filter @code-rouge/server-nuc` starts the server. `curl http://localhost:8080/health` returns 200. `wscat -c ws://localhost:8080/ws` connects.
-2. **3.2** — `packages/shared-types/src/messages.ts`: Zod schemas for `HelloMessage`, `StateUpdateMessage`, `LogPushMessage`, `ServerCommandMessage`. Export `parseMessage(raw: string)` returning a discriminated union or throwing `MessageParseError`.
-   - **AC:** typecheck passes for shared-types. Unit tests in `messages.test.ts`: valid hello round-trip, malformed JSON throws, unknown type throws.
-3. **3.3** — SQLite persistence. `data/coderouge.sqlite` on first boot. `DATABASE_PATH` env var. `migrations/001_init.sql`: tables `sessions`, `team_state`, `event_log`. Upsert on `StateUpdateMessage`, append on `LogPushMessage`.
-   - **AC:** wscat-driven state update visible in SQLite. Survives a restart.
-4. **3.4** — `tools/scripts/install-nuc.sh`: Node 24 (NodeSource `setup_24.x`), clone, `pnpm install --prod`, build, systemd unit `code-rouge-server.service`, logs to `/var/log/code-rouge/`. `apps/server-nuc/README.md` documents the fresh-Ubuntu-LTS path.
-   - **AC:** `shellcheck` clean. Dry-run reaches systemd-enable step without errors.
+1. **4.1** — React Native scaffolding for `apps/attaque-de-bots` and `apps/debriefing`. Bare TypeScript template (NOT Expo — kiosk requires native modules). Metro config: `watchFolders` includes workspace root, `nodeModulesPaths` includes monorepo `node_modules`. One placeholder screen "Connexion équipe — placeholder".
+   - **AC:** `pnpm android --filter @code-rouge/attaque-de-bots` builds + installs on a connected device/emulator. App opens, shows the placeholder.
+2. **4.2** — Screen Pinning native module (Java/Kotlin). `ActivityManager.startLockTask()` on app start. Permission check + Settings → Security → Screen Pinning instruction if not granted. Disable Back button at root navigator.
+   - **AC:** Once pinned, all of Home, Recents, Back, swipes, notification shade fail to exit. Force-stop via Settings still works (we don't fight the OS-level kill).
+3. **4.3** — Electron + Vite + React TS scaffold for `apps/assaut`. `BrowserWindow({ kiosk: true, fullscreen: true, frame: false, autoHideMenuBar: true, webPreferences: { contextIsolation: true } })`. Single placeholder screen "Section 13 — Saisie code autorisation".
+   - **AC:** `pnpm dev --filter @code-rouge/assaut` opens fullscreen. No minimize/resize/close.
+4. **4.4** — Windows shortcut blocking via `globalShortcut.register` for Alt+Tab, Alt+F4, Ctrl+Esc, Super+L, Super+D, Ctrl+Shift+Esc. Document Ctrl+Alt+Del as out-of-scope (Windows secure attention sequence — not user-mode interceptable; venue session policy is the third lock).
+   - **AC:** All listed shortcuts no-op while Assaut is focused. README documents the Ctrl+Alt+Del limitation and points to client-side mitigation.
 
-**Heads-up for chantier 03 specifically:**
-- `better-sqlite3` is a native module — it'll trigger `node-gyp` build on `pnpm install`, adding ~30–60s the first time. CI's pnpm-store cache stores the prebuilt binary keyed on `runner.os` + lockfile.
-- Server-nuc must bind to LAN interface only in production, never `0.0.0.0` (per `.claude/rules/server-nuc.md`).
-- All inbound payloads validated by Zod **before** touching state — schemas live in `packages/shared-types`, never in the server.
-- Synchronous better-sqlite3 API only — no async ORMs.
-- Use `pino` structured logs, never string interpolation in the message.
+**Heads-up for chantier 04 specifically (from PR #6 deferrals):**
+- **CI hardening once secrets land:** SHA-pin `actions/checkout`, `actions/setup-node`, `pnpm/action-setup`. Composite setup action at `.github/actions/setup-node-pnpm/action.yml` (build-windows will switch to `windows-latest` and have a different pnpm store path). Gate `build-android` / `build-windows` to `if: github.event_name == 'push' && github.ref == 'refs/heads/main'` once they read `ANDROID_KEYSTORE_BASE64` / `WINDOWS_CODESIGN_CERT_BASE64`. Pass secrets via `env:` on the specific `run:` step, not at job level.
+- **Build pipeline:** server-nuc currently runs via `tsx` in production. Chantier 04 should consider switching to a tsc + tsup/esbuild compile so `pnpm install --prod` (no `--prod=false`) works on the NUC, dropping ~80 dev deps.
+- **RN bare template + monorepo:** `metro.config.js` must add the workspace root to `watchFolders` and `nodeModulesPaths`, AND set `resolver.disableHierarchicalLookup = true` to play well with pnpm's hoisted layout. The `.npmrc` `node-linker=hoisted` + `shamefully-hoist=true` is already in place.
+- **Electron + Vite:** prefer `electron-vite` for the scaffold. Renderer ↔ main IPC must go through Zod-validated channels per `.claude/rules/assaut.md`.
+- **Native module testing:** Screen Pinning and global-shortcut hooks need physical-device or emulator validation — chantier 04 ACs cannot be fully verified without one. Plan the demo path early.
+- **Per-package test footgun**: when `apps/{attaque-de-bots, assaut, debriefing}` add tests, **do not** add `test` scripts at the package level (still the closed footgun). Vitest at root finds them via `apps/**/*.test.{ts,tsx}`.
 
-**Standing instruction (in memory):** at end of chantier 03, run code-reviewer + security-auditor (Zod boundary, the `/admin/reset` endpoint, LAN binding) + performance-optimizer (SQLite query patterns + WS hot paths) + refactoring-specialist quality gates before opening the PR. Apply P1 findings on the same branch.
+**Standing instruction (from memory):** at end of chantier 04, run code-reviewer + security-auditor (kiosk lock, IPC validation, native module surface) + performance-optimizer (RN 60fps target, Electron renderer paths) + refactoring-specialist quality gates before opening the PR. Apply P1 findings on the same branch. Merge green PRs (including Dependabot) without prompting.
 
 ---
 
@@ -106,11 +106,12 @@ section headers as-is. Be specific:
 
 **Good entry**
 ```
-## Last session (2026-04-30)
-- Completed Chantier 03: server-nuc booted, /health returns 200, WS handshake
-  validated end-to-end, SQLite persists across restart.
-- Pushed: PR #4, merged squash to main as <sha>.
-- All M1 ACs for chantier 03 met empirically.
+## Last session (2026-05-01)
+- Completed Chantier 04: kiosk lock validated on tablet + PC mallette;
+  Alt+Tab, Win key, Home, Back all no-op. RN apps install via
+  `pnpm android`. Electron Assaut opens fullscreen with no chrome.
+- Pushed: PR #N, merged squash to main as <sha>.
+- All M1 ACs for chantier 04 met empirically.
 ```
 
 **Bad entry**
