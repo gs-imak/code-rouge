@@ -1,0 +1,121 @@
+/* Placeholder « Section 13 » palette. Actual design tokens land via
+   @code-rouge/design-system once the maquettes arrive. Fonts are system
+   monospace stacks — no external loads (CLAUDE.md immutable rule 3). */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  color-scheme: dark;
+  --bg: #050609;
+  --fg: #c8d1cf;
+  --accent: #ff2c2c;
+  --muted: #5a6469;
+  --terminal-font:
+    'Cascadia Mono', 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular,
+    Consolas, 'Courier New', monospace;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  width: 100%;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--terminal-font);
+  font-size: 16px;
+  overflow: hidden;
+  cursor: default;
+  user-select: none;
+}
+
+.screen {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  height: 100%;
+  width: 100%;
+  padding: clamp(2rem, 5vw, 5rem);
+  gap: 2rem;
+}
+
+.screen__header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  border-left: 3px solid var(--accent);
+  padding-left: 1rem;
+}
+
+.screen__brand {
+  font-size: clamp(1.5rem, 3vw, 2.5rem);
+  letter-spacing: 0.18em;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.screen__sub {
+  font-size: clamp(0.9rem, 1.4vw, 1.1rem);
+  color: var(--muted);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.prompt {
+  align-self: center;
+  justify-self: center;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: min(40rem, 80vw);
+  text-align: center;
+}
+
+.prompt__label {
+  font-size: clamp(1rem, 1.6vw, 1.4rem);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fg);
+}
+
+.prompt__input {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid var(--accent);
+  color: var(--fg);
+  font-family: inherit;
+  font-size: clamp(2rem, 5vw, 4rem);
+  letter-spacing: 0.5em;
+  text-align: center;
+  padding: 1rem 0;
+  outline: none;
+}
+
+.prompt__input:focus {
+  border-bottom-color: var(--fg);
+}
+
+.prompt__hint {
+  font-size: 0.8rem;
+  color: var(--muted);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.kiosk-status {
+  display: flex;
+  gap: 2rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  justify-self: end;
+  align-self: end;
+}
+
+.kiosk-status__err {
+  color: var(--accent);
+}
