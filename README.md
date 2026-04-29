@@ -1,5 +1,7 @@
 # Code Rouge
 
+[![CI](https://github.com/gs-imak/code-rouge/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/gs-imak/code-rouge/actions/workflows/ci.yml)
+
 > Applications joueurs E2/E3 + mini-app Débriefing pour **« Code Rouge »**,
 > escape game B2B nomade par **The Game**.
 
@@ -12,8 +14,8 @@ Monorepo containing four runtime artifacts:
 
 ## Prerequisites
 
-- Node 22 LTS
-- pnpm 9+
+- Node 24 LTS (project standard, see `docs/architecture.md` § Decision log)
+- pnpm 10+ (auto-managed via `packageManager` in root `package.json` + corepack)
 - Git
 - GitHub CLI (`gh`) — for repo operations
 - Android Studio + an Android tablet/emulator — for the RN apps
