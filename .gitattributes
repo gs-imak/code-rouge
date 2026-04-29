@@ -1,0 +1,45 @@
+# Normalize line endings to LF in the repo. Windows checkouts get CRLF locally
+# only when core.autocrlf=true; we want LF in the working tree for shell scripts
+# and cross-platform consistency (Linux NUC, macOS dev, Windows dev).
+* text=auto eol=lf
+
+# Always LF — required for shell scripts running on the NUC
+*.sh           text eol=lf
+*.bash         text eol=lf
+
+# Source files
+*.ts           text eol=lf
+*.tsx          text eol=lf
+*.js           text eol=lf
+*.jsx          text eol=lf
+*.json         text eol=lf
+*.yaml         text eol=lf
+*.yml          text eol=lf
+*.md           text eol=lf
+*.html         text eol=lf
+*.css          text eol=lf
+*.cjs          text eol=lf
+*.mjs          text eol=lf
+
+# Lockfile — ensure LF for deterministic CI hashing
+pnpm-lock.yaml  text eol=lf
+
+# Binary files
+*.png          binary
+*.jpg          binary
+*.jpeg         binary
+*.gif          binary
+*.ico          binary
+*.mp3          binary
+*.mp4          binary
+*.zip          binary
+*.gz           binary
+*.tar          binary
+*.apk          binary
+*.aab          binary
+*.exe          binary
+*.dmg          binary
+*.AppImage     binary
+*.sqlite       binary
+*.jks          binary
+*.keystore     binary
