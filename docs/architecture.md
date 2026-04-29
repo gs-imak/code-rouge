@@ -251,3 +251,12 @@ Keep this section append-only. Date every entry.
 - **2026-04-29 — Initial decisions.** RN for Android × 2, Electron for Windows,
   pnpm + Turborepo, TypeScript strict, Vitest, ESLint+Prettier, Node 22 LTS.
   Decided in proposal acceptance + day-0 alignment with Georges.
+- **2026-04-29 — Node version bumped to 24 LTS (was 22 LTS).** Local dev
+  is on Node 24.14.1; Node 24 has been LTS since October 2025 (supported
+  through April 2028). Validated as still NUC-compatible: Ubuntu 22.04 /
+  24.04 LTS both have a NodeSource `setup_24.x` script, and our chantier 03
+  dep stack (`better-sqlite3`, `ws`, `express`, `zod`, `pino`, `tsx`) ships
+  prebuilt for Node 24. Concrete change: `tools/scripts/install-nuc.sh`
+  uses `setup_24.x`, not `setup_22.x`. Root `package.json` engines now
+  pins `"node": ">=22.0.0"` — kept loose to allow either 22 or 24 on
+  contributor machines, while the deployed NUC will be on 24.

@@ -38,9 +38,12 @@ _(none — chantier 01 done, awaiting PR merge)_
 
 ## Blocked / waiting on Georges
 
-- **PR #1 needs review/merge** to land scaffold on `main`. Direct push to `main` is blocked by local permission rules; the agent created the repo's `main` ref at the initial bundle commit and routed the scaffold work through a feature branch + PR per the project's `feat/<slug>` convention.
-- **Node 22 LTS expected, dev machine has Node v24.14.1.** The tooling all worked under Node 24 for chantier 01's structural work (no runtime apps yet), and CLAUDE.md only mandates Node 22 strictly for the NUC server (chantier 03+). Confirm whether Georges wants to switch to Node 22 LTS locally before chantier 03 (the server runs on Node 22 in production).
-- **Vercel-related session hooks fired repeatedly** for `package.json`, `tsconfig.*.json`, `pnpm-workspace.yaml`. Ignored — this project is offline-only by spec (no Vercel, no Next.js). Not a blocker, but worth noting if hooks need disabling locally.
+_(none — Node 24 LTS confirmed as the new project standard; PR #1 about to be merged)_
+
+## Notes (non-blocking)
+
+- **Vercel-related session hooks fired repeatedly** for `package.json`, `tsconfig.*.json`, `pnpm-workspace.yaml`. Ignored — this project is offline-only by spec (no Vercel, no Next.js). Worth disabling locally if they get noisy in future sessions.
+- **Node 24 LTS is now the project standard** (was 22 LTS in initial planning). Recorded in `docs/architecture.md` § Decision log. Concrete impact: chantier 03's `install-nuc.sh` will use the NodeSource `setup_24.x` script. CI workflow in chantier 02 should also use Node 24.
 
 ---
 
