@@ -9,6 +9,7 @@ import { GameState, DEFAULT_GAME_STATE } from '@code-rouge/shared-types'
 export interface UseGameStateResult {
   readonly state: GameState
   readonly setState: (next: GameState) => Promise<void>
+  readonly getLatest: () => GameState
   readonly ready: boolean
 }
 
@@ -42,12 +43,26 @@ export function useGameState(): UseGameStateResult {
   }, [])
 
   const setState = useCallback(async (next: GameState) => {
+    const previous = stateRef.current
     stateRef.current = next
     setStateRaw(next)
     const bridge = window.assaut
     if (bridge === undefined) return
-    await bridge.setGameState(next)
+    try {
+      await bridge.setGameState(next)
+    } catch (err) {
+      // Disk write failed — revert the optimistic local state so the UI
+      // doesn't drift from disk. Surface the failure to the console; a
+      // real diagnostic UI lands in chantier 06+.
+      stateRef.current = previous
+      setStateRaw(previous)
+      // eslint-disable-next-line no-console
+      console.error('[persistence] setGameState IPC rejected:', err)
+      throw err
+    }
   }, [])
 
-  return { state, setState, ready }
+  const getLatest = useCallback(() => stateRef.current, [])
+
+  return { state, setState, getLatest, ready }
 }

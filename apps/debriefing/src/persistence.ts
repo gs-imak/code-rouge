@@ -14,6 +14,7 @@ const STORAGE_KEY = 'code-rouge:game-state:v1'
 export interface UseGameStateResult {
   readonly state: GameState
   readonly setState: (next: GameState) => Promise<void>
+  readonly getLatest: () => GameState
   readonly ready: boolean
 }
 
@@ -57,7 +58,9 @@ export function useGameState(): UseGameStateResult {
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next))
   }, [])
 
-  return { state, setState, ready }
+  const getLatest = useCallback(() => stateRef.current, [])
+
+  return { state, setState, getLatest, ready }
 }
 
 export async function clearGameState(): Promise<void> {

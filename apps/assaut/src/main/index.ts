@@ -177,8 +177,18 @@ function registerIpcHandlers(): void {
     // Validate at the IPC boundary — the renderer is sandboxed but a
     // bug there shouldn't be able to write a malformed shape to disk
     // and brick the next read.
-    const parsed = GameState.parse(raw)
-    writeGameState(parsed)
+    //
+    // safeParse rather than parse: a thrown Zod error gets serialised by
+    // ipcMain.handle and rejects on the renderer side, where the
+    // optimistic local state has already been set — silently dropping
+    // the disk write while the UI shows the new value. With safeParse we
+    // throw an explicit Error that the renderer's setState catches,
+    // logs, and reverts.
+    const result = GameState.safeParse(raw)
+    if (!result.success) {
+      throw new Error(`SetGameState: invalid payload — ${result.error.message}`)
+    }
+    writeGameState(result.data)
     return { ok: true as const }
   })
 }

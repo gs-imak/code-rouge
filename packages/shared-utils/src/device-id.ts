@@ -10,20 +10,23 @@
 // (Electron) via a small native module.
 
 /**
- * Returns a freshly-generated, RFC-4122-format UUID.
+ * Returns a freshly-generated, RFC-4122 v4 UUID via the platform's
+ * Web Crypto API.
  *
- * Uses `crypto.randomUUID()` when the runtime exposes it (Node 24,
- * Electron renderer, RN 0.74+ via Web Crypto). Falls back to a
- * `Math.random()`-derived blob — collision-resistant enough for a
- * 12-tablet venue, not cryptographically strong, but good enough as the
- * fallback path is only hit on ancient runtimes.
+ * Throws when `crypto.randomUUID` is unavailable. All target runtimes
+ * (Node 22+, Electron renderer, RN ≥ 0.74) ship it; an unsupported
+ * runtime should fail loudly rather than fall back to a Math.random-
+ * derived UUID, which is predictable enough that an on-LAN attacker who
+ * sniffs one Hello frame can statistically narrow another tablet's
+ * deviceId space.
  */
 export function randomDeviceId(): string {
   const c = typeof globalThis.crypto !== 'undefined' ? globalThis.crypto : undefined
-  if (c !== undefined && typeof c.randomUUID === 'function') {
-    return c.randomUUID()
+  if (c === undefined || typeof c.randomUUID !== 'function') {
+    throw new Error(
+      'crypto.randomUUID is not available in this runtime. ' +
+        'Expected Node 22+, Electron renderer, or React Native ≥ 0.74.',
+    )
   }
-  // Fallback: 16 random hex bytes formatted as a UUID-like string.
-  const hex = (n: number): string => Math.floor(Math.random() * 0xffff).toString(16).padStart(n, '0')
-  return `${hex(8)}-${hex(4)}-${hex(4)}-${hex(4)}-${hex(8)}${hex(4)}`
+  return c.randomUUID()
 }

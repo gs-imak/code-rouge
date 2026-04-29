@@ -14,7 +14,7 @@ declare global {
 }
 
 export default function App() {
-  const { state, setState, ready } = useGameState()
+  const { state, setState, getLatest, ready } = useGameState()
   const [kiosk, setKiosk] = useState<KioskStatusResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -32,12 +32,15 @@ export default function App() {
 
   const onCodeChange = useCallback(
     (next: string) => {
-      // Persist on every keystroke. electron-store is sync on-disk so
-      // a force-kill immediately after the keypress preserves the buffer.
-      // Bounded to 64 chars by the GameState schema.
-      void setState({ ...state, draftAuthCode: next.slice(0, 64), lastSync: Date.now() })
+      // Persist on every keystroke. Read latest via getLatest() rather
+      // than closing over `state` so two keystrokes between renders
+      // can't merge from the same stale base. electron-store is sync
+      // on-disk so a force-kill immediately after the keypress
+      // preserves the buffer. Bounded to 64 chars by the GameState schema.
+      const current = getLatest()
+      void setState({ ...current, draftAuthCode: next.slice(0, 64), lastSync: Date.now() })
     },
-    [setState, state],
+    [setState, getLatest],
   )
 
   // Hold first paint until we know the persisted value — avoids a flash

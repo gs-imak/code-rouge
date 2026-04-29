@@ -24,7 +24,7 @@ const NEXT_STEP: Record<string, string> = {
 }
 
 export default function App() {
-  const { state, setState, ready } = useGameState()
+  const { state, setState, getLatest, ready } = useGameState()
   const { connection, pushState } = useServerSync({
     url: SERVER_WS_URL,
     state,
@@ -54,24 +54,31 @@ export default function App() {
       .catch((err: unknown) => setPinError(err instanceof Error ? err.message : String(err)))
   }, [])
 
+  // Both callbacks read the latest state via getLatest() rather than
+  // closing over `state`. Otherwise a double-tap on Valider or Étape
+  // suivante races: the second call captures the SAME pre-first-write
+  // `state` from the closure, both writes compute from the same base,
+  // and the second clobbers the first with stale derivations.
   const onSubmitTeam = useCallback(async () => {
     const parsed = Number.parseInt(draft, 10)
     if (!Number.isInteger(parsed) || parsed < 0) return
+    const current = getLatest()
     await setState({
-      ...state,
+      ...current,
       teamId: parsed,
-      currentStep: state.currentStep === 'init' ? 'phishing' : state.currentStep,
+      currentStep: current.currentStep === 'init' ? 'phishing' : current.currentStep,
       lastSync: Date.now(),
     })
     setDraft('')
     pushState()
-  }, [draft, setState, state, pushState])
+  }, [draft, setState, getLatest, pushState])
 
   const onStepForward = useCallback(async () => {
-    const nextStep = NEXT_STEP[state.currentStep] ?? state.currentStep
-    await setState({ ...state, currentStep: nextStep, lastSync: Date.now() })
+    const current = getLatest()
+    const nextStep = NEXT_STEP[current.currentStep] ?? current.currentStep
+    await setState({ ...current, currentStep: nextStep, lastSync: Date.now() })
     pushState()
-  }, [setState, state, pushState])
+  }, [setState, getLatest, pushState])
 
   const headline = useMemo(() => {
     if (!ready) return ''

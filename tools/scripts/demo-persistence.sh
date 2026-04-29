@@ -23,6 +23,17 @@ step() { printf '\n=== %s ===\n' "$1"; }
 ok() { printf '  ✓ %s\n' "$1"; }
 fail() { printf '  ✗ %s\n' "$1" >&2; exit 1; }
 
+# ---------- 0. Refuse to run against non-local servers ----------
+# The demo script seeds team_state rows under a fixed deviceId
+# (`demo-tablet-7`). Running it against a production NUC would pollute
+# real session data and could leak that team's progress to anyone who
+# sends a Hello with the demo deviceId.
+if [[ "${SERVER_HOST}" != "127.0.0.1" && "${SERVER_HOST}" != "localhost" && "${SERVER_HOST}" != "::1" ]]; then
+  printf '✗ refusing to run demo script against non-local SERVER_HOST=%s\n' "${SERVER_HOST}" >&2
+  printf '  override only against a disposable dev NUC, never production.\n' >&2
+  exit 1
+fi
+
 # ---------- 1. Server health ----------
 step "1. NUC server health"
 if ! curl -fsS "${HEALTH_URL}" >/dev/null; then
@@ -38,7 +49,11 @@ if ! command -v node >/dev/null; then
   fail "node not on PATH"
 fi
 SERVER_WS_URL="${WS_URL}" node "${ROUNDTRIP}"
-ok "hello → state → reconnect → restore verified"
+ok "force-stop restore verified (hello → state → reconnect-with-stable-deviceId → restore)"
+printf '    NOTE: this exercises the FORCE-STOP path — deviceId persists across the\n'
+printf '          restart. A full storage wipe (pm clear) regenerates the deviceId\n'
+printf '          and the server cannot restore until hardware-derived IDs land in\n'
+printf '          chantier 06+. The chantier 05.1 AC is force-stop, which passes here.\n'
 
 # ---------- 3. Hardware steps the script can't do ----------
 step "3. Manual steps (require physical hardware)"

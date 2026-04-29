@@ -4,9 +4,13 @@ import {
   parseServerToAppMessage,
   parseMessage,
   MessageParseError,
+  GameState,
+  DEFAULT_GAME_STATE,
+  reconcile,
   type HelloMessage,
   type StateUpdateMessage,
   type LogPushMessage,
+  type RestoreMessage,
 } from './messages.js'
 
 describe('parseAppToServerMessage — round-trip', () => {
@@ -157,5 +161,92 @@ describe('parseServerToAppMessage', () => {
 describe('parseMessage alias', () => {
   it('is the App → Server parser', () => {
     expect(parseMessage).toBe(parseAppToServerMessage)
+  })
+})
+
+describe('GameState defaults', () => {
+  it('parses {} into the canonical default record', () => {
+    expect(GameState.parse({})).toEqual({
+      deviceId: '',
+      teamId: null,
+      currentStep: 'init',
+      score: 0,
+      lastSync: 0,
+      draftAuthCode: '',
+    })
+  })
+
+  it('DEFAULT_GAME_STATE matches GameState.parse({})', () => {
+    // Guards against the constant being edited out of sync with Zod.
+    expect(DEFAULT_GAME_STATE).toEqual(GameState.parse({}))
+  })
+
+  it('rejects an empty currentStep (min(1) on the schema)', () => {
+    expect(() => GameState.parse({ currentStep: '' })).toThrow()
+  })
+})
+
+describe('reconcile', () => {
+  const restore: RestoreMessage = {
+    type: 'restore',
+    teamId: 7,
+    app: 'attaque-de-bots',
+    step: 'phishing',
+    score: 42,
+    timestamp: 1714400000000,
+  }
+
+  it('server step+score win when local is at init', () => {
+    const local = GameState.parse({})
+    const merged = reconcile(local, restore)
+    expect(merged.currentStep).toBe('phishing')
+    expect(merged.score).toBe(42)
+  })
+
+  it('app step wins when local has progressed past init', () => {
+    const local = GameState.parse({ currentStep: 'mailbox', score: 10 })
+    const merged = reconcile(local, restore)
+    expect(merged.currentStep).toBe('mailbox')
+  })
+
+  it('score takes Math.max when local has progressed', () => {
+    // Local lower than restore → restore.score wins (no regression on
+    // unflushed StateUpdate before a force-stop).
+    expect(
+      reconcile(GameState.parse({ currentStep: 'mailbox', score: 10 }), restore).score,
+    ).toBe(42)
+    // Local higher than restore → local.score wins.
+    expect(
+      reconcile(GameState.parse({ currentStep: 'mailbox', score: 99 }), restore).score,
+    ).toBe(99)
+  })
+
+  it('server teamId always wins regardless of local progress', () => {
+    const local = GameState.parse({ teamId: 3, currentStep: 'mailbox', score: 10 })
+    expect(reconcile(local, restore).teamId).toBe(7)
+  })
+
+  it('preserves draftAuthCode in both branches', () => {
+    const draft = 'abc123'
+    expect(
+      reconcile(GameState.parse({ draftAuthCode: draft }), restore).draftAuthCode,
+    ).toBe(draft)
+    expect(
+      reconcile(GameState.parse({ currentStep: 'mailbox', draftAuthCode: draft }), restore)
+        .draftAuthCode,
+    ).toBe(draft)
+  })
+
+  it('sets lastSync to a fresh timestamp (not 0, not restore.timestamp)', () => {
+    const before = Date.now()
+    const merged = reconcile(GameState.parse({}), restore)
+    expect(merged.lastSync).toBeGreaterThanOrEqual(before)
+    expect(merged.lastSync).not.toBe(0)
+    expect(merged.lastSync).not.toBe(restore.timestamp)
+  })
+
+  it('preserves local deviceId (server never carries one in RestoreMessage)', () => {
+    const local = GameState.parse({ deviceId: 'pinned-uuid-1234' })
+    expect(reconcile(local, restore).deviceId).toBe('pinned-uuid-1234')
   })
 })

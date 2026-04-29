@@ -19,6 +19,13 @@ export interface UseGameStateResult {
    */
   readonly setState: (next: GameState) => Promise<void>
   /**
+   * Synchronous accessor for the latest state. Use this inside event
+   * handlers (`onPress`, `onChangeText`) that close over `state` from
+   * the render and would otherwise read a stale value when called
+   * twice in rapid succession (double-tap, repeated keystroke).
+   */
+  readonly getLatest: () => GameState
+  /**
    * False until the first read from AsyncStorage finishes. Apps gate
    * their first render on this so the player never sees a flash of the
    * default state followed by a swap to the persisted state.
@@ -69,7 +76,9 @@ export function useGameState(): UseGameStateResult {
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next))
   }, [])
 
-  return { state, setState, ready }
+  const getLatest = useCallback(() => stateRef.current, [])
+
+  return { state, setState, getLatest, ready }
 }
 
 export async function clearGameState(): Promise<void> {

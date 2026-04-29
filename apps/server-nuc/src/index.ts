@@ -104,10 +104,11 @@ function handleAppMessage(msg: AppToServerMessage, ws: WebSocket, ctx: WsContext
         'WS hello',
       )
 
-      // Look up any prior state for this device. If we find a row from a
-      // previous run (same session or earlier), use that team's id in
-      // the welcome AND emit a RestoreMessage so the app can reconcile.
-      const prior = ctx.db.getTeamStateByDevice(msg.deviceId, msg.app)
+      // Look up prior state for this device WITHIN THIS SESSION.
+      // Cross-session lookups were rejected in security review (deviceId
+      // is sniffable off the LAN; allowing cross-session would let any
+      // player read another team's prior-day progress).
+      const prior = ctx.db.getTeamStateByDevice(ctx.sessionId, msg.deviceId, msg.app)
 
       const welcomeTeamId = msg.teamId ?? prior?.team_id ?? 0
       const welcome: WelcomeMessage = {
@@ -155,11 +156,32 @@ function handleAppMessage(msg: AppToServerMessage, ws: WebSocket, ctx: WsContext
   }
 }
 
+// Per-IP connection rate limit. Twelve tablets reconnecting at once
+// after a brief NUC restart hits each ~3 attempts in 10 s; a single
+// misbehaving laptop can trivially exceed any reasonable threshold.
+// 10 attempts / 10 s allows a healthy reconnect storm and rejects
+// abuse. Rejected attempts return 429 before `handleUpgrade` runs, so
+// nothing is allocated past the TCP socket.
+const CONNECTION_RATE_LIMIT = 10
+const CONNECTION_RATE_WINDOW_MS = 10_000
+
 function attachWebSocket(http: HttpServer, ctx: WsContext): WebSocketServer {
   // noServer mode so we control the upgrade path explicitly (route-scoped
   // to /ws). maxPayload kicks in at the protocol layer before any JS
   // touches frame contents — DoS guard against multi-megabyte frames.
   const wss = new WebSocketServer({ noServer: true, maxPayload: WS_MAX_PAYLOAD_BYTES })
+
+  // Rolling window of connection attempts per remote IP. Pruned on every
+  // upgrade (cheap) and via a periodic sweep (bounded growth between
+  // upgrades). Map size bounded by simultaneous remote IPs ≤ 12 + a
+  // handful of GM/operator devices; no memory concern.
+  const connectionWindow = new Map<string, { count: number; resetAt: number }>()
+  const sweepInterval = setInterval(() => {
+    const now = Date.now()
+    for (const [ip, entry] of connectionWindow) {
+      if (now >= entry.resetAt) connectionWindow.delete(ip)
+    }
+  }, CONNECTION_RATE_WINDOW_MS).unref()
 
   http.on('upgrade', (req, socket, head) => {
     if (req.url !== '/ws') {
@@ -170,10 +192,32 @@ function attachWebSocket(http: HttpServer, ctx: WsContext): WebSocketServer {
       socket.destroy()
       return
     }
+
+    const remote = req.socket.remoteAddress ?? 'unknown'
+    const now = Date.now()
+    const entry = connectionWindow.get(remote)
+    if (entry === undefined || now >= entry.resetAt) {
+      connectionWindow.set(remote, { count: 1, resetAt: now + CONNECTION_RATE_WINDOW_MS })
+    } else {
+      entry.count += 1
+      if (entry.count > CONNECTION_RATE_LIMIT) {
+        ctx.logger.warn(
+          { remote, count: entry.count, windowMs: CONNECTION_RATE_WINDOW_MS },
+          'WS upgrade rejected: per-IP connection rate limit',
+        )
+        socket.write('HTTP/1.1 429 Too Many Requests\r\nConnection: close\r\n\r\n')
+        socket.destroy()
+        return
+      }
+    }
+
     wss.handleUpgrade(req, socket, head, (ws) => {
       wss.emit('connection', ws, req)
     })
   })
+
+  // Pass sweepInterval cleanup to the close path.
+  wss.on('close', () => clearInterval(sweepInterval))
 
   wss.on('connection', (ws: WebSocket, req) => {
     const remote = req.socket.remoteAddress ?? 'unknown'

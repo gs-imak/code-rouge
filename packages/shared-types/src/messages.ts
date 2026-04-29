@@ -196,14 +196,20 @@ export const DEFAULT_GAME_STATE: GameState = GameState.parse({})
 //     while disconnected; server hadn't yet seen the latest state push)
 // `lastSync` is overwritten with `Date.now()` after every reconcile.
 export function reconcile(local: GameState, restore: RestoreMessage): GameState {
+  const localMadeProgress = local.currentStep !== 'init'
   return {
     deviceId: local.deviceId,
     teamId: restore.teamId,
     // Server's `step` wins iff the local state never made progress past
     // 'init'. Otherwise the app may have gone further while disconnected;
     // app keeps its currentStep and pushes a fresh state up on reconnect.
-    currentStep: local.currentStep === 'init' ? restore.step : local.currentStep,
-    score: local.currentStep === 'init' ? restore.score : local.score,
+    currentStep: localMadeProgress ? local.currentStep : restore.step,
+    // For score, take the larger of the two when the app has made local
+    // progress — protects against a visible score regression mid-demo
+    // when the server's last push happens to carry a higher score than
+    // the local one (e.g. an unflushed StateUpdate before a force-stop).
+    // When the app is still at init, take the server's value.
+    score: localMadeProgress ? Math.max(local.score, restore.score) : restore.score,
     lastSync: Date.now(),
     // Drafts are local-only — the server never sees uncommitted input.
     draftAuthCode: local.draftAuthCode,

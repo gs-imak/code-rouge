@@ -30,13 +30,18 @@ export interface DbHandle {
     app: string,
   ) => TeamStateRow | undefined
   /**
-   * Find the most recent team_state row for a given device — used to
-   * restore a tablet that's lost its local storage. Scans across all
-   * sessions; the venue typically has one active session at a time so
-   * this returns the right row even when the device "remembers" through
-   * a session boundary. Bounded by team_state row count (≤ 36 typical).
+   * Find the most recent team_state row for a given device within the
+   * current session. Restoring across session boundaries was rejected
+   * in security review — a player who sniffs a deviceId off the LAN
+   * could otherwise read another team's prior-day progress by
+   * connecting and submitting a Hello with that ID. Today's lookup is
+   * scoped: cross-session leakage is closed; intra-session spoofing
+   * still works (paired-deviceId HMAC challenge lands in chantier 06+).
+   *
+   * Indexed by `idx_team_state_device_app` (migration 002).
    */
   readonly getTeamStateByDevice: (
+    sessionId: string,
     deviceId: string,
     app: string,
   ) => TeamStateRow | undefined
@@ -136,15 +141,16 @@ export function openDb(config: ServerConfig, logger: Logger): DbHandle {
     WHERE session_id = @sessionId AND team_id = @teamId AND app = @app
   `)
 
-  // ORDER BY timestamp DESC so a device that was on team 4 last week and
-  // got reassigned to team 7 today gets the team-7 row.
+  // Scoped to session so a sniffed deviceId can't leak last-week's
+  // team-4 progress when the device is on team 7 today. ORDER BY
+  // timestamp DESC LIMIT 1 picks the latest row within the session.
   const getTeamStateByDeviceStmt = db.prepare<
-    { deviceId: string; app: string },
+    { sessionId: string; deviceId: string; app: string },
     TeamStateRow
   >(`
     SELECT session_id, team_id, app, device_id, step, score, timestamp
     FROM team_state
-    WHERE device_id = @deviceId AND app = @app
+    WHERE session_id = @sessionId AND device_id = @deviceId AND app = @app
     ORDER BY timestamp DESC
     LIMIT 1
   `)
@@ -179,8 +185,8 @@ export function openDb(config: ServerConfig, logger: Logger): DbHandle {
     getTeamState(sessionId, teamId, app) {
       return getTeamStateStmt.get({ sessionId, teamId, app })
     },
-    getTeamStateByDevice(deviceId, app) {
-      return getTeamStateByDeviceStmt.get({ deviceId, app })
+    getTeamStateByDevice(sessionId, deviceId, app) {
+      return getTeamStateByDeviceStmt.get({ sessionId, deviceId, app })
     },
     ensureSession(sessionId, resetCode) {
       ensureSessionStmt.run(sessionId, Date.now(), resetCode)
