@@ -1,0 +1,153 @@
+import Database, { type Database as DatabaseType } from 'better-sqlite3'
+import { readFileSync, readdirSync, mkdirSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import type { Logger } from 'pino'
+import type {
+  LogPushMessage,
+  StateUpdateMessage,
+} from '@code-rouge/shared-types'
+import type { ServerConfig } from './config.js'
+
+const MIGRATIONS_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'migrations')
+
+export interface TeamStateRow {
+  readonly session_id: string
+  readonly team_id: number
+  readonly app: string
+  readonly device_id: string
+  readonly step: string
+  readonly score: number
+  readonly timestamp: number
+}
+
+export interface DbHandle {
+  readonly db: DatabaseType
+  readonly upsertTeamState: (sessionId: string, msg: StateUpdateMessage) => boolean
+  readonly appendLogEvents: (sessionId: string, msg: LogPushMessage) => number
+  readonly getTeamState: (
+    sessionId: string,
+    teamId: number,
+    app: string,
+  ) => TeamStateRow | undefined
+  readonly ensureSession: (sessionId: string, resetCode: string) => void
+  readonly close: () => void
+}
+
+function runMigrations(db: DatabaseType, logger: Logger): void {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS _migrations (
+      name        TEXT    PRIMARY KEY NOT NULL,
+      applied_at  INTEGER NOT NULL
+    ) STRICT
+  `)
+  const applied = new Set(
+    db.prepare<unknown[], { name: string }>('SELECT name FROM _migrations').all().map((r) => r.name),
+  )
+  const files = readdirSync(MIGRATIONS_DIR)
+    .filter((f) => f.endsWith('.sql'))
+    .sort()
+  const insertMigration = db.prepare(
+    'INSERT INTO _migrations (name, applied_at) VALUES (?, ?)',
+  )
+  for (const file of files) {
+    if (applied.has(file)) continue
+    const sql = readFileSync(join(MIGRATIONS_DIR, file), 'utf8')
+    db.transaction(() => {
+      db.exec(sql)
+      insertMigration.run(file, Date.now())
+    })()
+    logger.info({ migration: file }, 'migration applied')
+  }
+}
+
+export function openDb(config: ServerConfig, logger: Logger): DbHandle {
+  // Ensure the parent directory exists. SQLite itself creates the file.
+  mkdirSync(dirname(config.databasePath), { recursive: true })
+
+  const db = new Database(config.databasePath)
+  db.pragma('journal_mode = WAL') // concurrent readers, durable on power-loss
+  db.pragma('foreign_keys = ON')
+  db.pragma('synchronous = NORMAL') // WAL + NORMAL is the recommended balance
+
+  runMigrations(db, logger)
+
+  const upsertTeamStateStmt = db.prepare(`
+    INSERT INTO team_state (session_id, team_id, app, device_id, step, score, timestamp)
+    VALUES (@sessionId, @teamId, @app, @deviceId, @step, @score, @timestamp)
+    ON CONFLICT (session_id, team_id, app) DO UPDATE SET
+      device_id = excluded.device_id,
+      step      = excluded.step,
+      score     = excluded.score,
+      timestamp = excluded.timestamp
+    WHERE excluded.timestamp >= team_state.timestamp
+  `)
+
+  const insertLogStmt = db.prepare(`
+    INSERT INTO event_log (session_id, team_id, app, device_id, at, kind, data)
+    VALUES (@sessionId, @teamId, @app, @deviceId, @at, @kind, @data)
+  `)
+
+  const insertLogTx = db.transaction(
+    (sessionId: string, teamId: number, msg: LogPushMessage): number => {
+      let inserted = 0
+      for (const ev of msg.events) {
+        insertLogStmt.run({
+          sessionId,
+          teamId,
+          app: msg.app,
+          deviceId: msg.deviceId,
+          at: ev.at,
+          kind: ev.kind,
+          data: ev.data === undefined ? null : JSON.stringify(ev.data),
+        })
+        inserted += 1
+      }
+      return inserted
+    },
+  )
+
+  const getTeamStateStmt = db.prepare<
+    { sessionId: string; teamId: number; app: string },
+    TeamStateRow
+  >(`
+    SELECT session_id, team_id, app, device_id, step, score, timestamp
+    FROM team_state
+    WHERE session_id = @sessionId AND team_id = @teamId AND app = @app
+  `)
+
+  const ensureSessionStmt = db.prepare(`
+    INSERT OR IGNORE INTO sessions (id, started_at, reset_code)
+    VALUES (?, ?, ?)
+  `)
+
+  return {
+    db,
+    upsertTeamState(sessionId, msg) {
+      if (msg.teamId === null) return false // team not yet selected — caller logs and skips
+      const result = upsertTeamStateStmt.run({
+        sessionId,
+        teamId: msg.teamId,
+        app: msg.app,
+        deviceId: msg.deviceId,
+        step: msg.step,
+        score: msg.score,
+        timestamp: msg.timestamp,
+      })
+      return result.changes > 0
+    },
+    appendLogEvents(sessionId, msg) {
+      if (msg.teamId === null) return 0
+      return insertLogTx(sessionId, msg.teamId, msg)
+    },
+    getTeamState(sessionId, teamId, app) {
+      return getTeamStateStmt.get({ sessionId, teamId, app })
+    },
+    ensureSession(sessionId, resetCode) {
+      ensureSessionStmt.run(sessionId, Date.now(), resetCode)
+    },
+    close() {
+      db.close()
+    },
+  }
+}
