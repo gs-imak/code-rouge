@@ -16,6 +16,12 @@
     "typecheck": "turbo run typecheck",
     "test": "vitest run"
   },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "better-sqlite3",
+      "esbuild"
+    ]
+  },
   "devDependencies": {
     "@types/node": "^22.19.17",
     "@typescript-eslint/eslint-plugin": "^8.59.1",
