@@ -5,6 +5,11 @@ import type { KioskStatusResponse } from '@shared/ipc'
 // hacker-terminal aesthetic land later. For now we show the screen the AC
 // expects ("Saisie code autorisation — placeholder") plus a kiosk-status
 // readout so a tester can verify the triple-verrou is engaged at a glance.
+//
+// The kiosk-status footer is debugging UI for the M1 validation visio
+// (4 May 2026) — delete after Nathanael signs off, along with the
+// IpcChannel.KioskStatus path in shared/ipc.ts and the corresponding
+// handler in main/index.ts (refactoring agent's recommendation in PR #N).
 
 declare global {
   interface Window {
@@ -39,6 +44,8 @@ export default function App() {
         <label className="prompt__label" htmlFor="auth-code">
           Saisie code autorisation
         </label>
+        {/* No aria-label here — the linked <label htmlFor> already provides
+            the accessible name. Adding both is a divergence trap. */}
         <input
           id="auth-code"
           className="prompt__input"
@@ -46,7 +53,6 @@ export default function App() {
           autoComplete="off"
           spellCheck={false}
           placeholder="——————"
-          aria-label="Code d'autorisation"
         />
         <p className="prompt__hint">placeholder — chantier 04 scaffold</p>
       </section>
@@ -58,6 +64,11 @@ export default function App() {
             <span>kiosk: {String(kiosk.kiosk)}</span>
             <span>fullscreen: {String(kiosk.fullscreen)}</span>
             <span>shortcuts: {kiosk.globalShortcutsRegistered.length}</span>
+            {kiosk.globalShortcutsFailed.length > 0 && (
+              <span className="kiosk-status__warn">
+                failed: {kiosk.globalShortcutsFailed.join(', ')}
+              </span>
+            )}
           </>
         )}
       </footer>

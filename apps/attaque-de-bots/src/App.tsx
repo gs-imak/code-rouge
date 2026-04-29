@@ -1,10 +1,6 @@
 import { useEffect, useState } from 'react'
 import { BackHandler, StatusBar, StyleSheet, Text, View } from 'react-native'
-import {
-  isKioskAvailable,
-  KioskNotAvailableError,
-  startScreenPinning,
-} from './kiosk'
+import { isKioskAvailable, startScreenPinning } from './kiosk'
 
 export default function App() {
   const [pinned, setPinned] = useState(false)
@@ -12,6 +8,11 @@ export default function App() {
 
   // Disable the hardware Back button at the root. Per the RN docs returning
   // `true` from the handler signals "we handled it" → Android stops here.
+  //
+  // KNOWN: this unconditionally swallows every Back press. Fine for chantier
+  // 04 (single placeholder screen). Chantier 05 — when React Navigation
+  // lands — must change this to `() => !navigationRef.current?.canGoBack()`
+  // so the navigator can pop screens before we swallow at the root.
   useEffect(() => {
     const sub = BackHandler.addEventListener('hardwareBackPress', () => true)
     return () => sub.remove()
@@ -26,15 +27,10 @@ export default function App() {
     }
     startScreenPinning()
       .then(() => setPinned(true))
-      .catch((err: unknown) => {
-        if (err instanceof KioskNotAvailableError) {
-          setError(err.message)
-        } else if (err instanceof Error) {
-          setError(err.message)
-        } else {
-          setError(String(err))
-        }
-      })
+      .catch((err: unknown) =>
+        // KioskNotAvailableError extends Error, so this single arm covers it.
+        setError(err instanceof Error ? err.message : String(err)),
+      )
   }, [])
 
   return (
@@ -43,7 +39,7 @@ export default function App() {
       <Text style={styles.title}>Connexion équipe</Text>
       <Text style={styles.placeholder}>placeholder — chantier 04</Text>
       {error !== null && <Text style={styles.error}>⚠ {error}</Text>}
-      {pinned && <Text style={styles.ok}>kiosk mode active</Text>}
+      {pinned && <Text style={styles.ok}>✓ kiosk mode active</Text>}
     </View>
   )
 }
@@ -72,7 +68,8 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   error: {
-    color: '#ff6b6b',
+    // Tuned to ~5.9:1 AA contrast on the #0a0d12 background (was #ff6b6b at 3.75:1).
+    color: '#ff9090',
     fontSize: 14,
     marginTop: 32,
     textAlign: 'center',

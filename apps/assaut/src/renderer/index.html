@@ -4,9 +4,15 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!-- contextIsolation is on; the only non-default global is `window.assaut`. -->
+    <!-- connect-src includes ws: so chantier 05 can talk to the NUC over
+         the LAN. Without this the WebSocket would be CSP-blocked and
+         the renderer would never reach the server. The network policy
+         (LAN-only) is enforced one layer up by the venue router and the
+         server's own bind address — this CSP is just permissive enough
+         to let the WS upgrade complete. -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self' file:; connect-src 'self'"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self' file:; connect-src 'self' ws: wss:"
     />
     <title>« Code Rouge » — Section 13</title>
   </head>

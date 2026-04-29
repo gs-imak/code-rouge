@@ -15,6 +15,19 @@ const workspaceRoot = path.resolve(projectRoot, '../..')
 
 const defaultConfig = getDefaultConfig(projectRoot)
 
+// Block Metro from watching node_modules at the workspace root.
+// We still declare watchFolders so that Metro can *resolve* workspace
+// packages (packages/shared-types, etc.) via nodeModulesPaths, but we
+// don't want Metro's file-watcher to index ~600 packages it will never
+// bundle directly. Without this blockList, cold Metro start is ~20 s and
+// HMR latency is +200–500 ms per save.
+const blockList = [
+  // workspace-root node_modules (the large one)
+  new RegExp(`^${path.join(workspaceRoot, 'node_modules').replace(/\\/g, '\\\\')}`),
+  // Also block any nested node_modules that aren't this app's own
+  new RegExp(`^${path.join(workspaceRoot, 'apps').replace(/\\/g, '\\\\')}(?!${path.sep}attaque-de-bots).*${path.sep}node_modules`),
+]
+
 const config = {
   watchFolders: [workspaceRoot],
   resolver: {
@@ -23,6 +36,7 @@ const config = {
       path.resolve(workspaceRoot, 'node_modules'),
     ],
     disableHierarchicalLookup: true,
+    blockList,
   },
 }
 

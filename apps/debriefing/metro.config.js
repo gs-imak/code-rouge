@@ -10,6 +10,13 @@ const workspaceRoot = path.resolve(projectRoot, '../..')
 
 const defaultConfig = getDefaultConfig(projectRoot)
 
+// Block Metro from watching node_modules at the workspace root.
+// See apps/attaque-de-bots/metro.config.js for the full rationale.
+const blockList = [
+  new RegExp(`^${path.join(workspaceRoot, 'node_modules').replace(/\\/g, '\\\\')}`),
+  new RegExp(`^${path.join(workspaceRoot, 'apps').replace(/\\/g, '\\\\')}(?!${path.sep}debriefing).*${path.sep}node_modules`),
+]
+
 const config = {
   watchFolders: [workspaceRoot],
   resolver: {
@@ -18,6 +25,7 @@ const config = {
       path.resolve(workspaceRoot, 'node_modules'),
     ],
     disableHierarchicalLookup: true,
+    blockList,
   },
 }
 

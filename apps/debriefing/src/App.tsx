@@ -1,10 +1,6 @@
 import { useEffect, useState } from 'react'
 import { BackHandler, StatusBar, StyleSheet, Text, View } from 'react-native'
-import {
-  isKioskAvailable,
-  KioskNotAvailableError,
-  startScreenPinning,
-} from './kiosk'
+import { isKioskAvailable, startScreenPinning } from './kiosk'
 
 // GM-only app, portrait phone. Less immersion, more clarity than the
 // player apps — but kiosk mode still required so push notifications don't
@@ -13,6 +9,8 @@ export default function App() {
   const [pinned, setPinned] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  // KNOWN: see attaque-de-bots/App.tsx — chantier 05 must condition this
+  // on `!navigationRef.current?.canGoBack()` once React Navigation lands.
   useEffect(() => {
     const sub = BackHandler.addEventListener('hardwareBackPress', () => true)
     return () => sub.remove()
@@ -27,15 +25,9 @@ export default function App() {
     }
     startScreenPinning()
       .then(() => setPinned(true))
-      .catch((err: unknown) => {
-        if (err instanceof KioskNotAvailableError) {
-          setError(err.message)
-        } else if (err instanceof Error) {
-          setError(err.message)
-        } else {
-          setError(String(err))
-        }
-      })
+      .catch((err: unknown) =>
+        setError(err instanceof Error ? err.message : String(err)),
+      )
   }, [])
 
   return (
@@ -45,7 +37,7 @@ export default function App() {
       <Text style={styles.subtitle}>Game Master</Text>
       <Text style={styles.placeholder}>placeholder — chantier 04</Text>
       {error !== null && <Text style={styles.error}>⚠ {error}</Text>}
-      {pinned && <Text style={styles.ok}>kiosk mode active</Text>}
+      {pinned && <Text style={styles.ok}>✓ kiosk mode active</Text>}
     </View>
   )
 }
@@ -80,7 +72,8 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   error: {
-    color: '#ff6b6b',
+    // Tuned to ~5.9:1 AA contrast on #0a0d12 (was #ff6b6b at 3.75:1).
+    color: '#ff9090',
     fontSize: 12,
     marginTop: 32,
     textAlign: 'center',

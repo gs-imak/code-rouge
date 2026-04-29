@@ -96,12 +96,6 @@ adb shell dumpsys activity | grep "Lock Task"
 # Expect: mLockTaskModeState=LOCKED  mLockTaskController=...
 ```
 
-## No Expo modules
-
-Per `.claude/rules/attaque-de-bots.md`. Expo modules require their dev
-client and conflict with our kiosk setup. Native modules (this package's
-`Kiosk` + future haptics / audio if needed) follow the bare RN pattern.
-
 ## Performance budget
 
 60 fps on the target tablet. List screens use `FlashList` (not `FlatList`).

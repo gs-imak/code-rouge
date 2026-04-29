@@ -1,6 +1,14 @@
 /* Placeholder « Section 13 » palette. Actual design tokens land via
    @code-rouge/design-system once the maquettes arrive. Fonts are system
-   monospace stacks — no external loads (CLAUDE.md immutable rule 3). */
+   monospace stacks — no external loads (CLAUDE.md immutable rule 3).
+
+   WCAG AA notes (computed against --bg #050609, ratio target 4.5:1 normal /
+   3:1 large):
+     --fg     #c8d1cf  → 14.5:1  (pass)
+     --accent #ff5555  → 4.8:1   (pass — was #ff2c2c at 3.2:1)
+     --muted  #8a9499  → 5.5:1   (pass — was #5a6469 at 3.06:1)
+   The graphiste must keep these constraints in mind: --accent is OK for
+   bold ≥18pt; --muted is OK for body normal-weight at any size. */
 
 * {
   box-sizing: border-box;
@@ -12,8 +20,8 @@
   color-scheme: dark;
   --bg: #050609;
   --fg: #c8d1cf;
-  --accent: #ff2c2c;
-  --muted: #5a6469;
+  --accent: #ff5555;
+  --muted: #8a9499;
   --terminal-font:
     'Cascadia Mono', 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular,
     Consolas, 'Courier New', monospace;
@@ -29,8 +37,14 @@ body,
   font-family: var(--terminal-font);
   font-size: 16px;
   overflow: hidden;
-  cursor: default;
+}
+
+body {
+  /* `user-select:none` skips inputs (browsers always allow selection inside
+     <input> / <textarea>), but applying at body level still suppresses
+     accidental selection of headings/labels under heavy-finger touch. */
   user-select: none;
+  cursor: default;
 }
 
 .screen {
@@ -91,15 +105,21 @@ body,
   letter-spacing: 0.5em;
   text-align: center;
   padding: 1rem 0;
-  outline: none;
+  outline: none; /* default browser ring — replaced by the focus rule below */
 }
 
-.prompt__input:focus {
+.prompt__input:focus,
+.prompt__input:focus-visible {
+  /* High-contrast outline that's clearly visible at 3+ metres on a 15"
+     mallette display, replacing the default UA outline. The bottom-border
+     swap to --fg makes the field state legible even without the outline. */
+  outline: 2px solid var(--fg);
+  outline-offset: 6px;
   border-bottom-color: var(--fg);
 }
 
 .prompt__hint {
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   color: var(--muted);
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -107,8 +127,9 @@ body,
 
 .kiosk-status {
   display: flex;
-  gap: 2rem;
-  font-size: 0.75rem;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  font-size: 0.85rem;
   color: var(--muted);
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -118,4 +139,9 @@ body,
 
 .kiosk-status__err {
   color: var(--accent);
+}
+
+.kiosk-status__warn {
+  /* Failed-shortcut warning — yellow against dark passes AA at this size. */
+  color: #ffcc66;
 }

@@ -20,13 +20,19 @@ export const KioskStatusResponse = z.object({
   fullscreen: z.boolean(),
   kiosk: z.boolean(),
   globalShortcutsRegistered: z.array(z.string()),
+  // Shortcuts that `globalShortcut.register` declined (Win+L is famous —
+  // kernel-intercepted, never registers). Surfacing these explicitly so
+  // the M1 demo doesn't silently report the wrong count.
+  globalShortcutsFailed: z.array(z.string()),
 })
 export type KioskStatusResponse = z.infer<typeof KioskStatusResponse>
 
+// Trimmed: only the user-facing app version. `electron` and `platform`
+// were information-disclosure surface (fingerprinting Electron CVEs from
+// a kiosk renderer) for no UI gain. Reintroduce gated behind
+// `app.isPackaged === false` if a dev diagnostic panel needs them.
 export const AppVersionResponse = z.object({
-  electron: z.string(),
   app: z.string(),
-  platform: z.string(),
 })
 export type AppVersionResponse = z.infer<typeof AppVersionResponse>
 
