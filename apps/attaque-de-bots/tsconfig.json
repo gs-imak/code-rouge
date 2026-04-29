@@ -1,5 +1,12 @@
 {
   "extends": "../../tsconfig.base.json",
-  "include": ["src/**/*"],
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022"],
+    "jsx": "react-jsx",
+    "types": ["react-native", "node"]
+  },
+  "include": ["src/**/*", "App.tsx", "index.js", "metro.config.js", "babel.config.js"],
   "exclude": ["node_modules", "dist", "build", "android", "ios"]
 }
