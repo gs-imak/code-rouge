@@ -10,20 +10,24 @@
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
+    "build:android": "echo 'build:android — no-op until chantier 04 (RN scaffolding)'",
+    "build:windows": "echo 'build:windows — no-op until chantier 04 (Electron scaffolding)'",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
-    "test": "turbo run test"
+    "test": "vitest run"
   },
   "devDependencies": {
     "@types/node": "^22.19.17",
     "@typescript-eslint/eslint-plugin": "^8.59.1",
     "@typescript-eslint/parser": "^8.59.1",
+    "@vitest/coverage-v8": "^2.1.9",
     "eslint": "^8.57.1",
     "eslint-config-prettier": "^9.1.2",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
     "prettier": "^3.8.3",
     "turbo": "^2.3.3",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^2.1.9"
   }
 }
