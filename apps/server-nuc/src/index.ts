@@ -7,6 +7,7 @@ import {
   parseAppToServerMessage,
   MessageParseError,
   type AppToServerMessage,
+  type RestoreMessage,
   type WelcomeMessage,
 } from '@code-rouge/shared-types'
 import { loadConfig, type ServerConfig } from './config.js'
@@ -102,13 +103,36 @@ function handleAppMessage(msg: AppToServerMessage, ws: WebSocket, ctx: WsContext
         },
         'WS hello',
       )
+
+      // Look up any prior state for this device. If we find a row from a
+      // previous run (same session or earlier), use that team's id in
+      // the welcome AND emit a RestoreMessage so the app can reconcile.
+      const prior = ctx.db.getTeamStateByDevice(msg.deviceId, msg.app)
+
+      const welcomeTeamId = msg.teamId ?? prior?.team_id ?? 0
       const welcome: WelcomeMessage = {
         type: 'welcome',
-        teamId: msg.teamId ?? 0,
+        teamId: welcomeTeamId,
         sessionId: ctx.sessionId,
         serverTime: Date.now(),
       }
       ws.send(JSON.stringify(welcome))
+
+      if (prior !== undefined) {
+        const restore: RestoreMessage = {
+          type: 'restore',
+          teamId: prior.team_id,
+          app: msg.app,
+          step: prior.step,
+          score: prior.score,
+          timestamp: prior.timestamp,
+        }
+        ws.send(JSON.stringify(restore))
+        ctx.logger.info(
+          { deviceId: msg.deviceId, teamId: prior.team_id, step: prior.step },
+          'WS restore emitted',
+        )
+      }
       return
     }
     case 'state': {

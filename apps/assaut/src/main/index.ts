@@ -5,7 +5,10 @@ import {
   IpcChannel,
   KioskStatusResponse,
   AppVersionResponse,
+  SetGameStateResponse,
 } from '../shared/ipc.js'
+import { GameState } from '@code-rouge/shared-types'
+import { readGameState, writeGameState } from './store.js'
 
 // ----- Single-instance lock — must be acquired before whenReady() -----------
 //
@@ -164,6 +167,19 @@ function registerIpcHandlers(): void {
     return {
       app: app.getVersion(),
     }
+  })
+
+  ipcMain.handle(IpcChannel.GetGameState, () => {
+    return readGameState()
+  })
+
+  ipcMain.handle(IpcChannel.SetGameState, (_event, raw: unknown): SetGameStateResponse => {
+    // Validate at the IPC boundary — the renderer is sandboxed but a
+    // bug there shouldn't be able to write a malformed shape to disk
+    // and brick the next read.
+    const parsed = GameState.parse(raw)
+    writeGameState(parsed)
+    return { ok: true as const }
   })
 }
 

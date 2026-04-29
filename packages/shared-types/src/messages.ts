@@ -161,3 +161,51 @@ export function parseServerToAppMessage(raw: string): ServerToAppMessage {
 // `parseMessage` is the App → Server entry point — server-side default.
 // Apps consuming Server → App frames use parseServerToAppMessage explicitly.
 export const parseMessage = parseAppToServerMessage
+
+// -------------------------------------------------------------------- GameState
+// Persisted-on-the-app shape. Mirrors `team_state` row fields the apps care
+// about (cross-app fields like sessionId stay server-side). Defaults applied
+// via Zod so a fresh app boot with empty storage still parses to a valid
+// state — no nullable currentStep or score wandering into render code.
+
+export const GameState = z.object({
+  // Per-app stable identifier. Generated once on first boot via
+  // `randomDeviceId()` (shared-utils) and persisted; the empty default
+  // lets a fresh parse succeed before generation runs.
+  // KNOWN: random per-install (not hardware-derived). A `pm clear` wipes
+  // it and the server-side restore-by-deviceId can't find the team. Real
+  // hardware IDs land via a native module in chantier 06+.
+  deviceId: z.string().max(64).default(''),
+  teamId: TeamId.default(null),
+  currentStep: z.string().min(1).max(128).default('init'),
+  score: z.number().int().default(0),
+  lastSync: z.number().int().nonnegative().default(0),
+  // In-progress input that should survive a force-kill (the auth code on
+  // assaut, the team-id draft on attaque-de-bots before they hit Valider).
+  // Cleared once the value is validated and committed to a real field.
+  draftAuthCode: z.string().max(64).default(''),
+})
+export type GameState = z.infer<typeof GameState>
+
+export const DEFAULT_GAME_STATE: GameState = GameState.parse({})
+
+// Reconciliation policy when both server (RestoreMessage) and local
+// (persisted GameState) carry a value:
+//   - server wins for `teamId` (the GM may have re-assigned teams)
+//   - app wins for `currentStep` and `score` (app may have made progress
+//     while disconnected; server hadn't yet seen the latest state push)
+// `lastSync` is overwritten with `Date.now()` after every reconcile.
+export function reconcile(local: GameState, restore: RestoreMessage): GameState {
+  return {
+    deviceId: local.deviceId,
+    teamId: restore.teamId,
+    // Server's `step` wins iff the local state never made progress past
+    // 'init'. Otherwise the app may have gone further while disconnected;
+    // app keeps its currentStep and pushes a fresh state up on reconnect.
+    currentStep: local.currentStep === 'init' ? restore.step : local.currentStep,
+    score: local.currentStep === 'init' ? restore.score : local.score,
+    lastSync: Date.now(),
+    // Drafts are local-only — the server never sees uncommitted input.
+    draftAuthCode: local.draftAuthCode,
+  }
+}
