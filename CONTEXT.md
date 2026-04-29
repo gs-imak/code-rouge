@@ -5,13 +5,15 @@
 
 ---
 
-## Last session (2026-04-29)
+## Last session (2026-04-29) — **M1 SHIPPED, tagged `v0.1.0`**
 
-**Chantiers 01 + 02 + 03 + 04 all DONE & MERGED.** CI green on every chantier merge into `main`. M1 80% through (4 of 5 chantiers).
+All 5 chantiers of M1 done and merged. CI green on every chantier merge into `main`. **Demo to Nathanael: 2026-05-04 14h30.**
 
 ### main now has
 
 ```
+c2effad feat: chantier 05 — persistence + server-side restore + demo script (M1 final) (#10)
+3125990 docs: mark chantier 04 fully shipped, brief chantier 05 (M1 demo) (#9)
 ae07739 feat: chantier 04 — kiosk mode (Electron Assaut + RN scaffolds + Kotlin Screen Pinning) (#8)
 69d11b5 docs: mark chantier 03 fully shipped, brief chantier 04 (#7)
 d415be4 feat: chantier 03 — local NUC server (Express + WS + SQLite + Zod) (#6)
@@ -23,86 +25,78 @@ b2218aa refactor: chantier 01 quality-gate review fixes (#2)
 a92df49 chore: initial bundle (CLAUDE.md, docs, rules)
 ```
 
-### Chantier 04 deliverables (PR #8)
+**Tag: `v0.1.0` (signed annotated, pushed to origin).**
 
-- **`apps/assaut`** — Electron 41 + Vite + React 18 + TypeScript via `electron-vite`. Triple-verrou kiosk lock: BrowserWindow flags (`kiosk:true, fullscreen:true, frame:false, contextIsolation:true, nodeIntegration:false, sandbox:true, webSecurity:true, devTools:!isProduction`), `globalShortcut.register` for Alt+Tab/Alt+F4/Ctrl+Esc/Win+L/Win+D/Ctrl+Shift+Esc with failed-shortcut tracking, single-instance lock at module load, `will-navigate` origin+pathname compare, `will-attach-webview` deny, popup deny, no-sourcemaps in main/preload, no menu, single-instance lock. Typed Zod IPC via `src/shared/ipc.ts` + preload `contextBridge`. Placeholder « Section 13 » UI with kiosk-status footer (will be deleted post-validation per the refactoring agent). README points at `.claude/rules/assaut.md` and the inline source for kiosk caveats; Ctrl+Alt+Del / Win+L documented as kernel-level non-blockable.
-- **`apps/attaque-de-bots`** + **`apps/debriefing`** — RN 0.85 + React 19 scaffolds (no Expo). Workspace-aware Metro config with explicit `blockList` for workspace-root + sibling-app `node_modules` (cold start ~4 s vs ~20 s without). `src/App.tsx` placeholders ("Connexion équipe" + "Débriefing"), hardware Back swallowed at root (`BackHandler` returns `true`; TODO inline for chantier 05's React Navigation refactor). `src/kiosk.ts` TS façade over the Kotlin module, throws typed `KioskNotAvailableError`. `KioskModule.kt` + `KioskPackage.kt` per-app under their respective `com.coderouge.{attaquedebots,debriefing}` packages — wraps `Activity.startLockTask()` (Android Screen Pinning), null-activity guard, UI-thread dispatch, surfaces `SecurityException` with the exact "enable in Settings → Security → Screen Pinning" guidance.
-- **What's NOT committed for the RN apps** (intentionally — needs `npx @react-native-community/cli init` to generate, then a follow-up PR): `android/build.gradle`, `android/app/build.gradle`, `gradle/wrapper/`, `MainActivity.kt`, `MainApplication.kt`, `AndroidManifest.xml`, `res/`. Both READMEs document the exact CLI incantation, applicationId substitution, and the `MainApplication.kt` line registering `KioskPackage()`.
+### Chantier 05 deliverables (PR #10)
 
-### Chantier 04 ACs verified
+- **`packages/shared-types`**: `GameState` Zod schema (deviceId / teamId / currentStep / score / lastSync / draftAuthCode), `reconcile(local, restoreMsg)` with documented authority policy (server wins teamId; app wins step+score when past 'init', with `Math.max` on score to prevent regression).
+- **`packages/shared-utils`**: capped exponential backoff (`nextBackoffDelay`, ±20% jitter, 30 s cap), `createWsClient` reconnecting WebSocket consumed by all 3 apps, `randomDeviceId` (crypto.randomUUID, throws on missing — Math.random fallback removed in P0 review fix).
+- **`apps/server-nuc`**: `db.getTeamStateByDevice(sessionId, deviceId, app)` session-scoped restore lookup + `002_device_id_index.sql` covering index + per-IP WS connection rate limit (10/10s, 429 before `handleUpgrade`). Hello handler emits Welcome AND Restore in one round-trip.
+- **`apps/attaque-de-bots`** + **`apps/debriefing`**: AsyncStorage-backed `useGameState` hook with rehydration-gated first paint, deviceId minted on first boot. Attaque-de-bots also wires `useServerSync` (Hello on open, Restore → reconcile, manual `pushState` on transitions) and a green/yellow/red diagnostic dot.
+- **`apps/assaut`**: electron-store-backed `useGameState` via Zod-validated `GetGameState` / `SetGameState` IPC channels. Renderer's auth-code input is now controlled by `state.draftAuthCode` and persists per keystroke. IPC handler uses `safeParse` + explicit Error; renderer catches IPC rejections and reverts the optimistic local state.
+- **`tools/scripts/demo-persistence.sh`** + **`demo-ws-roundtrip.mjs`**: orchestrator + standalone Node WS round-trip. Refuses non-local SERVER_HOST. Phase 2 honestly labelled as "post-force-stop, deviceId stable" (not "post-wipe" — the latter requires hardware-derived IDs landing in chantier 06+).
 
-- ✅ `pnpm typecheck` → 7/7 packages, including both RN apps + assaut's composite project refs
+### Chantier 05 ACs verified
+
+- ✅ `pnpm typecheck` → 7/7 (full turbo cache hit)
+- ✅ `pnpm test` → **37/37 pass** (was 23 — added 14 tests this chantier: 8 GameState/reconcile + 4 device-id + previously 2 round-trip)
 - ✅ `pnpm -r run lint` → exit 0
-- ✅ `pnpm test` → 16/16 pass
-- ✅ `pnpm --filter assaut build` → main 4.6 kB, preload 0.83 kB, renderer 217 KB
-- ✅ `shellcheck tools/scripts/*.sh` → exit 0
 - ✅ `pnpm audit --audit-level=high` → exit 0 (3 moderate, 0 high)
+- ✅ `bash tools/scripts/demo-persistence.sh` → exit 0 (live round-trip against tsx-run server, session-scoped restore + per-IP rate limit + 002 index applied)
 - ✅ CI on main run → 5/5 green
-- ⏸ **Hardware verification still required:** `pnpm dev --filter assaut` (would lock dev machine — Georges to run manually); `pnpm android --filter @code-rouge/<rn-app>` (needs RN-CLI scaffold + connected device); `adb shell dumpsys activity | grep "Lock Task"` shows LOCKED.
+- ⏸ **Hardware-only:** force-stop the tablet → reopen → no flash, lands on team's last step; type a code in Assaut → Task-Manager-kill → reopen, code preserved; demo script's manual block (3a–3e: kiosk launch, network diagnostic, team selection, force-reboot, CI badge).
 
-### Quality gate (5 agents in parallel) — 22 findings, 19 applied pre-merge, 3 deferred to chantier 04 follow-up or chantier 05
+### Quality gate (5 agents in parallel) — 11 fixes + 12 tests baked in
 
-P0: removed `alwaysOnTop:true` (kiosk multi-monitor risk), removed redundant `aria-label` (label-name divergence trap), added visible focus ring (was outline:none with subtle border swap).
+P0: IPC `SetGameState` safeParse + renderer revert-on-reject (silently dropped writes were possible); `randomDeviceId` Math.random fallback removed (was dead code on every target runtime AND produced predictable UUIDs an on-LAN sniff could narrow); demo script honest AC labelling + non-local SERVER_HOST refusal.
 
-P1: single-instance lock hoisted before `whenReady()` (race), `will-navigate` origin+pathname compare (was strict equality, both blocked Vite HMR and would have allowed `?injected=payload`), CSP `connect-src ws: wss:` (chantier 05 WS would silently fail), failed-shortcut tracking via IPC (Win+L kernel-intercepted; demo footer would have shown wrong count), `devTools: !isProduction`, `webSecurity: true` explicit, `will-attach-webview` deny, `sourcemap: false` for main+preload, `AppVersionResponse` trimmed to `{ app }` only (no Electron-version fingerprinting), color contrast tuned (--accent 3.2:1→4.8:1, --muted 3.06:1→5.5:1, error 3.75:1→5.9:1 — all pass WCAG AA Normal-Text), ✓ prefix on "kiosk mode active" status (consistent with ⚠ on errors; non-color cue), collapsed dead `KioskNotAvailableError` catch arm (instanceof Error covers it), inline TODO for BackHandler-vs-Navigation refactor.
+P1: `002_device_id_index.sql` migration; `getTeamStateByDevice` session-scoped (closes cross-session deviceId leak — sniff one team's deviceId off the LAN and you'd get their prior-day progress); per-IP WS connection rate limit (10/10s, 429 before handleUpgrade); `useGameState.getLatest()` exposed and used by all event handlers (closes the double-tap race); `reconcile` takes `Math.max(local.score, restore.score)` on the local-progressed branch (no visible score regression on reboot).
 
-P2: Metro `blockList` (perf agent applied during the run), assaut README triple-verrou block trimmed (~70 lines, was duplicating `.claude/rules/assaut.md`), attaque-de-bots README "No Expo modules" line removed (also duplicate of rules).
+Tests: extended `messages.test.ts` with 10 new tests covering `GameState` defaults, `DEFAULT_GAME_STATE`/Zod-default sync, `currentStep min(1)` rejection, full `reconcile` branch coverage; new `device-id.test.ts` with 4 tests including the throw-on-missing-crypto path (locks in the P0 fix).
 
-**Plus a CI fix-on-PR:** `pnpm audit --audit-level=high` (added in chantier 02) caught 4 high CVEs in `tar` (via electron-builder's transitive chain) + 4 high CVEs in Electron 33. Resolved by removing the prematurely-added `electron-builder` (packaging belongs to chantier 05) and bumping `electron@^33.4.11 → ^41.3.0`. The audit step is now actively earning its place in CI.
+### Deferred (chantier 06+, with concrete plans)
 
-**Deferred:**
-- BackHandler refactor for React Navigation (chantier 05; inline TODO in both RN App.tsx files)
-- `KioskModule.kt` `BuildConfig.DEBUG`-gated error message (production must not leak the Settings path) — needs Android Studio scaffold to generate `BuildConfig`; will land alongside the chantier 04 follow-up PR
-- Native `MainActivity.onCreate.startLockTask` (eliminates ~100-300ms placeholder visible before pinning engages) — chantier 05 hardening once `MainActivity.kt` exists
+- NUC-IP-scoped CSP (chantier 06's GM admin screen derives `connect-src` from configured NUC IP)
+- pino `redact: ['*.draftAuthCode']` (preemptive — once chantier 06 wires real auth, never log the field even at debug)
+- Demo script: fresh-UUID-per-run + server-side cleanup endpoint
+- Native `MainActivity.onCreate.startLockTask` (eliminates ~100-300 ms placeholder visible before pinning) — needs Android Studio scaffold first
+- BackHandler refactor for React Navigation
+- Hardware-derived device IDs (Android `Settings.Secure.ANDROID_ID` + Windows machine GUID) so the chantier 05.3 AC works with full storage wipe, not just force-stop
 
 ---
 
 ## Currently in progress
 
-_(none — chantier 04 done, awaiting next session for chantier 05)_
+_(none — M1 done, awaiting hardware validation + 4 May visio with Nathanael)_
 
 ---
 
 ## Blocked / waiting on Georges
 
-- **Hardware validation for chantier 04:** the kiosk runtime ACs cannot be fully verified without a Windows mallette PC + an Android tablet/emulator + Android Studio. Code is complete; these need the machines.
-- **Android scaffold follow-up PR:** before chantier 05's persistence demo can run on hardware, someone needs to run the `npx @react-native-community/cli init` flow per `apps/attaque-de-bots/README.md` (and same for debriefing) to generate the missing `android/` Gradle tree, then commit the result. Should be a small PR labelled `chantier 04 follow-up — Android scaffold`.
+- **Hardware validation for chantier 04 + 05:** runtime ACs need a Windows mallette PC + an Android tablet/emulator + Android Studio. Code is complete.
+- **Android scaffold follow-up PR:** `npx @react-native-community/cli init` walkthrough in `apps/attaque-de-bots/README.md` + `apps/debriefing/README.md`. Generates the `android/` Gradle tree the kiosk Kotlin sources land into. Should be a small standalone PR before the demo.
 
 ## Notes (non-blocking)
 
-- **3 moderate** transitive vulnerabilities still in `pnpm audit` (none high). Below the CI threshold; worth a triage when convenient.
-- Vercel session hooks continue to fire on common filenames; ignored.
-- The kiosk-status footer in `assaut/App.tsx` is debugging UI for the M1 demo and is **scheduled for deletion after the 4-May validation visio** — including the `IpcChannel.KioskStatus` path in `shared/ipc.ts` (refactoring agent's recommendation in PR #8). `IpcChannel.AppVersion` stays — chantier 05 needs it for the GM session-reset flow.
+- 3 moderate vulnerabilities still in `pnpm audit` (none high). Below the CI threshold; worth a triage when convenient.
+- Vercel session hooks continue to fire; ignored.
+- Kiosk-status footer in `assaut/App.tsx` is debugging UI for the M1 demo — **scheduled for deletion after the 4-May validation visio** (refactoring agent's recommendation in PR #8).
 
 ---
 
 ## Next concrete task
 
-**Chantier 05 — Persistance & reprise automatique** (`docs/m1-plan.md` § Chantier 05).
+**M1 demo with Nathanael — 2026-05-04 14h30.** Walk through the 5-step validation scenario from `docs/m1-plan.md` § Validation. Run `tools/scripts/demo-persistence.sh` for the automatable steps; complete steps 3a-3e by hand on the venue hardware (mallette + tablet + GM phone).
 
-**Day:** J5 — Mon 4 May 2026 (morning) ; **demo to Nathanael at 14h30**.
+After demo passes:
+1. Capture screenshots into `docs/demo/m1/` (the directory has a `.gitkeep`; PNGs are gitignored by default).
+2. Open the **chantier 04 follow-up PR** generating the `android/` Gradle scaffold for both RN apps.
+3. Delete the kiosk-status footer in `assaut/App.tsx` + the `IpcChannel.KioskStatus` IPC path (no longer needed; `IpcChannel.AppVersion` stays — chantier 06+ session reset uses it).
+4. **Send invoice for M1.**
 
-**Branch:** `feat/chantier-05-persistence`.
+If demo finds blocking bugs, branch `fix/m1-demo-<short-slug>` per chantier and apply the same flow (PR + quality gate + merge). Treat any hardware-only AC failures as separate chantier-06 prep issues, not M1 regressions, unless they materially block validation.
 
-In order:
-1. **5.1** — Local state store (RN apps). `@react-native-async-storage/async-storage` in both `attaque-de-bots` + `debriefing`. `useGameState()` hook wraps `(state, setState)`, persists on every change, rehydrates on boot before first render. Persisted: `teamId`, `currentStep`, `score`, `lastSync`. **AC:** force-stop the app via `adb shell am force-stop`, reopen, lands on the same step with no flash of team-selection.
-2. **5.2** — Local state store (Electron Assaut). `electron-store` (or typed JSON in `app.getPath('userData')`). Same shape + behaviour as 5.1. Main process loads sync at startup, passes to renderer via initial IPC handshake. **AC:** type a code, force-kill via Task Manager (kiosk blocks the rest), reopen — code still in input.
-3. **5.3** — Server-side resume on connect. On `HelloMessage`: lookup `(teamId, app)` in `team_state`, send back a `RestoreMessage` if found. App reconciles (server authoritative for cross-app fields like `teamId`; app authoritative for its own UI step). **AC:** wipe a tablet's local storage, reconnect — server-driven restore lands on last-known step without team-select.
-4. **5.4** — `tools/scripts/demo-persistence.sh` automating the validation scenario. Screenshots in `docs/demo/m1/`. **AC:** script runs end-to-end except for the manual Windows-PC reboot.
-
-**Heads-up specific to chantier 05:**
-- **BackHandler refactor:** when React Navigation lands, change `BackHandler.addEventListener('hardwareBackPress', () => true)` to `() => !navigationRef.current?.canGoBack()` in both RN App.tsx files. Inline TODO is in place.
-- **WebSocket reconnect cap:** the perf agent flagged this as a chantier-05 trap. Cap exponential backoff at 30 s (`Math.min(delay, 30_000)`); without it, a tablet that disconnects at minute 5 ends up offline for the rest of the 60-min session.
-- **AsyncStorage / electron-store reads:** wrap behind a single `useEffect` → context, never call from inside frequently-rendered components.
-- **better-sqlite3 + `synchronous = FULL`** is already set (chantier 03) so the force-reboot demo's WAL durability is covered.
-- **Missing Server→App message types:** `RestoreMessage` schema exists in `packages/shared-types/src/messages.ts` but no server code emits it yet. Wire it up in 5.3.
-- **Per-package test footgun**: still closed. Don't add `test` scripts at the package level — root `pnpm test` finds tests via Vitest config.
-- **Kiosk-status footer in assaut** can be deleted post-validation, per the refactoring agent's note in PR #8 description and in this CONTEXT.md.
-
-**Standing instructions (in memory):**
-- At chantier-05-end, run code-reviewer + security-auditor + performance-optimizer + refactoring-specialist + qa-tester (the m1-plan calls out 5.x as the highest-leverage area for unit tests in the project — Nathanael will demo to clients) quality gates before opening the PR. Apply P1 findings on the same branch.
-- Merge green PRs (including Dependabot) without prompting.
-- After 5.4 lands and the M1 demo passes, **tag `v0.1.0`** per `CLAUDE.md` § Tags.
+**Once M1 is signed off → chantier 06 starts: real game content (parcours JSON, mailbox JSON, énigme matrices A/B/C/D, CDC sequence linéaire for Assaut) + the design-system tokens once the graphiste's maquettes land.**
 
 ---
 
@@ -114,11 +108,14 @@ section headers as-is. Be specific:
 **Good entry**
 ```
 ## Last session (2026-05-04)
-- Completed Chantier 05: persistence works on both RN and Electron apps,
-  server-side resume on Hello, demo-persistence.sh runs end-to-end.
-- All 5 demo steps passed in front of Nathanael at 14h30.
-- Tagged v0.1.0. M1 validated, invoicing tomorrow.
-- Pushed: PR #N, merged squash to main as <sha>.
+- M1 demo passed; Nathanael signed off. Tagged v0.1.0 already; invoice
+  drafted, sent to Nathanael CC accounting.
+- Captured 4 PNGs in docs/demo/m1/.
+- Found one regression during demo: shared-types `reconcile` returned
+  draftAuthCode='' instead of preserving when local was past init —
+  fixed in PR #11, merged.
+- Chantier 04 follow-up Android scaffold landed in PR #12.
+- Next: chantier 06 — game content (parcours.json schema first).
 ```
 
 **Bad entry**
