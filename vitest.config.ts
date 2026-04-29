@@ -4,9 +4,6 @@ export default defineConfig({
   test: {
     include: ['apps/**/*.{test,spec}.{ts,tsx}', 'packages/**/*.{test,spec}.{ts,tsx}'],
     exclude: [
-      '**/node_modules/**',
-      '**/dist/**',
-      '**/build/**',
       '**/out/**',
       '**/.turbo/**',
       '**/coverage/**',

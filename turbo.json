@@ -17,8 +17,7 @@
       "dependsOn": []
     },
     "test": {
-      "dependsOn": [],
-      "outputs": ["coverage/**"]
+      "dependsOn": []
     }
   }
 }

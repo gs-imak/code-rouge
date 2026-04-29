@@ -5,13 +5,13 @@
   "description": "Monorepo for « Code Rouge » — Applications joueurs E2/E3 + débriefing pour The Game",
   "packageManager": "pnpm@10.26.0",
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=24.0.0"
   },
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
-    "build:android": "echo 'build:android — no-op until chantier 04 (RN scaffolding)'",
-    "build:windows": "echo 'build:windows — no-op until chantier 04 (Electron scaffolding)'",
+    "build:android": "bash tools/scripts/build-android.sh",
+    "build:windows": "bash tools/scripts/build-windows.sh",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "test": "vitest run"
