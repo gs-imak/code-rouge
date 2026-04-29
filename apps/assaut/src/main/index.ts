@@ -5,7 +5,10 @@ import {
   IpcChannel,
   KioskStatusResponse,
   AppVersionResponse,
+  SetGameStateResponse,
 } from '../shared/ipc.js'
+import { GameState } from '@code-rouge/shared-types'
+import { readGameState, writeGameState } from './store.js'
 
 // ----- Single-instance lock — must be acquired before whenReady() -----------
 //
@@ -164,6 +167,29 @@ function registerIpcHandlers(): void {
     return {
       app: app.getVersion(),
     }
+  })
+
+  ipcMain.handle(IpcChannel.GetGameState, () => {
+    return readGameState()
+  })
+
+  ipcMain.handle(IpcChannel.SetGameState, (_event, raw: unknown): SetGameStateResponse => {
+    // Validate at the IPC boundary — the renderer is sandboxed but a
+    // bug there shouldn't be able to write a malformed shape to disk
+    // and brick the next read.
+    //
+    // safeParse rather than parse: a thrown Zod error gets serialised by
+    // ipcMain.handle and rejects on the renderer side, where the
+    // optimistic local state has already been set — silently dropping
+    // the disk write while the UI shows the new value. With safeParse we
+    // throw an explicit Error that the renderer's setState catches,
+    // logs, and reverts.
+    const result = GameState.safeParse(raw)
+    if (!result.success) {
+      throw new Error(`SetGameState: invalid payload — ${result.error.message}`)
+    }
+    writeGameState(result.data)
+    return { ok: true as const }
   })
 }
 

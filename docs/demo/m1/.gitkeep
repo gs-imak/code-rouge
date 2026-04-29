@@ -1,0 +1,10 @@
+# M1 demo screenshots land here
+
+The chantier 05 demo script (`tools/scripts/demo-persistence.sh`) writes
+PNGs to this directory at each scenario step. The `.gitignore` keeps
+`*.png` out of the repo by default; this `.gitkeep` ensures the directory
+itself is tracked so the script never has to mkdir.
+
+Replace these placeholder docs with the actual capture flow once the
+hardware (tablet + Windows mallette + screen-recording tool) is wired
+up for the 4-May visio.

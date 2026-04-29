@@ -1,15 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { KioskStatusResponse } from '@shared/ipc'
+import { useGameState } from './persistence'
 
-// Placeholder screen for chantier 04 — the maquettes for the « Section 13 »
-// hacker-terminal aesthetic land later. For now we show the screen the AC
-// expects ("Saisie code autorisation — placeholder") plus a kiosk-status
-// readout so a tester can verify the triple-verrou is engaged at a glance.
-//
-// The kiosk-status footer is debugging UI for the M1 validation visio
-// (4 May 2026) — delete after Nathanael signs off, along with the
-// IpcChannel.KioskStatus path in shared/ipc.ts and the corresponding
-// handler in main/index.ts (refactoring agent's recommendation in PR #N).
+// Placeholder screen for chantier 04 / 05. Final maquettes will replace
+// the entire surface; the kiosk-status footer is debugging UI for the
+// 4-May validation visio and is scheduled for deletion afterward (see
+// CONTEXT.md and the chantier 04 PR description).
 
 declare global {
   interface Window {
@@ -18,6 +14,7 @@ declare global {
 }
 
 export default function App() {
+  const { state, setState, getLatest, ready } = useGameState()
   const [kiosk, setKiosk] = useState<KioskStatusResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -33,6 +30,25 @@ export default function App() {
       .catch((err: unknown) => setError(err instanceof Error ? err.message : String(err)))
   }, [])
 
+  const onCodeChange = useCallback(
+    (next: string) => {
+      // Persist on every keystroke. Read latest via getLatest() rather
+      // than closing over `state` so two keystrokes between renders
+      // can't merge from the same stale base. electron-store is sync
+      // on-disk so a force-kill immediately after the keypress
+      // preserves the buffer. Bounded to 64 chars by the GameState schema.
+      const current = getLatest()
+      void setState({ ...current, draftAuthCode: next.slice(0, 64), lastSync: Date.now() })
+    },
+    [setState, getLatest],
+  )
+
+  // Hold first paint until we know the persisted value — avoids a flash
+  // of the empty placeholder and then a swap to the persisted code.
+  if (!ready) {
+    return <main className="screen" />
+  }
+
   return (
     <main className="screen">
       <header className="screen__header">
@@ -44,8 +60,6 @@ export default function App() {
         <label className="prompt__label" htmlFor="auth-code">
           Saisie code autorisation
         </label>
-        {/* No aria-label here — the linked <label htmlFor> already provides
-            the accessible name. Adding both is a divergence trap. */}
         <input
           id="auth-code"
           className="prompt__input"
@@ -53,8 +67,11 @@ export default function App() {
           autoComplete="off"
           spellCheck={false}
           placeholder="——————"
+          value={state.draftAuthCode}
+          onChange={(event) => onCodeChange(event.target.value)}
+          maxLength={64}
         />
-        <p className="prompt__hint">placeholder — chantier 04 scaffold</p>
+        <p className="prompt__hint">placeholder — chantier 05 persistance</p>
       </section>
 
       <footer className="kiosk-status" aria-live="polite">

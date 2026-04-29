@@ -3,6 +3,7 @@
 // `ipcRenderer.send`." Schemas live here, both sides import from this file.
 
 import { z } from 'zod'
+import { GameState } from '@code-rouge/shared-types'
 
 // ----- Channel name registry --------------------------------------------------
 // Adding a channel: declare it here, add the request/response schemas below,
@@ -11,6 +12,8 @@ import { z } from 'zod'
 export const IpcChannel = {
   KioskStatus: 'app:kiosk-status',
   AppVersion: 'app:version',
+  GetGameState: 'app:get-game-state',
+  SetGameState: 'app:set-game-state',
 } as const
 export type IpcChannel = (typeof IpcChannel)[keyof typeof IpcChannel]
 
@@ -36,6 +39,14 @@ export const AppVersionResponse = z.object({
 })
 export type AppVersionResponse = z.infer<typeof AppVersionResponse>
 
+// GameState passes both directions through IPC. The renderer never
+// touches the on-disk file directly; main owns electron-store. Validating
+// at both ends — main parses what the renderer sends, renderer parses
+// what main returns — is paranoid for a same-process channel but cheap.
+export { GameState as GetGameStateResponse, GameState as SetGameStateRequest }
+export const SetGameStateResponse = z.object({ ok: z.literal(true) })
+export type SetGameStateResponse = z.infer<typeof SetGameStateResponse>
+
 // ----- Bridge surface --------------------------------------------------------
 // Exact shape of `window.assaut` injected by the preload script. Keep narrow:
 // only what the renderer is allowed to call. Never leak `ipcRenderer` itself.
@@ -43,4 +54,6 @@ export type AppVersionResponse = z.infer<typeof AppVersionResponse>
 export interface AssautBridge {
   readonly getKioskStatus: () => Promise<KioskStatusResponse>
   readonly getAppVersion: () => Promise<AppVersionResponse>
+  readonly getGameState: () => Promise<GameState>
+  readonly setGameState: (next: GameState) => Promise<SetGameStateResponse>
 }
