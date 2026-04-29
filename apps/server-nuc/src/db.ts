@@ -22,7 +22,6 @@ export interface TeamStateRow {
 }
 
 export interface DbHandle {
-  readonly db: DatabaseType
   readonly upsertTeamState: (sessionId: string, msg: StateUpdateMessage) => boolean
   readonly appendLogEvents: (sessionId: string, msg: LogPushMessage) => number
   readonly getTeamState: (
@@ -31,6 +30,9 @@ export interface DbHandle {
     app: string,
   ) => TeamStateRow | undefined
   readonly ensureSession: (sessionId: string, resetCode: string) => void
+  // Cheap liveness check used by /health. Hoisted prepared statement,
+  // no per-call compile cost.
+  readonly ping: () => void
   readonly close: () => void
 }
 
@@ -66,9 +68,16 @@ export function openDb(config: ServerConfig, logger: Logger): DbHandle {
   mkdirSync(dirname(config.databasePath), { recursive: true })
 
   const db = new Database(config.databasePath)
-  db.pragma('journal_mode = WAL') // concurrent readers, durable on power-loss
+  db.pragma('journal_mode = WAL') // concurrent readers, durable across OS crash
   db.pragma('foreign_keys = ON')
-  db.pragma('synchronous = NORMAL') // WAL + NORMAL is the recommended balance
+  // FULL sync (not NORMAL) — chantier 05 demos a hard force-reboot during
+  // step 3 of the team flow. NORMAL leaves a small window where a committed
+  // upsert may not survive sudden power loss; FULL fsyncs the WAL on every
+  // commit. The performance cost on a NUC SSD at our write rate (≤ 1 upsert
+  // per team per second) is invisible.
+  db.pragma('synchronous = FULL')
+  db.pragma('cache_size = -32768') // 32 MB page cache (negative = KiB unit)
+  db.pragma('temp_store = MEMORY') // intermediates in RAM, not /tmp
 
   runMigrations(db, logger)
 
@@ -121,8 +130,11 @@ export function openDb(config: ServerConfig, logger: Logger): DbHandle {
     VALUES (?, ?, ?)
   `)
 
+  // Hoisted out of /health so the route doesn't pay tsc compile cost on
+  // every poll (apps poll every 5s; 36 polls/min indefinitely).
+  const pingStmt = db.prepare('SELECT 1 AS ok')
+
   return {
-    db,
     upsertTeamState(sessionId, msg) {
       if (msg.teamId === null) return false // team not yet selected — caller logs and skips
       const result = upsertTeamStateStmt.run({
@@ -146,7 +158,17 @@ export function openDb(config: ServerConfig, logger: Logger): DbHandle {
     ensureSession(sessionId, resetCode) {
       ensureSessionStmt.run(sessionId, Date.now(), resetCode)
     },
+    ping() {
+      pingStmt.get()
+    },
     close() {
+      // Flush the WAL so a hard power-loss right after shutdown can't lose
+      // the tail of the session. Cheap on shutdown; won't run mid-session.
+      try {
+        db.pragma('wal_checkpoint(TRUNCATE)')
+      } catch {
+        // already closing — ignore
+      }
       db.close()
     },
   }

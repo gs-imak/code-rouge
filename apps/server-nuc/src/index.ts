@@ -1,7 +1,7 @@
 import { createServer, type Server as HttpServer } from 'node:http'
 import { fileURLToPath } from 'node:url'
 import express, { type Express, type Request, type Response } from 'express'
-import { WebSocketServer, type WebSocket } from 'ws'
+import { WebSocketServer, type RawData, type WebSocket } from 'ws'
 import type { Logger } from 'pino'
 import {
   parseAppToServerMessage,
@@ -24,6 +24,15 @@ interface BootedServer {
   readonly sessionId: string
 }
 
+// Largest legitimate WS frame: a log push with 1000 events × ~200 B each plus
+// envelope. 512 KB is comfortable margin without enabling 100 MB DoS frames.
+const WS_MAX_PAYLOAD_BYTES = 512 * 1024
+
+// A legit app emits ≤ 1 state update / second + occasional log batches.
+// 100 frames / second per connection leaves multiple orders of magnitude of
+// burst headroom while killing tight-loop floods from a venue Wi-Fi attacker.
+const WS_RATE_LIMIT_PER_SEC = 100
+
 export function createApp(
   logger: Logger,
   startedAt: number,
@@ -36,10 +45,12 @@ export function createApp(
   app.use(express.json({ limit: '64kb' }))
 
   app.get('/health', (_req: Request, res: Response) => {
-    // Cheap — apps poll this every 5s. Don't add slow checks.
+    // Cheap — apps poll this every 5s. db.ping() uses a hoisted prepared
+    // statement; the catch swallows transient db errors so the route still
+    // returns 200 with `db: 'error'` (apps treat that as a soft signal).
     let dbOk = false
     try {
-      db.db.prepare('SELECT 1').get()
+      db.ping()
       dbOk = true
     } catch {
       dbOk = false
@@ -61,63 +72,77 @@ export function createApp(
   return app
 }
 
-function handleAppMessage(
-  msg: AppToServerMessage,
-  ws: WebSocket,
-  sessionId: string,
-  db: DbHandle,
-  logger: Logger,
-): void {
+// Normalises every WS data variant (Buffer | ArrayBuffer | Buffer[]) into a
+// single UTF-8 string before JSON.parse. Without this, a fragmented frame
+// arrives as Buffer[]; calling `.toString()` on it produces comma-separated
+// decimal bytes, which can either fail JSON.parse OR — worse — silently
+// produce a plausible-looking but truncated value.
+function rawToString(raw: RawData): string {
+  if (Array.isArray(raw)) return Buffer.concat(raw).toString('utf-8')
+  if (Buffer.isBuffer(raw)) return raw.toString('utf-8')
+  return Buffer.from(raw).toString('utf-8')
+}
+
+interface WsContext {
+  readonly sessionId: string
+  readonly db: DbHandle
+  readonly logger: Logger
+  readonly isShuttingDown: () => boolean
+}
+
+function handleAppMessage(msg: AppToServerMessage, ws: WebSocket, ctx: WsContext): void {
   switch (msg.type) {
     case 'hello': {
-      logger.info(
-        { app: msg.app, deviceId: msg.deviceId, teamId: msg.teamId, lastKnownStep: msg.lastKnownStep },
+      ctx.logger.info(
+        {
+          app: msg.app,
+          deviceId: msg.deviceId,
+          teamId: msg.teamId,
+          lastKnownStep: msg.lastKnownStep,
+        },
         'WS hello',
       )
-      // Reply with welcome so the app knows which session it's in.
-      // teamId on hello may be null; the app will update via state once selected.
-      // For chantier 03 we echo back the team if known; assignment policy lives in chantier 04.
       const welcome: WelcomeMessage = {
         type: 'welcome',
         teamId: msg.teamId ?? 0,
-        sessionId,
+        sessionId: ctx.sessionId,
         serverTime: Date.now(),
       }
       ws.send(JSON.stringify(welcome))
       return
     }
     case 'state': {
-      const persisted = db.upsertTeamState(sessionId, msg)
-      logger.debug(
+      const persisted = ctx.db.upsertTeamState(ctx.sessionId, msg)
+      ctx.logger.debug(
         { app: msg.app, teamId: msg.teamId, step: msg.step, score: msg.score, persisted },
         'WS state',
       )
       return
     }
     case 'log': {
-      const inserted = db.appendLogEvents(sessionId, msg)
-      logger.debug({ app: msg.app, teamId: msg.teamId, inserted }, 'WS log')
+      const inserted = ctx.db.appendLogEvents(ctx.sessionId, msg)
+      ctx.logger.debug({ app: msg.app, teamId: msg.teamId, inserted }, 'WS log')
       return
     }
     case 'pong': {
-      logger.trace({ app: msg.app, deviceId: msg.deviceId }, 'WS pong')
+      ctx.logger.trace({ app: msg.app, deviceId: msg.deviceId }, 'WS pong')
       return
     }
   }
 }
 
-function attachWebSocket(
-  http: HttpServer,
-  sessionId: string,
-  db: DbHandle,
-  logger: Logger,
-): WebSocketServer {
-  // noServer mode so we control the upgrade path explicitly (route-scoped to /ws).
-  const wss = new WebSocketServer({ noServer: true })
+function attachWebSocket(http: HttpServer, ctx: WsContext): WebSocketServer {
+  // noServer mode so we control the upgrade path explicitly (route-scoped
+  // to /ws). maxPayload kicks in at the protocol layer before any JS
+  // touches frame contents — DoS guard against multi-megabyte frames.
+  const wss = new WebSocketServer({ noServer: true, maxPayload: WS_MAX_PAYLOAD_BYTES })
 
   http.on('upgrade', (req, socket, head) => {
     if (req.url !== '/ws') {
-      logger.warn({ url: req.url }, 'WS upgrade rejected: unknown path')
+      ctx.logger.warn({ url: req.url }, 'WS upgrade rejected: unknown path')
+      // Clean HTTP response before destroy so the client sees 404, not a
+      // bare connection reset — easier to debug a misconfigured app.
+      socket.write('HTTP/1.1 404 Not Found\r\nConnection: close\r\n\r\n')
       socket.destroy()
       return
     }
@@ -128,37 +153,54 @@ function attachWebSocket(
 
   wss.on('connection', (ws: WebSocket, req) => {
     const remote = req.socket.remoteAddress ?? 'unknown'
-    logger.info({ remote }, 'WS connection opened')
+    ctx.logger.info({ remote }, 'WS connection opened')
+
+    // Per-connection token bucket. Resets once a second.
+    let messageCount = 0
+    const rateLimitInterval = setInterval(() => {
+      messageCount = 0
+    }, 1000)
 
     ws.on('message', (raw, isBinary) => {
+      if (ctx.isShuttingDown()) {
+        // Don't mutate state during shutdown. The close frame is queued from
+        // the shutdown path; the client will see it shortly.
+        return
+      }
       if (isBinary) {
-        logger.warn({ remote }, 'WS binary frame rejected')
+        ctx.logger.warn({ remote }, 'WS binary frame rejected')
+        return
+      }
+      messageCount += 1
+      if (messageCount > WS_RATE_LIMIT_PER_SEC) {
+        ctx.logger.warn({ remote, messageCount }, 'WS rate limit exceeded — dropping frame')
         return
       }
       let msg: AppToServerMessage
       try {
-        msg = parseAppToServerMessage(raw.toString('utf-8'))
+        msg = parseAppToServerMessage(rawToString(raw))
       } catch (err) {
         if (err instanceof MessageParseError) {
-          logger.warn({ remote, err: err.message }, 'WS message rejected')
+          ctx.logger.warn({ remote, err: err.message }, 'WS message rejected')
         } else {
-          logger.error({ remote, err }, 'WS unexpected parse error')
+          ctx.logger.error({ remote, err }, 'WS unexpected parse error')
         }
         return
       }
       try {
-        handleAppMessage(msg, ws, sessionId, db, logger)
+        handleAppMessage(msg, ws, ctx)
       } catch (err) {
-        logger.error({ remote, type: msg.type, err }, 'WS handler error')
+        ctx.logger.error({ remote, type: msg.type, err }, 'WS handler error')
       }
     })
 
     ws.on('close', (code, reason) => {
-      logger.info({ remote, code, reason: reason.toString() }, 'WS connection closed')
+      clearInterval(rateLimitInterval)
+      ctx.logger.info({ remote, code, reason: reason.toString() }, 'WS connection closed')
     })
 
     ws.on('error', (err) => {
-      logger.error({ remote, err }, 'WS error')
+      ctx.logger.error({ remote, err }, 'WS error')
     })
   })
 
@@ -173,11 +215,26 @@ export function startServer(config: ServerConfig = loadConfig()): BootedServer {
   const sessionId = newSessionId()
   const resetCode = newResetCode()
   db.ensureSession(sessionId, resetCode)
-  logger.info({ sessionId, resetCode }, 'session ready')
+  // resetCode is admin-grade (gates POST /admin/reset in chantier 04+).
+  // Don't write it to the journal in cleartext — the GM reads it off the
+  // Débriefing app at game start instead. We log a redacted hint only so an
+  // operator can correlate logs to a session without leaking the secret.
+  logger.info(
+    { sessionId, resetCodeHint: `${resetCode.slice(0, 2)}****` },
+    'session ready',
+  )
+
+  let shuttingDown = false
+  const ctx: WsContext = {
+    sessionId,
+    db,
+    logger,
+    isShuttingDown: () => shuttingDown,
+  }
 
   const app = createApp(logger, startedAt, sessionId, db)
   const http = createServer(app)
-  const wss = attachWebSocket(http, sessionId, db, logger)
+  const wss = attachWebSocket(http, ctx)
 
   http.listen(config.port, config.host, () => {
     logger.info(
@@ -186,9 +243,11 @@ export function startServer(config: ServerConfig = loadConfig()): BootedServer {
     )
   })
 
-  // Graceful shutdown — drain WS connections, close HTTP, close db, exit.
-  // SIGTERM = systemd stop; SIGINT = Ctrl+C in dev.
+  // Graceful shutdown — set flag (gates incoming WS messages), drain WS
+  // clients, close HTTP, close db (with WAL checkpoint), exit.
   const shutdown = (signal: NodeJS.Signals) => {
+    if (shuttingDown) return
+    shuttingDown = true
     logger.info({ signal }, 'shutdown initiated')
     wss.clients.forEach((ws) => ws.close(1001, 'server shutting down'))
     http.close((err) => {
@@ -217,6 +276,7 @@ export function startServer(config: ServerConfig = loadConfig()): BootedServer {
 
 // Boot when invoked directly (tsx watch / node dist/index.js).
 // Skipped in tests where the file is imported, not executed.
+// fileURLToPath normalises Windows file:// URLs (file:///C:/... → C:\...).
 const invokedPath = process.argv[1]
 if (invokedPath !== undefined && fileURLToPath(import.meta.url) === invokedPath) {
   startServer()

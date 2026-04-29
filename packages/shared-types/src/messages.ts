@@ -23,10 +23,17 @@ export const TeamId = z.number().int().nonnegative().nullable()
 export type TeamId = z.infer<typeof TeamId>
 
 // Bounded so a malicious or buggy client can't push 100 MB of "log" through.
+// `data` is a string-keyed bag of JSON primitives — no nested objects, no
+// arrays, no arbitrary trees. Per-key value capped at 256 chars; whole
+// object capped at 16 keys. If a future event needs richer data, add a
+// new event kind with its own dedicated schema rather than widening this.
 export const LogEvent = z.object({
   at: z.number().int().nonnegative(),
   kind: z.string().min(1).max(64),
-  data: z.unknown().optional(),
+  data: z
+    .record(z.union([z.string().max(256), z.number(), z.boolean(), z.null()]))
+    .refine((v) => Object.keys(v).length <= 16, { message: 'data: max 16 keys' })
+    .optional(),
 })
 export type LogEvent = z.infer<typeof LogEvent>
 

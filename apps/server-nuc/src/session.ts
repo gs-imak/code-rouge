@@ -1,4 +1,4 @@
-import { randomBytes } from 'node:crypto'
+import { randomBytes, randomInt } from 'node:crypto'
 
 // Session id is recorded for the lifetime of the server process. POST
 // /admin/reset (chantier 04+) starts a new session. Format is human-grokkable
@@ -9,8 +9,8 @@ export function newSessionId(now: Date = new Date()): string {
 }
 
 // 6-digit numeric so the GM can read it off the Débriefing screen.
+// `crypto.randomInt(min, max)` is bias-free across the [min, max) range —
+// avoids the modulo bias of `randomBytes(4).readUInt32BE() % 900_000`.
 export function newResetCode(): string {
-  // randomInt range is exclusive on max; 100_000..999_999 inclusive.
-  const n = randomBytes(4).readUInt32BE() % 900_000
-  return String(100_000 + n)
+  return String(randomInt(100_000, 1_000_000))
 }
