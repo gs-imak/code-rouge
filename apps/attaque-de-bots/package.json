@@ -1,0 +1,13 @@
+{
+  "name": "@code-rouge/attaque-de-bots",
+  "version": "0.0.0",
+  "private": true,
+  "description": "« Attaque de Bots » — Espace 2, Android tablet (10\")",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "lint": "eslint src --ext .ts,.tsx --max-warnings 0",
+    "typecheck": "tsc --noEmit",
+    "test": "echo 'no tests yet' && exit 0"
+  }
+}

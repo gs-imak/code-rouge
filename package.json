@@ -1,0 +1,29 @@
+{
+  "name": "code-rouge",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Monorepo for « Code Rouge » — Applications joueurs E2/E3 + débriefing pour The Game",
+  "packageManager": "pnpm@10.26.0",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.17",
+    "@typescript-eslint/eslint-plugin": "^8.59.1",
+    "@typescript-eslint/parser": "^8.59.1",
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^9.1.2",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "prettier": "^3.8.3",
+    "turbo": "^2.3.3",
+    "typescript": "^5.9.3"
+  }
+}
