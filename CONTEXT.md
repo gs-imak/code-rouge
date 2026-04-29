@@ -7,14 +7,13 @@
 
 ## Last session (2026-04-29)
 
-**Bootstrap + Chantier 01 — Monorepo & design system skeleton — DONE.**
+**Bootstrap + Chantier 01 — Monorepo & design system skeleton — DONE & MERGED.**
 
 - Initialized git repo, created remote `gs-imak/code-rouge` (private) on GitHub.
-- Two commits on branch `feat/bootstrap-chantier-01`:
-  - `a92df49` `chore: initial bundle (CLAUDE.md, docs, rules)`
-  - `3dcf163` `chore: scaffold monorepo (chantier 01)`
-- Default branch `main` initialized at `a92df49` (initial bundle only); scaffold landed on the feature branch and is pending merge via PR.
-- **PR open:** https://github.com/gs-imak/code-rouge/pull/1 — needs Georges to merge.
+- Two PRs merged into `main`:
+  - **PR #1** (squash → `86e2d91`) — `chore: scaffold monorepo (chantier 01)`. Full pnpm + Turborepo + TS/ESLint/Prettier scaffold + 7 workspace stubs.
+  - **PR #2** (squash) — `refactor: chantier 01 quality-gate review fixes`. Removed `exactOptionalPropertyTypes` + `useUnknownInCatchVariables` from tsconfig (the first would fight Zod, the second was a no-op under `strict: true`); trimmed `.gitattributes` per-extension block; set `turbo.json` `typecheck.dependsOn` to `[]`.
+- **Initial bundle commit on main:** `a92df49 chore: initial bundle (CLAUDE.md, docs, rules)`.
 - Files added in scaffold commit:
   - Root: `package.json`, `pnpm-workspace.yaml`, `.npmrc` (`node-linker=hoisted`, `shamefully-hoist=true`), `turbo.json`, `tsconfig.base.json`, `tsconfig.json`, `.eslintrc.cjs`, `.eslintignore`, `.prettierrc`, `.prettierignore`, `.gitattributes` (enforces LF for cross-platform — NUC is Linux), `pnpm-lock.yaml`.
   - 4 apps + 3 packages, each with `package.json` (private, `@code-rouge/*`, scripts: `lint`/`typecheck`/`test`), `tsconfig.json` extending `../../tsconfig.base.json`, and `src/index.ts` (`export {}`).
