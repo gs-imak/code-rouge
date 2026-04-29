@@ -3,26 +3,11 @@
 # and cross-platform consistency (Linux NUC, macOS dev, Windows dev).
 * text=auto eol=lf
 
-# Always LF — required for shell scripts running on the NUC
+# Always LF — required for shell scripts running on the NUC (load-bearing,
+# kept explicit because some Windows checkouts override `text=auto eol=lf`
+# for known-text extensions).
 *.sh           text eol=lf
 *.bash         text eol=lf
-
-# Source files
-*.ts           text eol=lf
-*.tsx          text eol=lf
-*.js           text eol=lf
-*.jsx          text eol=lf
-*.json         text eol=lf
-*.yaml         text eol=lf
-*.yml          text eol=lf
-*.md           text eol=lf
-*.html         text eol=lf
-*.css          text eol=lf
-*.cjs          text eol=lf
-*.mjs          text eol=lf
-
-# Lockfile — ensure LF for deterministic CI hashing
-pnpm-lock.yaml  text eol=lf
 
 # Binary files
 *.png          binary
