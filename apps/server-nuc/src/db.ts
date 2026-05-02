@@ -46,6 +46,17 @@ export interface DbHandle {
     app: string,
   ) => TeamStateRow | undefined
   readonly ensureSession: (sessionId: string, resetCode: string) => void
+  /**
+   * Wipe all team_state + event_log rows for a session — used by
+   * POST /admin/reset when the GM ends a game and starts a fresh one
+   * with the same teams/devices but clean progress. The session row
+   * itself stays (so the resetCode remains valid for the same lifecycle);
+   * only player-progress data is cleared. Returns the affected row counts
+   * so the response can confirm the wipe to the GM.
+   */
+  readonly resetSession: (
+    sessionId: string,
+  ) => { readonly teamStateDeleted: number; readonly eventLogDeleted: number }
   // Cheap liveness check used by /health. Hoisted prepared statement,
   // no per-call compile cost.
   readonly ping: () => void
@@ -160,6 +171,17 @@ export function openDb(config: ServerConfig, logger: Logger): DbHandle {
     VALUES (?, ?, ?)
   `)
 
+  // Two-statement transaction so a power loss between the deletes can't
+  // leave team_state empty while event_log still references the session.
+  const deleteTeamStateStmt = db.prepare(`DELETE FROM team_state WHERE session_id = ?`)
+  const deleteEventLogStmt = db.prepare(`DELETE FROM event_log WHERE session_id = ?`)
+  const resetSessionTx = db.transaction(
+    (sessionId: string): { teamStateDeleted: number; eventLogDeleted: number } => ({
+      teamStateDeleted: deleteTeamStateStmt.run(sessionId).changes,
+      eventLogDeleted: deleteEventLogStmt.run(sessionId).changes,
+    }),
+  )
+
   // Hoisted out of /health so the route doesn't pay tsc compile cost on
   // every poll (apps poll every 5s; 36 polls/min indefinitely).
   const pingStmt = db.prepare('SELECT 1 AS ok')
@@ -190,6 +212,9 @@ export function openDb(config: ServerConfig, logger: Logger): DbHandle {
     },
     ensureSession(sessionId, resetCode) {
       ensureSessionStmt.run(sessionId, Date.now(), resetCode)
+    },
+    resetSession(sessionId) {
+      return resetSessionTx(sessionId)
     },
     ping() {
       pingStmt.get()
