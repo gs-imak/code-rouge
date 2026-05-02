@@ -1,0 +1,31 @@
+{
+  "$schema": "../src/configs.ts:MailboxConfig",
+  "schemaVersion": 1,
+  "_comment": "Placeholder content. Nathanael delivers the real mail bodies (FR, narrative-fitting) in chantier 06+. The schema enforces exactly one phishing mail; if the énigme design wants more, lift to a top-level setting and bump schemaVersion.",
+  "mails": [
+    {
+      "id": "welcome-team",
+      "from": "central@code-rouge.local",
+      "subject": "Bienvenue, opérateur",
+      "body": "Vous êtes connecté à la console de Section 13. Ouvrez les courriels en attente.",
+      "receivedAt": "2026-04-29T08:00:00+02:00",
+      "phishing": false
+    },
+    {
+      "id": "phishing-update-creds",
+      "from": "secur1ty-update@central.example",
+      "subject": "Mise à jour de vos identifiants — action requise",
+      "body": "Cliquez ici pour confirmer votre identifiant avant la fermeture de votre session.",
+      "receivedAt": "2026-04-29T08:05:00+02:00",
+      "phishing": true
+    },
+    {
+      "id": "ops-checklist",
+      "from": "ops@code-rouge.local",
+      "subject": "Checklist du jour",
+      "body": "Liste des paramètres à vérifier avant 18h00.",
+      "receivedAt": "2026-04-29T08:10:00+02:00",
+      "phishing": false
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "$schema": "../src/configs.ts:GameVariantConfig",
+  "schemaVersion": 1,
+  "id": "standard",
+  "totalDurationSec": 3600,
+  "teamCount": 12,
+  "apps": ["attaque-de-bots", "assaut", "debriefing"],
+  "parcoursVariant": "A"
+}
