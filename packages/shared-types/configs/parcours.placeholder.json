@@ -1,0 +1,23 @@
+{
+  "$schema": "../src/configs.ts:ParcoursConfig",
+  "schemaVersion": 1,
+  "_comment": "Placeholder content. Nathanael's actual énigme matrix lands in chantier 06+ as four variants A/B/C/D with their final ordering. The structural shape — array of steps with id/kind/estimatedDurationSec/config — must not change without bumping schemaVersion.",
+  "variants": [
+    {
+      "id": "A",
+      "steps": [
+        { "id": "phishing-1", "kind": "phishing", "estimatedDurationSec": 300, "config": {} },
+        { "id": "mailbox-1", "kind": "mailbox", "estimatedDurationSec": 240, "config": {} },
+        { "id": "firewall-1", "kind": "firewall", "estimatedDurationSec": 180, "config": {} }
+      ]
+    },
+    {
+      "id": "B",
+      "steps": [
+        { "id": "mailbox-1", "kind": "mailbox", "estimatedDurationSec": 240, "config": {} },
+        { "id": "phishing-1", "kind": "phishing", "estimatedDurationSec": 300, "config": {} },
+        { "id": "firewall-1", "kind": "firewall", "estimatedDurationSec": 180, "config": {} }
+      ]
+    }
+  ]
+}
