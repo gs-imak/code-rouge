@@ -4,14 +4,14 @@
 smartphone (portrait), **not a player device**. Used at end-of-session to
 aggregate the two player apps' logs and project debrief slides.
 
-## Status — chantier 04 scaffold
+## Status
 
-Same scaffold pattern as `@code-rouge/attaque-de-bots`. The `android/`
-Gradle scaffold is **not** committed yet — generate via
-`npx @react-native-community/cli` and merge once. See
-[apps/attaque-de-bots/README.md](../attaque-de-bots/README.md#bootstrapping-android)
-for the exact incantation; substitute `Debriefing` for `AttaqueDeBots` and
-`com.coderouge.debriefing` for the applicationId.
+Full Android scaffold committed (RN-CLI generated, applicationId
+rewritten to `com.coderouge.debriefing`, `KioskPackage` registered in
+`MainApplication.kt`, `AndroidManifest.xml` orientation
+`screenOrientation="portrait"`). See
+[apps/attaque-de-bots/README.md](../attaque-de-bots/README.md#how-the-scaffold-was-generated)
+for the generation recipe.
 
 | Layer | Status |
 | --- | --- |
@@ -19,7 +19,9 @@ for the exact incantation; substitute `Debriefing` for `AttaqueDeBots` and
 | `src/App.tsx` placeholder UI | ✅ committed |
 | `src/kiosk.ts` TS façade | ✅ committed |
 | `KioskModule.kt` + `KioskPackage.kt` (`com.coderouge.debriefing`) | ✅ committed |
-| Generated Android scaffold (build.gradle, gradle wrapper, MainActivity, …) | ⛔ generate via RN CLI |
+| `MainActivity.kt` + `MainApplication.kt` (`com.coderouge.debriefing`) | ✅ committed (RN-CLI generated) |
+| Generated Android scaffold (build.gradle, gradle wrapper, manifest, res/) | ✅ committed |
+| Device build (`pnpm android`) | ⏸ needs hardware (smartphone or emulator + Android Studio) |
 
 ## Role
 

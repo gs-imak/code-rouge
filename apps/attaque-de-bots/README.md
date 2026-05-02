@@ -5,62 +5,45 @@
 React Native (bare TypeScript template, **not** Expo — kiosk requires
 native modules).
 
-## Status — chantier 04 scaffold
+## Status
 
-This package ships the JavaScript / TypeScript layer plus the Kotlin source
-for the `Kiosk` native module. The full `android/` Gradle scaffold (build
-files, gradle wrapper, MainActivity / MainApplication, resources) is
-**not** committed yet — it must be generated once via the React Native
-CLI before the app can build. See "Bootstrapping `android/`" below.
+Full Android scaffold committed. JS/TS layer + Kotlin native module + the
+Gradle tree generated from `npx @react-native-community/cli init` (RN
+0.85.2), with applicationId rewritten to `com.coderouge.attaquedebots`
+and `KioskPackage` registered in `MainApplication.kt`. `pnpm android`
+will build once a connected device or emulator is available — that's
+the only remaining gate.
 
 | Layer | Status |
 | --- | --- |
 | `index.js`, `app.json`, `metro.config.js`, `babel.config.js`, `tsconfig.json` | ✅ committed |
 | `src/App.tsx` placeholder UI | ✅ committed |
 | `src/kiosk.ts` TS façade for the native module | ✅ committed |
-| `android/app/src/main/java/com/coderouge/attaquedebots/KioskModule.kt` + `KioskPackage.kt` | ✅ committed |
-| `android/build.gradle`, `android/app/build.gradle`, `gradle/wrapper`, `MainActivity.kt`, `MainApplication.kt`, `AndroidManifest.xml`, `res/` | ⛔ generate via `npx @react-native-community/cli init` (see below) |
+| `android/app/src/main/java/com/coderouge/attaquedebots/KioskModule.kt` + `KioskPackage.kt` | ✅ committed (chantier 04) |
+| `android/app/src/main/java/com/coderouge/attaquedebots/MainActivity.kt` + `MainApplication.kt` | ✅ committed (RN-CLI generated, KioskPackage registered) |
+| `android/build.gradle`, `android/app/build.gradle`, gradle wrapper, `AndroidManifest.xml` (`screenOrientation="landscape"`), `res/` | ✅ committed |
+| Device build (`pnpm android`) | ⏸ needs hardware (tablet or emulator + Android Studio) |
 
-## Bootstrapping `android/`
-
-On the first device-build session, generate the missing Android scaffold:
+## How the scaffold was generated
 
 ```bash
-# In a scratch dir, NOT inside the monorepo:
 cd /tmp
 npx @react-native-community/cli@latest init AttaqueDeBots \
-  --version 0.85 \
-  --skip-install
+  --version 0.85.2 --skip-install --skip-git-init --pm npm
+cp -r AttaqueDeBots/android <repo>/apps/attaque-de-bots/
 
-# Copy the generated android/ tree into this package, MINUS the bits we
-# already have (KioskModule.kt, KioskPackage.kt, package configs):
-cp -r AttaqueDeBots/android C:/Users/33769/CodeRouge/apps/attaque-de-bots/
-
-# Adjust applicationId / namespace in android/app/build.gradle to
-# `com.coderouge.attaquedebots` (the CLI defaults to `com.attaquedebots`).
-# The Kotlin sources we ship live under that package — they will not
-# compile if the namespace doesn't match.
-
-# Register the kiosk package in android/app/src/main/java/.../MainApplication.kt:
-#   override fun getPackages(): List<ReactPackage> = PackageList(this).packages.apply {
-#     add(com.coderouge.attaquedebots.KioskPackage())
-#   }
-
-# In android/app/src/main/AndroidManifest.xml, declare LOCK_TASK and the
-# screen orientation:
-#   <activity ... android:screenOrientation="landscape" android:launchMode="singleTop" />
-#   The LOCK_TASK permission isn't user-grantable; device-owner mode
-#   substitutes for it in production.
-
-# From the workspace root:
-pnpm install
-pnpm android --filter @code-rouge/attaque-de-bots
+# Then the post-generation rewrites:
+#   - app/build.gradle: namespace + applicationId → com.coderouge.attaquedebots
+#   - Move com/attaquedebots/{MainActivity,MainApplication}.kt
+#       → com/coderouge/attaquedebots/
+#   - Update package decl in those two files
+#   - MainApplication.kt: getPackages() now also calls add(KioskPackage())
+#   - AndroidManifest.xml: <activity ... android:screenOrientation="landscape">
 ```
 
-Once the generated scaffold is integrated, this README's status table flips
-to ✅ across the board. **Commit the generated files in a separate PR**
-labelled `chantier 04 follow-up — Android scaffold` so the monorepo's
-chantier-04 PR stays focused on the kiosk integration code.
+Anyone re-running the scaffold (e.g. for an RN version bump) should
+follow the same recipe. The substitutions are mechanical — a future
+`tools/scripts/integrate-rn-android.sh` could automate them.
 
 ## Local dev (after `android/` exists)
 
