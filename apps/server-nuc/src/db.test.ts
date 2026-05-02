@@ -213,3 +213,78 @@ describe('ping', () => {
     expect(() => db.ping()).not.toThrow()
   })
 })
+
+describe('resetSession', () => {
+  it('deletes all team_state + event_log rows for the session and returns counts', () => {
+    db.upsertTeamState('sess-test', {
+      type: 'state',
+      app: 'attaque-de-bots',
+      deviceId: 'tablet-7',
+      teamId: 7,
+      step: 'phishing',
+      score: 12,
+      timestamp: 1000,
+    })
+    db.upsertTeamState('sess-test', {
+      type: 'state',
+      app: 'debriefing',
+      deviceId: 'phone-gm',
+      teamId: 7,
+      step: 'init',
+      score: 0,
+      timestamp: 1000,
+    })
+    db.appendLogEvents('sess-test', {
+      type: 'log',
+      app: 'attaque-de-bots',
+      deviceId: 'tablet-7',
+      teamId: 7,
+      events: [
+        { at: 1000, kind: 'step.entered' },
+        { at: 1500, kind: 'click.email' },
+      ],
+    })
+
+    const result = db.resetSession('sess-test')
+    expect(result.teamStateDeleted).toBe(2)
+    expect(result.eventLogDeleted).toBe(2)
+
+    expect(db.getTeamState('sess-test', 7, 'attaque-de-bots')).toBeUndefined()
+    expect(db.getTeamStateByDevice('sess-test', 'tablet-7', 'attaque-de-bots')).toBeUndefined()
+  })
+
+  it('returns 0/0 when the session has no rows yet (idempotent)', () => {
+    expect(db.resetSession('sess-test')).toEqual({
+      teamStateDeleted: 0,
+      eventLogDeleted: 0,
+    })
+  })
+
+  it('does not delete other sessions', () => {
+    db.ensureSession('sess-other', 'reset-other')
+    db.upsertTeamState('sess-other', {
+      type: 'state',
+      app: 'attaque-de-bots',
+      deviceId: 'tablet-3',
+      teamId: 3,
+      step: 'phishing',
+      score: 5,
+      timestamp: 1000,
+    })
+    db.upsertTeamState('sess-test', {
+      type: 'state',
+      app: 'attaque-de-bots',
+      deviceId: 'tablet-7',
+      teamId: 7,
+      step: 'mailbox',
+      score: 25,
+      timestamp: 1000,
+    })
+
+    db.resetSession('sess-test')
+    expect(db.getTeamState('sess-other', 3, 'attaque-de-bots')).toMatchObject({
+      step: 'phishing',
+      score: 5,
+    })
+  })
+})

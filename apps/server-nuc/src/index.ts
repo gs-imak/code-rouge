@@ -34,12 +34,23 @@ const WS_MAX_PAYLOAD_BYTES = 512 * 1024
 // burst headroom while killing tight-loop floods from a venue Wi-Fi attacker.
 const WS_RATE_LIMIT_PER_SEC = 100
 
-export function createApp(
-  logger: Logger,
-  startedAt: number,
-  sessionId: string,
-  db: DbHandle,
-): Express {
+export interface CreateAppDeps {
+  readonly logger: Logger
+  readonly startedAt: number
+  readonly sessionId: string
+  readonly resetCode: string
+  readonly db: DbHandle
+  /**
+   * Lazy accessor for currently-connected WS clients. Lazy because
+   * `createApp` runs before the WebSocketServer is attached to the
+   * HTTP server — the closure-captured `wss.clients` would be the
+   * pre-attach (empty) Set otherwise.
+   */
+  readonly getConnectedClients: () => Iterable<{ readonly app?: string }>
+}
+
+export function createApp(deps: CreateAppDeps): Express {
+  const { logger, startedAt, sessionId, resetCode, db, getConnectedClients } = deps
   const app = express()
 
   app.disable('x-powered-by')
@@ -65,12 +76,87 @@ export function createApp(
     })
   })
 
+  app.get('/diag', (_req: Request, res: Response) => {
+    // Diagnostic snapshot — surfaced by the GM-facing Débriefing app's
+    // operator screen and (in chantier 06+) by an Assaut admin overlay.
+    // Wifi quality is hardware-dependent (`iw dev wlan0 link` on the NUC)
+    // and lands when the install-nuc.sh script can publish that telemetry
+    // alongside the systemd unit. For now we report what's strictly
+    // observable from inside the Node process.
+    const perApp: Record<string, number> = {}
+    let total = 0
+    for (const client of getConnectedClients()) {
+      total += 1
+      const a = client.app
+      if (typeof a === 'string') {
+        perApp[a] = (perApp[a] ?? 0) + 1
+      }
+    }
+    res.status(200).json({
+      sessionId,
+      uptimeSeconds: Math.round((Date.now() - startedAt) / 1000),
+      connectedClients: { total, perApp },
+      // Schema version so consumers can branch on it as we add fields.
+      schemaVersion: 1,
+    })
+  })
+
+  app.post('/admin/reset', (req: Request, res: Response) => {
+    // Per-session reset code (architecture.md §3). Must NEVER be a static
+    // password — the GM reads the code off the Débriefing app at game
+    // start and types it here to wipe state between sessions.
+    //
+    // The body is express.json-parsed up to 64 KB; we only inspect a single
+    // string field. Any other shape → 400 (don't even hint at validity).
+    const body = req.body as unknown
+    const submitted =
+      typeof body === 'object' && body !== null && 'code' in body && typeof body.code === 'string'
+        ? body.code
+        : null
+    if (submitted === null) {
+      res.status(400).json({ error: 'invalid body — expected { code: string }' })
+      return
+    }
+
+    // Constant-time comparison so a tight retry loop can't probe the code
+    // length-by-length via response timing. Both inputs are ASCII session
+    // codes (architecture allocates them, never user-input — but defence
+    // in depth costs nothing here).
+    if (!constantTimeEquals(submitted, resetCode)) {
+      logger.warn({ remote: req.ip }, '/admin/reset: bad code')
+      res.status(401).json({ error: 'unauthorized' })
+      return
+    }
+
+    const result = db.resetSession(sessionId)
+    logger.info(
+      { sessionId, ...result, remote: req.ip },
+      '/admin/reset: session wiped',
+    )
+    res.status(200).json({
+      ok: true,
+      sessionId,
+      ...result,
+    })
+  })
+
   app.use((req: Request, res: Response) => {
     logger.warn({ method: req.method, url: req.url }, 'unknown route')
     res.status(404).json({ error: 'not found' })
   })
 
   return app
+}
+
+// Constant-time string comparison. Both values are short (~12 chars) so
+// the cost is negligible even in the bad-code path.
+function constantTimeEquals(a: string, b: string): boolean {
+  if (a.length !== b.length) return false
+  let diff = 0
+  for (let i = 0; i < a.length; i += 1) {
+    diff |= a.charCodeAt(i) ^ b.charCodeAt(i)
+  }
+  return diff === 0
 }
 
 // Normalises every WS data variant (Buffer | ArrayBuffer | Buffer[]) into a
@@ -91,9 +177,16 @@ interface WsContext {
   readonly isShuttingDown: () => boolean
 }
 
+// Per-connection metadata captured after Hello so /diag can report
+// connections grouped by app. Stored on the ws instance via a WeakMap
+// rather than monkey-patching the WebSocket — keeps the third-party
+// type intact and lets GC collect metadata when the socket dies.
+export const wsMeta = new WeakMap<WebSocket, { app: string; deviceId: string }>()
+
 function handleAppMessage(msg: AppToServerMessage, ws: WebSocket, ctx: WsContext): void {
   switch (msg.type) {
     case 'hello': {
+      wsMeta.set(ws, { app: msg.app, deviceId: msg.deviceId })
       ctx.logger.info(
         {
           app: msg.app,
@@ -264,6 +357,11 @@ function attachWebSocket(http: HttpServer, ctx: WsContext): WebSocketServer {
 
     ws.on('close', (code, reason) => {
       clearInterval(rateLimitInterval)
+      // WeakMap deletion isn't strictly required (GC handles it once the
+      // ws is unreachable), but explicit clearing keeps /diag readings
+      // honest in the brief window where the close event has fired but
+      // the wss.clients Set hasn't yet evicted the entry.
+      wsMeta.delete(ws)
       ctx.logger.info({ remote, code, reason: reason.toString() }, 'WS connection closed')
     })
 
@@ -300,9 +398,28 @@ export function startServer(config: ServerConfig = loadConfig()): BootedServer {
     isShuttingDown: () => shuttingDown,
   }
 
-  const app = createApp(logger, startedAt, sessionId, db)
+  // Lazy reference into wss.clients — wss is constructed below, but the
+  // /diag handler closure captures this ref and reads `current` at
+  // request time, by which point wss is fully attached.
+  const wssRef: { current: WebSocketServer | null } = { current: null }
+  const app = createApp({
+    logger,
+    startedAt,
+    sessionId,
+    resetCode,
+    db,
+    getConnectedClients: function* () {
+      const wss = wssRef.current
+      if (wss === null) return
+      for (const ws of wss.clients) {
+        const meta = wsMeta.get(ws)
+        yield meta === undefined ? {} : { app: meta.app }
+      }
+    },
+  })
   const http = createServer(app)
   const wss = attachWebSocket(http, ctx)
+  wssRef.current = wss
 
   http.listen(config.port, config.host, () => {
     logger.info(

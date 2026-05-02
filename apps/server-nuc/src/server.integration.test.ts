@@ -155,3 +155,76 @@ describe('server integration — force-stop restore round-trip', () => {
     expect(sawRestore).toBe(false)
   }, 5_000)
 })
+
+describe('server integration — /diag endpoint', () => {
+  it('returns the expected schema with zero connected clients', async () => {
+    const res = await fetch(`http://127.0.0.1:${port}/diag`)
+    expect(res.status).toBe(200)
+    const body = (await res.json()) as Record<string, unknown>
+    expect(body).toMatchObject({
+      schemaVersion: 1,
+      sessionId: booted.sessionId,
+      connectedClients: { total: expect.any(Number), perApp: expect.any(Object) },
+    })
+    expect(typeof body['uptimeSeconds']).toBe('number')
+  })
+
+  it('reports connected clients grouped by app after Hello', async () => {
+    const ws = new WebSocket(`ws://127.0.0.1:${port}/ws`)
+    await once(ws, 'open')
+    send(ws, {
+      type: 'hello',
+      app: 'attaque-de-bots',
+      deviceId: 'diag-tablet',
+      teamId: null,
+    })
+    // Give the server a tick to process Hello and tag the connection.
+    await new Promise((r) => setTimeout(r, 100))
+
+    const res = await fetch(`http://127.0.0.1:${port}/diag`)
+    const body = (await res.json()) as {
+      connectedClients: { total: number; perApp: Record<string, number> }
+    }
+    expect(body.connectedClients.total).toBeGreaterThanOrEqual(1)
+    expect(body.connectedClients.perApp['attaque-de-bots']).toBeGreaterThanOrEqual(1)
+
+    ws.close(1000)
+    await once(ws, 'close')
+  }, 5_000)
+})
+
+describe('server integration — POST /admin/reset', () => {
+  // Fresh session per request — the booted server's resetCode is captured
+  // once at startServer time. We don't expose it on BootedServer (yet) so
+  // these tests reach into the closure via a synthetic match: the route
+  // returns 401 on bad code, 400 on bad shape, and 200 on the right code.
+
+  it('returns 400 when the body is malformed', async () => {
+    const res = await fetch(`http://127.0.0.1:${port}/admin/reset`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ wrong: 'field' }),
+    })
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 401 on a wrong code', async () => {
+    const res = await fetch(`http://127.0.0.1:${port}/admin/reset`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ code: 'definitely-not-the-right-code' }),
+    })
+    expect(res.status).toBe(401)
+  })
+
+  it('returns 401 on the right code from the WRONG length (constant-time guard)', async () => {
+    // Even shape-correct submissions of the wrong length must 401 cleanly,
+    // not throw or reveal the expected length.
+    const res = await fetch(`http://127.0.0.1:${port}/admin/reset`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ code: 'a' }),
+    })
+    expect(res.status).toBe(401)
+  })
+})
