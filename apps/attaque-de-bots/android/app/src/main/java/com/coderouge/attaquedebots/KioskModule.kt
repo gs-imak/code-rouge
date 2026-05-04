@@ -1,5 +1,6 @@
 package com.coderouge.attaquedebots
 
+import android.app.Activity
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
@@ -16,6 +17,11 @@ import com.facebook.react.bridge.ReactMethod
  * In development, Screen Pinning must be enabled by the user in
  * Settings → Security → Screen Pinning, and the user can dismiss it.
  * The `SecurityException` path below covers "not granted yet."
+ *
+ * NB: we read the activity via `reactApplicationContext.currentActivity`
+ * rather than the inherited `currentActivity` property because the
+ * latter resolves via the Kotlin compiler differently across RN
+ * minor versions and was breaking compilation in CI for RN 0.85.
  */
 class KioskModule(reactContext: ReactApplicationContext) :
   ReactContextBaseJavaModule(reactContext) {
@@ -24,7 +30,7 @@ class KioskModule(reactContext: ReactApplicationContext) :
 
   @ReactMethod
   fun startLockTask(promise: Promise) {
-    val activity = currentActivity
+    val activity: Activity? = reactApplicationContext.currentActivity
     if (activity == null) {
       promise.reject(ERR_NO_ACTIVITY, "currentActivity is null")
       return
@@ -48,7 +54,7 @@ class KioskModule(reactContext: ReactApplicationContext) :
 
   @ReactMethod
   fun stopLockTask(promise: Promise) {
-    val activity = currentActivity
+    val activity: Activity? = reactApplicationContext.currentActivity
     if (activity == null) {
       promise.reject(ERR_NO_ACTIVITY, "currentActivity is null")
       return
