@@ -1,5 +1,6 @@
 package com.coderouge.debriefing
 
+import android.app.Activity
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
@@ -25,7 +26,7 @@ class KioskModule(reactContext: ReactApplicationContext) :
 
   @ReactMethod
   fun startLockTask(promise: Promise) {
-    val activity = currentActivity
+    val activity: Activity? = reactApplicationContext.currentActivity
     if (activity == null) {
       promise.reject(ERR_NO_ACTIVITY, "currentActivity is null")
       return
@@ -49,7 +50,7 @@ class KioskModule(reactContext: ReactApplicationContext) :
 
   @ReactMethod
   fun stopLockTask(promise: Promise) {
-    val activity = currentActivity
+    val activity: Activity? = reactApplicationContext.currentActivity
     if (activity == null) {
       promise.reject(ERR_NO_ACTIVITY, "currentActivity is null")
       return
