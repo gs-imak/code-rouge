@@ -107,7 +107,12 @@ jobs:
 
   build-windows:
     name: Build Windows
-    runs-on: ubuntu-latest
+    # Native Windows runner: rcedit is a 32-bit Windows binary, and the
+    # Linux + wine32 path needs i386 architecture-add + multiple support
+    # packages, plus electron-builder calls rcedit-ia32.exe which fails
+    # on amd64-only wine. The native runner skips all that — slower than
+    # ubuntu but reliable, and matches the deployment target.
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v6
@@ -115,19 +120,14 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
-      # electron-builder caches its downloaded electron + winCodeSign
-      # binaries here. ~150 MB total; cuts the warm install step from
-      # ~90 s to <10 s.
+      # electron-builder caches its downloaded electron binary here. The
+      # path differs on Windows from Linux's ~/.cache/electron.
       - uses: actions/cache@v4
         with:
-          path: ~/.cache/electron
+          path: ${{ env.LOCALAPPDATA }}/electron/Cache
           key: electron-builder-${{ runner.os }}-${{ hashFiles('apps/assaut/package.json') }}
           restore-keys: |
             electron-builder-${{ runner.os }}-
-      # NSIS resource bundling (rcedit for icon + version stamping) needs
-      # wine on Linux runners. ~30 s on a cold runner; cheaper than
-      # switching the whole job to windows-latest.
-      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends wine
       - run: pnpm install --frozen-lockfile
       - run: pnpm build:windows
       - uses: actions/upload-artifact@v4
