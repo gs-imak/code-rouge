@@ -68,13 +68,42 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
       - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
+      - uses: android-actions/setup-android@v3
+        with:
+          # SDK + build-tools versions match the chantier-04-followup
+          # `android/build.gradle` (RN 0.85 default). NDK is intentionally
+          # omitted — Hermes ships prebuilt .so via the gradle dependency,
+          # so no C/C++ compile happens in this build.
+          packages: 'platform-tools platforms;android-36 build-tools;36.0.0'
+      # Cache gradle's user-home and the per-app .gradle dir. Gradle
+      # downloads ~300 MB of dependencies on a cold build; this cuts the
+      # warm-build install step from ~3 min to ~30 s.
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            apps/*/android/.gradle
+          key: gradle-${{ runner.os }}-${{ hashFiles('apps/*/android/**/*.gradle*', 'apps/*/android/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
       - run: pnpm install --frozen-lockfile
       - run: pnpm build:android
+      - uses: actions/upload-artifact@v4
+        with:
+          name: code-rouge-apks
+          path: apps/*/android/app/build/outputs/apk/**/*.apk
+          if-no-files-found: error
+          retention-days: 14
 
   build-windows:
     name: Build Windows
