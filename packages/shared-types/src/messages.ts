@@ -184,6 +184,11 @@ export const GameState = z.object({
   // assaut, the team-id draft on attaque-de-bots before they hit Valider).
   // Cleared once the value is validated and committed to a real field.
   draftAuthCode: z.string().max(64).default(''),
+  // NUC server IP/host the GM has configured. Used by debriefing's Setup
+  // admin screen and (chantier 06+) propagated to player devices via mDNS
+  // discovery or a build-time bake. Default localhost for the dev/visio
+  // single-machine demo.
+  serverIp: z.string().min(1).max(64).default('127.0.0.1'),
 })
 export type GameState = z.infer<typeof GameState>
 
@@ -213,5 +218,8 @@ export function reconcile(local: GameState, restore: RestoreMessage): GameState 
     lastSync: Date.now(),
     // Drafts are local-only — the server never sees uncommitted input.
     draftAuthCode: local.draftAuthCode,
+    // NUC IP is purely client-side configuration; the server has no
+    // authority over where the GM has pointed the tablet.
+    serverIp: local.serverIp,
   }
 }

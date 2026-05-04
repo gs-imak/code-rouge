@@ -173,6 +173,7 @@ describe('GameState defaults', () => {
       score: 0,
       lastSync: 0,
       draftAuthCode: '',
+      serverIp: '127.0.0.1',
     })
   })
 
@@ -248,5 +249,10 @@ describe('reconcile', () => {
   it('preserves local deviceId (server never carries one in RestoreMessage)', () => {
     const local = GameState.parse({ deviceId: 'pinned-uuid-1234' })
     expect(reconcile(local, restore).deviceId).toBe('pinned-uuid-1234')
+  })
+
+  it('preserves local serverIp (NUC IP is GM-configured, server has no authority)', () => {
+    const local = GameState.parse({ serverIp: '192.168.42.10' })
+    expect(reconcile(local, restore).serverIp).toBe('192.168.42.10')
   })
 })

@@ -145,3 +145,16 @@ body {
   /* Failed-shortcut warning — yellow against dark passes AA at this size. */
   color: #ffcc66;
 }
+
+.kiosk-status__dot {
+  /* NUC connection diagnostic — red by default, green when connected.
+     Outlives the rest of the kiosk-status footer (the kiosk:/fullscreen:/
+     shortcuts: spans get deleted post-validation; this dot moves into a
+     dedicated diagnostic overlay in chantier 06+). */
+  font-size: 1rem;
+  color: #ff9090;
+}
+
+.kiosk-status__dot--ok {
+  color: #7ee2a8;
+}
