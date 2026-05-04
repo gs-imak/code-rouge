@@ -20,7 +20,10 @@
     "onlyBuiltDependencies": [
       "better-sqlite3",
       "esbuild"
-    ]
+    ],
+    "overrides": {
+      "tar@<7.5.8": ">=7.5.8"
+    }
   },
   "devDependencies": {
     "@types/node": "^22.19.17",

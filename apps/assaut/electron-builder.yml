@@ -1,0 +1,64 @@
+# electron-builder config for « Assaut » (Espace 3, Windows mallette).
+#
+# Targets a single NSIS installer (.exe). For chantier 05 / M1 we ship
+# unsigned debug builds — Windows code-signing certificate purchase is an
+# M3 deliverable per architecture.md §8.
+#
+# Build entry points:
+#   - `pnpm --filter @code-rouge/assaut build` runs `electron-vite build`
+#     which emits to apps/assaut/out/{main,preload,renderer}/.
+#   - Then `electron-builder --config electron-builder.yml --win nsis`
+#     wraps that into a single .exe in apps/assaut/release/.
+
+appId: com.coderouge.assaut
+productName: Assaut
+copyright: © 2026 The Game
+
+directories:
+  output: release
+  buildResources: build
+
+# Files included in the asar archive shipped to the user's machine.
+# `out/**` is the electron-vite output. We exclude `out/main/.vite/`
+# because that's intermediate metadata electron-vite never reads at
+# runtime. node_modules is bundled wholesale — RN-style filtering would
+# require maintenance churn we don't need at this scale.
+files:
+  - out/**/*
+  - package.json
+  - '!out/main/.vite/**'
+
+# Don't bundle the entire monorepo's node_modules — only what assaut
+# actually needs at runtime. electron-vite's externalisation already
+# handles deps via package.json's dependencies field.
+asarUnpack: []
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  # No icon yet — graphiste delivers in chantier 06+. electron-builder
+  # falls back to the Electron default icon (acceptable for M1 squelette).
+  artifactName: 'Assaut-${version}-${arch}-Setup.${ext}'
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  perMachine: true
+  # Don't auto-launch on install — operator decides when to start the
+  # mallette session. Don't create desktop shortcut — kiosk PC has no
+  # user-facing desktop.
+  runAfterFinish: false
+  createDesktopShortcut: false
+  createStartMenuShortcut: true
+  shortcutName: 'Assaut'
+
+# No publish target for chantier 05/06 — APK + .exe are CI artifacts only.
+# When chantier 06+ wires GitHub Releases or a self-hosted update server,
+# add a `publish:` block here.
+publish: null
+
+# Skip the build-time download of an alternate Electron version. The one
+# in node_modules (^41.3.0) is what we ship.
+electronUpdaterCompatibility: '>= 2.16'

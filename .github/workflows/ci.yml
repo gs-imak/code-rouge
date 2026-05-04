@@ -107,7 +107,12 @@ jobs:
 
   build-windows:
     name: Build Windows
-    runs-on: ubuntu-latest
+    # Native Windows runner: rcedit is a 32-bit Windows binary, and the
+    # Linux + wine32 path needs i386 architecture-add + multiple support
+    # packages, plus electron-builder calls rcedit-ia32.exe which fails
+    # on amd64-only wine. The native runner skips all that — slower than
+    # ubuntu but reliable, and matches the deployment target.
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v6
@@ -115,5 +120,22 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
+      # electron-builder caches its downloaded electron binary here. The
+      # path differs on Windows from Linux's ~/.cache/electron.
+      - uses: actions/cache@v4
+        with:
+          path: ${{ env.LOCALAPPDATA }}/electron/Cache
+          key: electron-builder-${{ runner.os }}-${{ hashFiles('apps/assaut/package.json') }}
+          restore-keys: |
+            electron-builder-${{ runner.os }}-
       - run: pnpm install --frozen-lockfile
       - run: pnpm build:windows
+      - uses: actions/upload-artifact@v4
+        with:
+          name: code-rouge-assaut-exe
+          path: |
+            apps/assaut/release/*.exe
+            apps/assaut/release/*.yml
+            apps/assaut/release/*.blockmap
+          if-no-files-found: error
+          retention-days: 14
