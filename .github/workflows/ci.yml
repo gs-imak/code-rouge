@@ -95,6 +95,10 @@ jobs:
           key: electron-builder-${{ runner.os }}-${{ hashFiles('apps/assaut/package.json') }}
           restore-keys: |
             electron-builder-${{ runner.os }}-
+      # NSIS resource bundling (rcedit for icon + version stamping) needs
+      # wine on Linux runners. ~30 s on a cold runner; cheaper than
+      # switching the whole job to windows-latest.
+      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends wine
       - run: pnpm install --frozen-lockfile
       - run: pnpm build:windows
       - uses: actions/upload-artifact@v4
