@@ -1,11 +1,14 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { KioskStatusResponse } from '@shared/ipc'
 import { useGameState } from './persistence'
+import { useServerHandshake } from './sync'
 
 // Placeholder screen for chantier 04 / 05. Final maquettes will replace
 // the entire surface; the kiosk-status footer is debugging UI for the
 // 4-May validation visio and is scheduled for deletion afterward (see
-// CONTEXT.md and the chantier 04 PR description).
+// CONTEXT.md and the chantier 04 PR description). The diagnostic dot
+// (NUC connected/disconnected) outlives the footer — it moves into a
+// dedicated overlay in chantier 06+.
 
 declare global {
   interface Window {
@@ -15,6 +18,8 @@ declare global {
 
 export default function App() {
   const { state, setState, getLatest, ready } = useGameState()
+  const wsUrl = useMemo(() => `ws://${state.serverIp}:8080/ws`, [state.serverIp])
+  const { connection } = useServerHandshake({ url: wsUrl, state, ready })
   const [kiosk, setKiosk] = useState<KioskStatusResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -49,6 +54,15 @@ export default function App() {
     return <main className="screen" />
   }
 
+  const dotGlyph =
+    connection === 'connected' ? '●' : connection === 'connecting' ? '◐' : '○'
+  const dotLabel =
+    connection === 'connected'
+      ? 'NUC connecté'
+      : connection === 'connecting'
+        ? 'NUC connexion…'
+        : 'NUC hors-ligne'
+
   return (
     <main className="screen">
       <header className="screen__header">
@@ -75,6 +89,15 @@ export default function App() {
       </section>
 
       <footer className="kiosk-status" aria-live="polite">
+        <span
+          className={`kiosk-status__dot ${
+            connection === 'connected' ? 'kiosk-status__dot--ok' : ''
+          }`}
+          aria-label={dotLabel}
+          title={dotLabel}
+        >
+          {dotGlyph}
+        </span>
         {error !== null && <span className="kiosk-status__err">⚠ {error}</span>}
         {kiosk !== null && (
           <>
