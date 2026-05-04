@@ -56,9 +56,6 @@ importers:
       '@code-rouge/shared-utils':
         specifier: workspace:*
         version: link:../../packages/shared-utils
-      electron:
-        specifier: ^41.3.0
-        version: 41.3.0
       electron-store:
         specifier: ^11.0.2
         version: 11.0.2
@@ -81,6 +78,9 @@ importers:
       '@vitejs/plugin-react':
         specifier: ^4.7.0
         version: 4.7.0(vite@5.4.21(@types/node@24.12.2)(terser@5.46.2))
+      electron:
+        specifier: ^41.3.0
+        version: 41.3.0
       electron-builder:
         specifier: ^25.1.8
         version: 25.1.8(electron-builder-squirrel-windows@25.1.8)
@@ -6105,6 +6105,14 @@ snapshots:
     optionalDependencies:
       vite: 5.4.21(@types/node@22.19.17)(terser@5.46.2)
 
+  '@vitest/mocker@2.1.9(vite@5.4.21(@types/node@24.12.2)(terser@5.46.2))':
+    dependencies:
+      '@vitest/spy': 2.1.9
+      estree-walker: 3.0.3
+      magic-string: 0.30.21
+    optionalDependencies:
+      vite: 5.4.21(@types/node@24.12.2)(terser@5.46.2)
+
   '@vitest/pretty-format@2.1.9':
     dependencies:
       tinyrainbow: 1.2.0
@@ -9920,7 +9928,7 @@ snapshots:
   vitest@2.1.9(@types/node@24.12.2)(terser@5.46.2):
     dependencies:
       '@vitest/expect': 2.1.9
-      '@vitest/mocker': 2.1.9(vite@5.4.21(@types/node@22.19.17)(terser@5.46.2))
+      '@vitest/mocker': 2.1.9(vite@5.4.21(@types/node@24.12.2)(terser@5.46.2))
       '@vitest/pretty-format': 2.1.9
       '@vitest/runner': 2.1.9
       '@vitest/snapshot': 2.1.9
