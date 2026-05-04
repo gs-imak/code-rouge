@@ -5,98 +5,102 @@
 
 ---
 
-## Last session (2026-04-29) — **M1 SHIPPED, tagged `v0.1.0`**
+## Last session (2026-05-04) — **M1 100% CODE-COMPLETE**
 
-All 5 chantiers of M1 done and merged. CI green on every chantier merge into `main`. **Demo to Nathanael: 2026-05-04 14h30.**
+Every Malt M1 contract item is now closed code-side. CI green on `main`. Three follow-up PRs (#16/#17/#18) closed the gaps the original 5 chantiers left open. The 4-May validation visio with Nathanaël is the one remaining gate before invoicing.
 
 ### main now has
 
 ```
-c2effad feat: chantier 05 — persistence + server-side restore + demo script (M1 final) (#10)
-3125990 docs: mark chantier 04 fully shipped, brief chantier 05 (M1 demo) (#9)
-ae07739 feat: chantier 04 — kiosk mode (Electron Assaut + RN scaffolds + Kotlin Screen Pinning) (#8)
-69d11b5 docs: mark chantier 03 fully shipped, brief chantier 04 (#7)
-d415be4 feat: chantier 03 — local NUC server (Express + WS + SQLite + Zod) (#6)
-f67e428 chore(deps): bump the actions group with 3 updates (#4)
-952fd20 docs: mark chantier 02 fully shipped, brief chantier 03 (#5)
-35fde9a feat: chantier 02 — CI pipeline + Vitest at root (#3)
-b2218aa refactor: chantier 01 quality-gate review fixes (#2)
+7b02c63 feat(ci): Electron .exe build + artifact upload (M1 deliverable) (#18)
+cac733a feat(ci): real APK builds + artifact upload (M1 deliverable) (#17)
+95d8754 feat(ui): network diagnostic + Setup admin skeleton (M1 punch list) (#16)
+d22306e chore(rn-apps): RN-CLI-generated android/ scaffolds (#15)
+776cfdc feat(shared-types): config schemas + placeholder JSONs (chantier 06 prep) (#14)
+0d62d75 feat(server): /diag + POST /admin/reset endpoints (#13)
+13e098f test: ws-client + db + server integration tests (#12)
+cc3661a docs: M1 fully shipped (v0.1.0 tagged) (#11)
+ae07739 feat: chantier 04 — kiosk mode (#8)
+d415be4 feat: chantier 03 — local NUC server (#6)
+35fde9a feat: chantier 02 — CI pipeline (#3)
 86e2d91 chore: scaffold monorepo (chantier 01) (#1)
-a92df49 chore: initial bundle (CLAUDE.md, docs, rules)
+a92df49 chore: initial bundle
 ```
 
-**Tag: `v0.1.0` (signed annotated, pushed to origin).**
+**Tag: `v0.1.0`** (annotated, pushed). Final M1 main CI run: [25336567351](https://github.com/gs-imak/code-rouge/actions/runs/25336567351) — all 5 jobs green (lint 42s, typecheck 52s, test 40s, build-android 389s, build-windows 232s).
 
-### Chantier 05 deliverables (PR #10)
+### Malt contract — every item closed
 
-- **`packages/shared-types`**: `GameState` Zod schema (deviceId / teamId / currentStep / score / lastSync / draftAuthCode), `reconcile(local, restoreMsg)` with documented authority policy (server wins teamId; app wins step+score when past 'init', with `Math.max` on score to prevent regression).
-- **`packages/shared-utils`**: capped exponential backoff (`nextBackoffDelay`, ±20% jitter, 30 s cap), `createWsClient` reconnecting WebSocket consumed by all 3 apps, `randomDeviceId` (crypto.randomUUID, throws on missing — Math.random fallback removed in P0 review fix).
-- **`apps/server-nuc`**: `db.getTeamStateByDevice(sessionId, deviceId, app)` session-scoped restore lookup + `002_device_id_index.sql` covering index + per-IP WS connection rate limit (10/10s, 429 before `handleUpgrade`). Hello handler emits Welcome AND Restore in one round-trip.
-- **`apps/attaque-de-bots`** + **`apps/debriefing`**: AsyncStorage-backed `useGameState` hook with rehydration-gated first paint, deviceId minted on first boot. Attaque-de-bots also wires `useServerSync` (Hello on open, Restore → reconcile, manual `pushState` on transitions) and a green/yellow/red diagnostic dot.
-- **`apps/assaut`**: electron-store-backed `useGameState` via Zod-validated `GetGameState` / `SetGameState` IPC channels. Renderer's auth-code input is now controlled by `state.draftAuthCode` and persists per keystroke. IPC handler uses `safeParse` + explicit Error; renderer catches IPC rejections and reverts the optimistic local state.
-- **`tools/scripts/demo-persistence.sh`** + **`demo-ws-roundtrip.mjs`**: orchestrator + standalone Node WS round-trip. Refuses non-local SERVER_HOST. Phase 2 honestly labelled as "post-force-stop, deviceId stable" (not "post-wipe" — the latter requires hardware-derived IDs landing in chantier 06+).
+| Contract item | Status | Where it landed |
+|---|---|---|
+| Monorepo + design system + commit conventions | ✅ | Chantier 01 (PR #1, #2) |
+| CI pipeline (lint/typecheck/test/build-android/build-windows) | ✅ | Chantier 02 (PR #3) |
+| **Environnement de preview en ligne** (APK + .exe artefacts) | ✅ | PRs #17, #18 — both produce downloadable artefacts on every main push (`code-rouge-apks` + `code-rouge-assaut-exe`, 14-day retention) |
+| Serveur Node.js (WS / Zod / SQLite / install script) | ✅ | Chantier 03 (PR #6) + chantier 06 prep (PR #13: `/diag`, `/admin/reset`, `db.resetSession`) |
+| Mode kiosque Android (Screen Pinning) | ✅ | Chantier 04 + follow-up (PR #8, #15) |
+| Mode kiosque Windows (Electron + désactivation touches) | ✅ | Chantier 04 (PR #8) |
+| Persistance + reprise auto sur les 3 plateformes | ✅ | Chantier 05 (PR #10) |
+| Squelette Connexion / Setup admin / Diagnostic réseau | ✅ | Chantier 04 + PR #16 (Setup admin on debriefing, diagnostic dot on all 3 apps) |
+| Dépôt GitHub avec accès en lecture | 🟡 | Repo private; **add Nathanaël as collaborator** (need his GitHub username) |
+| Tag de release `v0.1` | ✅ | `v0.1.0` |
+| APK Android installables | ✅ | PR #17, downloadable from CI artefacts |
+| Exécutable Windows .exe | ✅ | PR #18, downloadable from CI artefacts |
+| Build serveur NUC packagé + scripts | ✅ | `tools/scripts/install-nuc.sh` (chantier 03) |
+| Documentation d'architecture initiale | ✅ | `docs/architecture.md` + decision log |
 
-### Chantier 05 ACs verified
+### Remaining gates (none code-side)
 
-- ✅ `pnpm typecheck` → 7/7 (full turbo cache hit)
-- ✅ `pnpm test` → **37/37 pass** (was 23 — added 14 tests this chantier: 8 GameState/reconcile + 4 device-id + previously 2 round-trip)
-- ✅ `pnpm -r run lint` → exit 0
-- ✅ `pnpm audit --audit-level=high` → exit 0 (3 moderate, 0 high)
-- ✅ `bash tools/scripts/demo-persistence.sh` → exit 0 (live round-trip against tsx-run server, session-scoped restore + per-IP rate limit + 002 index applied)
-- ✅ CI on main run → 5/5 green
-- ⏸ **Hardware-only:** force-stop the tablet → reopen → no flash, lands on team's last step; type a code in Assaut → Task-Manager-kill → reopen, code preserved; demo script's manual block (3a–3e: kiosk launch, network diagnostic, team selection, force-reboot, CI badge).
+- **4-May 14h30 demo with Nathanaël** — scheduled visio; the validation scenario in `docs/m1-plan.md` § Validation runs against the artefacts from the latest main CI
+- **Hardware kiosk validation** — needs the Windows mallette PC + an Android tablet (Nathanaël's hardware procurement). The `pnpm dev / pnpm android` flows are documented; nothing code-side blocks them.
+- **Add Nathanaël as repo collaborator** — pending his GitHub username
 
-### Quality gate (5 agents in parallel) — 11 fixes + 12 tests baked in
+### Chantier 06 prep that's already done
 
-P0: IPC `SetGameState` safeParse + renderer revert-on-reject (silently dropped writes were possible); `randomDeviceId` Math.random fallback removed (was dead code on every target runtime AND produced predictable UUIDs an on-LAN sniff could narrow); demo script honest AC labelling + non-local SERVER_HOST refusal.
+While closing M1 we also landed the wiring chantier 06 will need:
 
-P1: `002_device_id_index.sql` migration; `getTeamStateByDevice` session-scoped (closes cross-session deviceId leak — sniff one team's deviceId off the LAN and you'd get their prior-day progress); per-IP WS connection rate limit (10/10s, 429 before handleUpgrade); `useGameState.getLatest()` exposed and used by all event handlers (closes the double-tap race); `reconcile` takes `Math.max(local.score, restore.score)` on the local-progressed branch (no visible score regression on reboot).
+- **PR #13** — server `/diag` + `POST /admin/reset` + `db.resetSession`. The Débriefing Setup admin button calls `/admin/reset`; chantier 06's session lifecycle UI is a thin wrapper over these endpoints.
+- **PR #14** — Zod schemas + placeholder JSONs for parcours / mailbox / assaut sequence / game variants in `packages/shared-types/`. When Nathanaël delivers énigme content, it's a JSON edit, not a code change.
+- **PR #16** — `serverIp` in GameState (NUC-IP-aware setup admin), `useServerHandshake` hook on debriefing + assaut, diagnostic dot on all three apps. Chantier 06's network-aware UI builds on these.
 
-Tests: extended `messages.test.ts` with 10 new tests covering `GameState` defaults, `DEFAULT_GAME_STATE`/Zod-default sync, `currentStep min(1)` rejection, full `reconcile` branch coverage; new `device-id.test.ts` with 4 tests including the throw-on-missing-crypto path (locks in the P0 fix).
+### What chantier 06 needs from outside
 
-### Deferred (chantier 06+, with concrete plans)
+1. **Laura's tokens** (colors / typo / spacing) → `packages/design-system/`
+2. **Laura's maquettes** (per-screen designs) → drives the App.tsx rewrites
+3. **Nathanaël's content** (parcours.json / mailbox.json / assaut sequence) → drops into `packages/shared-types/configs/` or `apps/<app>/assets/config/`
+4. **Hardware** (mallette PC + tablets + GM phone + NUC) → for runtime AC validation
 
-- NUC-IP-scoped CSP (chantier 06's GM admin screen derives `connect-src` from configured NUC IP)
-- pino `redact: ['*.draftAuthCode']` (preemptive — once chantier 06 wires real auth, never log the field even at debug)
-- Demo script: fresh-UUID-per-run + server-side cleanup endpoint
-- Native `MainActivity.onCreate.startLockTask` (eliminates ~100-300 ms placeholder visible before pinning) — needs Android Studio scaffold first
-- BackHandler refactor for React Navigation
-- Hardware-derived device IDs (Android `Settings.Secure.ANDROID_ID` + Windows machine GUID) so the chantier 05.3 AC works with full storage wipe, not just force-stop
+Test count: **91 / 91 passing**. `pnpm audit --audit-level=high` clean.
 
 ---
 
 ## Currently in progress
 
-_(none — M1 done, awaiting hardware validation + 4 May visio with Nathanael)_
+_(none — M1 done, awaiting 4-May visio)_
 
 ---
 
-## Blocked / waiting on Georges
+## Blocked / waiting on Georges or Nathanaël
 
-- **Hardware validation for chantier 04 + 05:** runtime ACs need a Windows mallette PC + an Android tablet/emulator + Android Studio. Code is complete.
-- **Android scaffold follow-up PR:** `npx @react-native-community/cli init` walkthrough in `apps/attaque-de-bots/README.md` + `apps/debriefing/README.md`. Generates the `android/` Gradle tree the kiosk Kotlin sources land into. Should be a small standalone PR before the demo.
+- Add Nathanaël as a read collaborator on `gs-imak/code-rouge` (GitHub username pending).
+- Confirm "build serveur NUC packagé" interpretation matches `install-nuc.sh + git clone` flow (vs. expecting a `.tar.gz`).
+- 4-May 14h30 visio.
 
 ## Notes (non-blocking)
 
-- 3 moderate vulnerabilities still in `pnpm audit` (none high). Below the CI threshold; worth a triage when convenient.
-- Vercel session hooks continue to fire; ignored.
-- Kiosk-status footer in `assaut/App.tsx` is debugging UI for the M1 demo — **scheduled for deletion after the 4-May validation visio** (refactoring agent's recommendation in PR #8).
+- 3 moderate vulnerabilities still in `pnpm audit` (none high). Tar override neutralised the CVE chain that chantier 04 hit.
+- The kiosk-status footer in `assaut/App.tsx` is debugging UI — scheduled for deletion after the 4-May validation.
+- Vercel session hooks continue to fire on filenames; ignored throughout.
 
 ---
 
-## Next concrete task
+## Next concrete task — **post-demo cleanup**
 
-**M1 demo with Nathanael — 2026-05-04 14h30.** Walk through the 5-step validation scenario from `docs/m1-plan.md` § Validation. Run `tools/scripts/demo-persistence.sh` for the automatable steps; complete steps 3a-3e by hand on the venue hardware (mallette + tablet + GM phone).
+After the 4-May visio passes:
 
-After demo passes:
-1. Capture screenshots into `docs/demo/m1/` (the directory has a `.gitkeep`; PNGs are gitignored by default).
-2. Open the **chantier 04 follow-up PR** generating the `android/` Gradle scaffold for both RN apps.
-3. Delete the kiosk-status footer in `assaut/App.tsx` + the `IpcChannel.KioskStatus` IPC path (no longer needed; `IpcChannel.AppVersion` stays — chantier 06+ session reset uses it).
-4. **Send invoice for M1.**
-
-If demo finds blocking bugs, branch `fix/m1-demo-<short-slug>` per chantier and apply the same flow (PR + quality gate + merge). Treat any hardware-only AC failures as separate chantier-06 prep issues, not M1 regressions, unless they materially block validation.
-
-**Once M1 is signed off → chantier 06 starts: real game content (parcours JSON, mailbox JSON, énigme matrices A/B/C/D, CDC sequence linéaire for Assaut) + the design-system tokens once the graphiste's maquettes land.**
+1. Capture screenshots into `docs/demo/m1/` (the directory has a `.gitkeep`; PNGs are gitignored by default; use `git add -f` if you want to commit specific captures).
+2. Delete the kiosk-status footer in `apps/assaut/src/renderer/src/App.tsx` + the `IpcChannel.KioskStatus` IPC path. The diagnostic dot stays — it moves out of the footer into a dedicated overlay in chantier 06.
+3. **Send invoice for M1.**
+4. Open chantier 06 with a brainstorming session: which design tokens does Laura need from the existing palette? What's the canonical parcours flow Nathanaël wants to ship for the first venue session?
 
 ---
 
@@ -108,14 +112,12 @@ section headers as-is. Be specific:
 **Good entry**
 ```
 ## Last session (2026-05-04)
-- M1 demo passed; Nathanael signed off. Tagged v0.1.0 already; invoice
-  drafted, sent to Nathanael CC accounting.
+- M1 demo passed; Nathanaël signed off. Tag v0.1.0 already shipped;
+  invoice drafted, sent.
 - Captured 4 PNGs in docs/demo/m1/.
-- Found one regression during demo: shared-types `reconcile` returned
-  draftAuthCode='' instead of preserving when local was past init —
-  fixed in PR #11, merged.
-- Chantier 04 follow-up Android scaffold landed in PR #12.
-- Next: chantier 06 — game content (parcours.json schema first).
+- Found one regression during demo: <specific>
+- Chantier 06 brainstorming scheduled for 2026-05-07.
+- Next: parcours.json content drop from Nathanaël.
 ```
 
 **Bad entry**
