@@ -110,11 +110,31 @@ export function createApp(deps: CreateAppDeps): Express {
   const RESET_LOCKOUT_MS = 60_000
   const resetAttempts = new Map<string, { count: number; lockedUntil: number }>()
 
+  // Sweep expired lockouts so an IP that triggered the cap and never
+  // came back doesn't pin its entry forever. Mirrors the connectionWindow
+  // sweep below for structural consistency. .unref() so the timer
+  // doesn't keep the event loop alive past process shutdown.
+  setInterval(() => {
+    const now = Date.now()
+    for (const [ip, entry] of resetAttempts) {
+      if (entry.lockedUntil > 0 && now >= entry.lockedUntil) {
+        resetAttempts.delete(ip)
+      }
+    }
+  }, RESET_LOCKOUT_MS).unref()
+
   app.post('/admin/reset', (req: Request, res: Response) => {
     // Per-session reset code (architecture.md §3). Must NEVER be a static
     // password — the GM reads the code off the Débriefing app at game
     // start and types it here to wipe state between sessions.
-    const remote = req.ip ?? 'unknown'
+    //
+    // Use req.socket.remoteAddress directly (not req.ip) so the lockout
+    // key is independent of Express's `trust proxy` setting. The NUC is
+    // LAN-only with no reverse proxy today, but if someone later sets
+    // `app.set('trust proxy', 1)` for ops logging through a gateway,
+    // req.ip would silently start trusting X-Forwarded-For and the
+    // lockout would become spoofable via a header.
+    const remote = req.socket.remoteAddress ?? 'unknown'
     const now = Date.now()
 
     // Lockout check up front so timing of the lockout response doesn't
@@ -180,11 +200,24 @@ export function createApp(deps: CreateAppDeps): Express {
 
 // Constant-time string comparison. Both values are short (~12 chars) so
 // the cost is negligible even in the bad-code path.
+//
+// Importantly: do NOT early-return on length mismatch. An attacker
+// submitting codes of varying length would otherwise observe a faster
+// "wrong length" response than a "wrong contents" response, narrowing
+// the search from `2^n × possible-codes` to `possible-codes` once the
+// length lands. Instead, fold the length difference into the diff
+// accumulator and run the loop over Math.max(a.length, b.length).
 function constantTimeEquals(a: string, b: string): boolean {
-  if (a.length !== b.length) return false
-  let diff = 0
-  for (let i = 0; i < a.length; i += 1) {
-    diff |= a.charCodeAt(i) ^ b.charCodeAt(i)
+  const len = Math.max(a.length, b.length)
+  // Seed `diff` with any length mismatch so it cannot zero out even if
+  // every overlapping character matches (e.g. submitted "abc" vs "abcd").
+  let diff = a.length ^ b.length
+  for (let i = 0; i < len; i += 1) {
+    // charCodeAt returns NaN for out-of-range indices; (NaN ^ x) is 0
+    // in JS, which would weaken the guard. Coalesce to 0 explicitly.
+    const ca = i < a.length ? a.charCodeAt(i) : 0
+    const cb = i < b.length ? b.charCodeAt(i) : 0
+    diff |= ca ^ cb
   }
   return diff === 0
 }

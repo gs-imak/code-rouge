@@ -18,7 +18,17 @@ import type { ServerConfig } from './config.js'
 // (state, payload, body, etc.) without us having to enumerate them.
 // Anything deeper than two levels falls through; at that point the
 // problem is the log call shape, not the redact list.
-const REDACT_PATHS = ['draftAuthCode', '*.draftAuthCode'] as const
+// `body.code` and `*.code` cover the /admin/reset request body in case a
+// future error handler logs `req.body` verbatim. The reset code is the
+// other secret on the wire; redacting it here is cheap defense-in-depth
+// for the same reasons as draftAuthCode (no current handler logs it,
+// but the cost of preventing a future regression is two list entries).
+const REDACT_PATHS = [
+  'draftAuthCode',
+  '*.draftAuthCode',
+  'body.code',
+  '*.code',
+] as const
 
 export function createLogger(config: ServerConfig): Logger {
   // Pretty printing only in development; production uses raw JSON for systemd journal.

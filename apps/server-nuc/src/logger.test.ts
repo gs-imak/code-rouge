@@ -35,7 +35,7 @@ function captureLogger(): { logger: Logger; lines: () => unknown[] } {
       level: 'info',
       base: { service: 'code-rouge-server' },
       redact: {
-        paths: ['draftAuthCode', '*.draftAuthCode'],
+        paths: ['draftAuthCode', '*.draftAuthCode', 'body.code', '*.code'],
         censor: '[REDACTED]',
       },
     },
@@ -94,6 +94,20 @@ describe('createLogger — redact surface (defense-in-depth)', () => {
       const branch = entry[parent] as Record<string, unknown>
       expect(branch['draftAuthCode']).toBe('[REDACTED]')
     }
+  })
+
+  it('redacts the /admin/reset submitted code (body.code + *.code)', () => {
+    const { logger, lines } = captureLogger()
+    // Simulates a future error handler that logs req.body verbatim.
+    logger.warn({ body: { code: 'SECRET-RESET-9999' } }, 'reset failed')
+    // Simulates a wildcard parent (e.g. logger.warn({ payload: req.body })).
+    logger.warn({ payload: { code: 'SECRET-RESET-9999' } }, 'reset failed via payload')
+    const entries = lines() as Array<Record<string, unknown>>
+    expect(entries).toHaveLength(2)
+    const body = entries[0]?.['body'] as Record<string, unknown>
+    const payload = entries[1]?.['payload'] as Record<string, unknown>
+    expect(body['code']).toBe('[REDACTED]')
+    expect(payload['code']).toBe('[REDACTED]')
   })
 
   it('does NOT redact unrelated fields (no over-eager matching)', () => {
