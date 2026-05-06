@@ -9,7 +9,10 @@ import { randomDeviceId } from '@code-rouge/shared-utils'
 // callers" rule). Extract to packages/persistence-rn when a third RN
 // app joins the monorepo, OR when the GameState shape diverges per-app.
 
-const STORAGE_KEY = 'code-rouge:game-state:v1'
+// App-prefixed, versioned key. See attaque-de-bots' equivalent for the
+// rationale (avoiding cross-app state collision when both APKs run on
+// the same emulator during dev).
+const STORAGE_KEY = 'code-rouge:dbr:game-state:v1'
 
 export interface UseGameStateResult {
   readonly state: GameState
@@ -36,9 +39,16 @@ export function useGameState(): UseGameStateResult {
             // Corrupted blob — fall back to default.
           }
         }
+        // See apps/attaque-de-bots/src/persistence.ts for the full
+        // rationale: persist failures degrade gracefully into a one-
+        // session restore miss rather than crashing the app boot.
         if (next.deviceId === '') {
           next = { ...next, deviceId: randomDeviceId() }
-          await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next))
+          try {
+            await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next))
+          } catch {
+            // intentional: continue without persistence
+          }
         }
         stateRef.current = next
         setStateRaw(next)

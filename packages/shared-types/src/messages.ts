@@ -56,7 +56,10 @@ export const StateUpdateMessage = z.object({
   deviceId: DeviceId,
   teamId: TeamId,
   step: z.string().min(1).max(128),
-  score: z.number().int(),
+  // Score is non-negative by construction. Without this floor, a buggy
+  // app or replayed payload could push a negative score, and reconcile()
+  // accepts it on the local-init branch (no Math.max guard there).
+  score: z.number().int().nonnegative(),
   timestamp: z.number().int().nonnegative(),
 })
 export type StateUpdateMessage = z.infer<typeof StateUpdateMessage>
@@ -102,7 +105,11 @@ export const RestoreMessage = z.object({
   teamId: z.number().int().nonnegative(),
   app: AppName,
   step: z.string().min(1).max(128),
-  score: z.number().int(),
+  // Score floor matches StateUpdateMessage. The reconcile() function
+  // additionally Math.max-clamps when local has progressed past 'init',
+  // but if local is still at 'init' the server's value wins outright;
+  // a non-negative floor ensures it cannot regress below zero either.
+  score: z.number().int().nonnegative(),
   timestamp: z.number().int().nonnegative(),
 })
 export type RestoreMessage = z.infer<typeof RestoreMessage>

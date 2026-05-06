@@ -48,6 +48,19 @@ describe('parseAppToServerMessage — round-trip', () => {
     expect(parseAppToServerMessage(JSON.stringify(state))).toEqual(state)
   })
 
+  it('rejects a state update with a negative score (floor enforced)', () => {
+    const bogus = JSON.stringify({
+      type: 'state',
+      app: 'attaque-de-bots',
+      deviceId: 'tablet-7',
+      teamId: 7,
+      step: 'phishing',
+      score: -1,
+      timestamp: 1714400000000,
+    })
+    expect(() => parseAppToServerMessage(bogus)).toThrowError(MessageParseError)
+  })
+
   it('parses a log push with multiple events', () => {
     const log: LogPushMessage = {
       type: 'log',
@@ -145,6 +158,18 @@ describe('parseServerToAppMessage', () => {
       timestamp: 1714400000000,
     }
     expect(parseServerToAppMessage(JSON.stringify(restore))).toEqual(restore)
+  })
+
+  it('rejects a restore with a negative score (floor enforced)', () => {
+    const bogus = JSON.stringify({
+      type: 'restore',
+      teamId: 7,
+      app: 'attaque-de-bots',
+      step: 'phishing',
+      score: -5,
+      timestamp: 1714400000000,
+    })
+    expect(() => parseServerToAppMessage(bogus)).toThrowError(MessageParseError)
   })
 
   it('parses a server command', () => {

@@ -4,7 +4,7 @@ import { createWsClient, type ConnectionState } from '@code-rouge/shared-utils'
 
 // Reconnecting WS handshake for the Electron renderer. Same shape as
 // debriefing's hook — assaut is M1-listener (no state push yet); the
-// dot in the kiosk-status footer renders the connection state.
+// dot in the .nuc-status footer renders the connection state.
 //
 // CSP `connect-src ws: wss:` (renderer/index.html) and `webSecurity:
 // true` (main/index.ts BrowserWindow) allow the connection out the

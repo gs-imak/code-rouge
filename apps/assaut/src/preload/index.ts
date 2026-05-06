@@ -2,7 +2,6 @@ import { contextBridge, ipcRenderer } from 'electron'
 import { GameState } from '@code-rouge/shared-types'
 import {
   IpcChannel,
-  KioskStatusResponse,
   AppVersionResponse,
   SetGameStateResponse,
   type AssautBridge,
@@ -14,10 +13,6 @@ import {
 // a buggy main can't poison renderer state with the wrong shape.
 
 const bridge: AssautBridge = {
-  async getKioskStatus() {
-    const raw = await ipcRenderer.invoke(IpcChannel.KioskStatus)
-    return KioskStatusResponse.parse(raw)
-  },
   async getAppVersion() {
     const raw = await ipcRenderer.invoke(IpcChannel.AppVersion)
     return AppVersionResponse.parse(raw)

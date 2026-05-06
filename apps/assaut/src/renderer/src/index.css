@@ -125,9 +125,13 @@ body {
   text-transform: uppercase;
 }
 
-.kiosk-status {
+.nuc-status {
+  /* Diagnostic footer, scoped to the NUC connection dot only. The previous
+     kiosk-status footer (kiosk:/fullscreen:/shortcuts: spans, plus error
+     readout) was deleted post-M1 validation: it surfaced kiosk internals
+     to the renderer with no runtime payoff. The dot will move into a
+     dedicated overlay in chantier 06+. */
   display: flex;
-  flex-wrap: wrap;
   gap: 1.5rem;
   font-size: 0.85rem;
   color: var(--muted);
@@ -137,24 +141,12 @@ body {
   align-self: end;
 }
 
-.kiosk-status__err {
-  color: var(--accent);
-}
-
-.kiosk-status__warn {
-  /* Failed-shortcut warning — yellow against dark passes AA at this size. */
-  color: #ffcc66;
-}
-
-.kiosk-status__dot {
-  /* NUC connection diagnostic — red by default, green when connected.
-     Outlives the rest of the kiosk-status footer (the kiosk:/fullscreen:/
-     shortcuts: spans get deleted post-validation; this dot moves into a
-     dedicated diagnostic overlay in chantier 06+). */
+.nuc-status__dot {
+  /* Red by default, green when the NUC WebSocket is connected. */
   font-size: 1rem;
   color: #ff9090;
 }
 
-.kiosk-status__dot--ok {
+.nuc-status__dot--ok {
   color: #7ee2a8;
 }
