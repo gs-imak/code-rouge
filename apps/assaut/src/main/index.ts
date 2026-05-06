@@ -3,7 +3,6 @@ import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import {
   IpcChannel,
-  KioskStatusResponse,
   AppVersionResponse,
   SetGameStateResponse,
 } from '../shared/ipc.js'
@@ -40,32 +39,41 @@ if (!gotLock) {
 const KIOSK_SHORTCUTS = [
   'Alt+Tab',
   'Alt+F4',
-  'Control+Escape',         // Ctrl+Esc — Start menu
-  'Super+L',                // Win+L — kernel-intercepted, register() returns false
-  'Super+D',                // Win+D — show desktop
+  'Control+Escape',         // Ctrl+Esc, Start menu
+  'Super+L',                // Win+L, kernel-intercepted, register() returns false
+  'Super+D',                // Win+D, show desktop
   'Control+Shift+Escape',   // Task Manager
 ] as const
 
-const REGISTERED_SHORTCUTS: string[] = []
-const FAILED_SHORTCUTS: string[] = []
-
 function registerKioskShortcuts(): void {
+  // We previously stored the registered/failed split in module-level arrays
+  // and surfaced them via an IPC channel for a debug footer in the renderer.
+  // That footer was deleted post-M1 validation (it doubled as a fingerprint
+  // surface for the renderer with zero runtime payoff). Boot-time visibility
+  // is now a console.warn: ops still need to know if Win+L silently failed
+  // to register on a particular Windows build, but a compromised renderer
+  // no longer learns the kiosk lock state.
+  const failed: string[] = []
   for (const accelerator of KIOSK_SHORTCUTS) {
     const ok = globalShortcut.register(accelerator, () => {
       // No-op: swallowing the accelerator is the entire point.
     })
-    if (ok) {
-      REGISTERED_SHORTCUTS.push(accelerator)
-    } else {
-      FAILED_SHORTCUTS.push(accelerator)
+    if (!ok) {
+      failed.push(accelerator)
     }
+  }
+  if (failed.length > 0) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      `[kiosk] globalShortcut.register declined: ${failed.join(', ')} ` +
+        '(Super+L is kernel-intercepted by design; others may indicate a ' +
+        'Windows policy or a conflicting installed app)',
+    )
   }
 }
 
 function unregisterKioskShortcuts(): void {
   globalShortcut.unregisterAll()
-  REGISTERED_SHORTCUTS.length = 0
-  FAILED_SHORTCUTS.length = 0
 }
 
 // ----- Window construction ----------------------------------------------------
@@ -113,30 +121,10 @@ function createMainWindow(): void {
 
   mainWindow.removeMenu()
 
-  mainWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }))
-
-  // Block navigation away from the renderer entry. Compare origin +
-  // pathname (parsed) so trailing slash, fragment, and query-string
-  // variations don't either falsely block legitimate Vite HMR navigations
-  // (origin matches) or falsely allow a `?injected=payload` smuggle
-  // (pathname differs).
-  mainWindow.webContents.on('will-navigate', (event, url) => {
-    const allowed = rendererEntry()
-    const allowedStr = allowed instanceof URL ? allowed.href : String(allowed)
-    try {
-      const parsedAllowed = new URL(allowedStr)
-      const parsedTarget = new URL(url)
-      if (
-        parsedTarget.origin !== parsedAllowed.origin ||
-        parsedTarget.pathname !== parsedAllowed.pathname
-      ) {
-        event.preventDefault()
-      }
-    } catch {
-      // Unparseable URL — block it.
-      event.preventDefault()
-    }
-  })
+  // setWindowOpenHandler + will-navigate guards live in the global
+  // `web-contents-created` hook below so they apply to EVERY WebContents
+  // (mainWindow, future webview attachments, DevTools). Hooking only
+  // mainWindow.webContents would leave secondary surfaces unguarded.
 
   const entry = rendererEntry()
   if (entry instanceof URL || /^https?:\/\//.test(String(entry))) {
@@ -153,16 +141,6 @@ function createMainWindow(): void {
 // ----- IPC handlers (typed via @shared/ipc) ----------------------------------
 
 function registerIpcHandlers(): void {
-  ipcMain.handle(IpcChannel.KioskStatus, (): KioskStatusResponse => {
-    const win = mainWindow
-    return {
-      fullscreen: win?.isFullScreen() ?? false,
-      kiosk: win?.isKiosk() ?? false,
-      globalShortcutsRegistered: [...REGISTERED_SHORTCUTS],
-      globalShortcutsFailed: [...FAILED_SHORTCUTS],
-    }
-  })
-
   ipcMain.handle(IpcChannel.AppVersion, (): AppVersionResponse => {
     return {
       app: app.getVersion(),
@@ -216,11 +194,40 @@ if (gotLock) {
   })
 }
 
-// Defensive: deny any new web-contents (popups, dialogs) AND prevent
-// `<webview>` from attaching with its own (potentially weaker) webPreferences.
+// Defensive: every WebContents (mainWindow, DevTools, any future
+// `<webview>` attachment) gets the same triple guard:
+//
+//   1. setWindowOpenHandler: deny popups + dialogs
+//   2. will-attach-webview: prevent webviews from attaching with their
+//      own (potentially weaker) webPreferences
+//   3. will-navigate: deny navigation away from the renderer entry,
+//      compared by parsed origin + pathname so trailing slash / hash /
+//      query-string variations don't either falsely block legitimate
+//      Vite HMR navigations OR allow a `?injected=payload` smuggle
+//
+// Hooking via `web-contents-created` is critical because creating the
+// hook only on `mainWindow.webContents` (as it was originally) leaves
+// any subsequent WebContents — including DevTools in dev — with an
+// unguarded navigation surface.
 app.on('web-contents-created', (_event, contents) => {
   contents.setWindowOpenHandler(() => ({ action: 'deny' }))
   contents.on('will-attach-webview', (e) => e.preventDefault())
+  contents.on('will-navigate', (event, url) => {
+    const allowed = rendererEntry()
+    const allowedStr = allowed instanceof URL ? allowed.href : String(allowed)
+    try {
+      const parsedAllowed = new URL(allowedStr)
+      const parsedTarget = new URL(url)
+      if (
+        parsedTarget.origin !== parsedAllowed.origin ||
+        parsedTarget.pathname !== parsedAllowed.pathname
+      ) {
+        event.preventDefault()
+      }
+    } catch {
+      event.preventDefault()
+    }
+  })
 })
 
 app.on('window-all-closed', () => {

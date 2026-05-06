@@ -227,4 +227,24 @@ describe('server integration — POST /admin/reset', () => {
     })
     expect(res.status).toBe(401)
   })
+
+  it('returns 429 after exceeding the per-IP brute-force threshold', async () => {
+    // The threshold is 5 wrong attempts within 60 s. Prior tests in
+    // this describe already accrued some — fire enough more to be
+    // certain we cross it. The N+1th request after the lockout fires
+    // returns 429 regardless of body shape.
+    for (let i = 0; i < 6; i += 1) {
+      await fetch(`http://127.0.0.1:${port}/admin/reset`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ code: `still-wrong-${i}` }),
+      })
+    }
+    const res = await fetch(`http://127.0.0.1:${port}/admin/reset`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ code: 'still-wrong' }),
+    })
+    expect(res.status).toBe(429)
+  })
 })

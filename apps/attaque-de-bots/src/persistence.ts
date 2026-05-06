@@ -3,11 +3,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { GameState, DEFAULT_GAME_STATE } from '@code-rouge/shared-types'
 import { randomDeviceId } from '@code-rouge/shared-utils'
 
-// Versioned key — bumping the suffix triggers a clean state on the next
-// boot, useful if we ever change the shape of GameState in a non-additive
-// way. Today's shape is additive (new fields can default in via Zod) so
-// v1 should remain stable through M1.
-const STORAGE_KEY = 'code-rouge:game-state:v1'
+// App-prefixed, versioned key. The `ats:` infix differentiates from
+// debriefing's `dbr:` so that running both APKs on the same emulator
+// (a dev convenience) doesn't have them stomp each other's state. The
+// `v1` suffix is reserved for non-additive GameState shape changes.
+const STORAGE_KEY = 'code-rouge:ats:game-state:v1'
 
 export interface UseGameStateResult {
   /** Latest hydrated state. Default values until `ready` flips true. */
@@ -53,10 +53,18 @@ export function useGameState(): UseGameStateResult {
         }
         // Mint a deviceId on the very first boot and persist it so
         // subsequent boots reuse the same identifier (server-side
-        // restore-by-deviceId depends on this).
+        // restore-by-deviceId depends on this). If AsyncStorage write
+        // fails (storage full, permissions), we run this session with
+        // the in-memory id and re-mint on next boot. The acceptable
+        // degradation is one session where the server can't restore
+        // by deviceId.
         if (next.deviceId === '') {
           next = { ...next, deviceId: randomDeviceId() }
-          await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next))
+          try {
+            await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next))
+          } catch {
+            // intentional: continue without persistence
+          }
         }
         stateRef.current = next
         setStateRaw(next)

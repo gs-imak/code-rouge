@@ -1,6 +1,25 @@
 import { pino, type Logger } from 'pino'
 import type { ServerConfig } from './config.js'
 
+// Defense-in-depth redact list for fields that should never appear in
+// production logs. The server doesn't currently log the full GameState
+// (we deliberately project to {teamId, step, score, ...} in handlers),
+// but pino's redact config catches the case where:
+//
+//   1. A future debug log dumps an incoming WS frame verbatim and the
+//      renderer mistakenly forwards the full GameState rather than the
+//      narrow StateUpdateMessage projection.
+//   2. An admin endpoint returns and logs a row from the persistence
+//      store that happens to carry draftAuthCode through.
+//
+// Pino doesn't support deep wildcards (** is not implemented as of
+// pino@9). The bare path catches a top-level draftAuthCode; the
+// `*.draftAuthCode` wildcard catches any one-level-deep parent key
+// (state, payload, body, etc.) without us having to enumerate them.
+// Anything deeper than two levels falls through; at that point the
+// problem is the log call shape, not the redact list.
+const REDACT_PATHS = ['draftAuthCode', '*.draftAuthCode'] as const
+
 export function createLogger(config: ServerConfig): Logger {
   // Pretty printing only in development; production uses raw JSON for systemd journal.
   const transport =
@@ -11,6 +30,10 @@ export function createLogger(config: ServerConfig): Logger {
   return pino({
     level: config.logLevel,
     base: { service: 'code-rouge-server' },
+    redact: {
+      paths: [...REDACT_PATHS],
+      censor: '[REDACTED]',
+    },
     ...(transport ? { transport } : {}),
   })
 }

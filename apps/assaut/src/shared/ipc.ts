@@ -8,9 +8,14 @@ import { GameState } from '@code-rouge/shared-types'
 // ----- Channel name registry --------------------------------------------------
 // Adding a channel: declare it here, add the request/response schemas below,
 // register a handler in main, expose it through the preload bridge.
+//
+// `KioskStatus` was removed post-M1 validation: it surfaced kiosk internals
+// (kiosk:/fullscreen:/shortcut counts) to the renderer with no runtime payoff
+// and acted as a small fingerprint surface. Boot-time visibility into
+// globalShortcut.register failures is a console.warn in main now (see
+// registerKioskShortcuts in apps/assaut/src/main/index.ts).
 
 export const IpcChannel = {
-  KioskStatus: 'app:kiosk-status',
   AppVersion: 'app:version',
   GetGameState: 'app:get-game-state',
   SetGameState: 'app:set-game-state',
@@ -18,17 +23,6 @@ export const IpcChannel = {
 export type IpcChannel = (typeof IpcChannel)[keyof typeof IpcChannel]
 
 // ----- Per-channel schemas ---------------------------------------------------
-
-export const KioskStatusResponse = z.object({
-  fullscreen: z.boolean(),
-  kiosk: z.boolean(),
-  globalShortcutsRegistered: z.array(z.string()),
-  // Shortcuts that `globalShortcut.register` declined (Win+L is famous —
-  // kernel-intercepted, never registers). Surfacing these explicitly so
-  // the M1 demo doesn't silently report the wrong count.
-  globalShortcutsFailed: z.array(z.string()),
-})
-export type KioskStatusResponse = z.infer<typeof KioskStatusResponse>
 
 // Trimmed: only the user-facing app version. `electron` and `platform`
 // were information-disclosure surface (fingerprinting Electron CVEs from
@@ -52,7 +46,6 @@ export type SetGameStateResponse = z.infer<typeof SetGameStateResponse>
 // only what the renderer is allowed to call. Never leak `ipcRenderer` itself.
 
 export interface AssautBridge {
-  readonly getKioskStatus: () => Promise<KioskStatusResponse>
   readonly getAppVersion: () => Promise<AppVersionResponse>
   readonly getGameState: () => Promise<GameState>
   readonly setGameState: (next: GameState) => Promise<SetGameStateResponse>

@@ -101,11 +101,31 @@ export function createApp(deps: CreateAppDeps): Express {
     })
   })
 
+  // Per-IP brute-force lockout for /admin/reset. Constant-time compare
+  // alone doesn't prevent code-space exhaustion (~9e5 codes at 1k req/s
+  // = ~15 min on a 6-digit alphanumeric). A 5-attempt-per-60-second
+  // ceiling kills any practical spray attack while leaving the GM's
+  // typo-then-retry workflow unaffected.
+  const RESET_MAX_ATTEMPTS = 5
+  const RESET_LOCKOUT_MS = 60_000
+  const resetAttempts = new Map<string, { count: number; lockedUntil: number }>()
+
   app.post('/admin/reset', (req: Request, res: Response) => {
     // Per-session reset code (architecture.md §3). Must NEVER be a static
     // password — the GM reads the code off the Débriefing app at game
     // start and types it here to wipe state between sessions.
-    //
+    const remote = req.ip ?? 'unknown'
+    const now = Date.now()
+
+    // Lockout check up front so timing of the lockout response doesn't
+    // depend on the body parse path.
+    const entry = resetAttempts.get(remote)
+    if (entry !== undefined && now < entry.lockedUntil) {
+      logger.warn({ remote, lockedUntilMs: entry.lockedUntil - now }, '/admin/reset: locked out')
+      res.status(429).json({ error: 'too many attempts' })
+      return
+    }
+
     // The body is express.json-parsed up to 64 KB; we only inspect a single
     // string field. Any other shape → 400 (don't even hint at validity).
     const body = req.body as unknown
@@ -123,14 +143,24 @@ export function createApp(deps: CreateAppDeps): Express {
     // codes (architecture allocates them, never user-input — but defence
     // in depth costs nothing here).
     if (!constantTimeEquals(submitted, resetCode)) {
-      logger.warn({ remote: req.ip }, '/admin/reset: bad code')
+      const next = (entry?.count ?? 0) + 1
+      const lockedUntil = next >= RESET_MAX_ATTEMPTS ? now + RESET_LOCKOUT_MS : 0
+      resetAttempts.set(remote, { count: next, lockedUntil })
+      logger.warn(
+        { remote, attempts: next, locked: lockedUntil > 0 },
+        '/admin/reset: bad code',
+      )
       res.status(401).json({ error: 'unauthorized' })
       return
     }
 
+    // Successful auth clears the per-IP attempt counter so a GM who
+    // mistyped twice then got it right doesn't carry residual state.
+    resetAttempts.delete(remote)
+
     const result = db.resetSession(sessionId)
     logger.info(
-      { sessionId, ...result, remote: req.ip },
+      { sessionId, ...result, remote },
       '/admin/reset: session wiped',
     )
     res.status(200).json({

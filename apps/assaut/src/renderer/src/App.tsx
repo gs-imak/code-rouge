@@ -1,14 +1,14 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import type { KioskStatusResponse } from '@shared/ipc'
+import { useCallback, useMemo } from 'react'
 import { useGameState } from './persistence'
 import { useServerHandshake } from './sync'
 
 // Placeholder screen for chantier 04 / 05. Final maquettes will replace
-// the entire surface; the kiosk-status footer is debugging UI for the
-// 4-May validation visio and is scheduled for deletion afterward (see
-// CONTEXT.md and the chantier 04 PR description). The diagnostic dot
-// (NUC connected/disconnected) outlives the footer — it moves into a
-// dedicated overlay in chantier 06+.
+// the entire surface. The footer is intentionally tiny: just a NUC
+// connection dot. The previous kiosk-status footer (kiosk: / fullscreen:
+// / shortcuts: counts surfaced via IPC) was deleted post-validation
+// because it doubled as a fingerprint surface for the renderer with no
+// runtime payoff. Boot-time visibility into globalShortcut.register
+// failures is now a console.warn in main (see registerKioskShortcuts).
 
 declare global {
   interface Window {
@@ -20,20 +20,6 @@ export default function App() {
   const { state, setState, getLatest, ready } = useGameState()
   const wsUrl = useMemo(() => `ws://${state.serverIp}:8080/ws`, [state.serverIp])
   const { connection } = useServerHandshake({ url: wsUrl, state, ready })
-  const [kiosk, setKiosk] = useState<KioskStatusResponse | null>(null)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    const bridge = window.assaut
-    if (bridge === undefined) {
-      setError('preload bridge missing')
-      return
-    }
-    bridge
-      .getKioskStatus()
-      .then(setKiosk)
-      .catch((err: unknown) => setError(err instanceof Error ? err.message : String(err)))
-  }, [])
 
   const onCodeChange = useCallback(
     (next: string) => {
@@ -48,7 +34,7 @@ export default function App() {
     [setState, getLatest],
   )
 
-  // Hold first paint until we know the persisted value — avoids a flash
+  // Hold first paint until we know the persisted value. Avoids a flash
   // of the empty placeholder and then a swap to the persisted code.
   if (!ready) {
     return <main className="screen" />
@@ -88,29 +74,16 @@ export default function App() {
         <p className="prompt__hint">placeholder — chantier 05 persistance</p>
       </section>
 
-      <footer className="kiosk-status" aria-live="polite">
+      <footer className="nuc-status" aria-live="polite">
         <span
-          className={`kiosk-status__dot ${
-            connection === 'connected' ? 'kiosk-status__dot--ok' : ''
+          className={`nuc-status__dot ${
+            connection === 'connected' ? 'nuc-status__dot--ok' : ''
           }`}
           aria-label={dotLabel}
           title={dotLabel}
         >
           {dotGlyph}
         </span>
-        {error !== null && <span className="kiosk-status__err">⚠ {error}</span>}
-        {kiosk !== null && (
-          <>
-            <span>kiosk: {String(kiosk.kiosk)}</span>
-            <span>fullscreen: {String(kiosk.fullscreen)}</span>
-            <span>shortcuts: {kiosk.globalShortcutsRegistered.length}</span>
-            {kiosk.globalShortcutsFailed.length > 0 && (
-              <span className="kiosk-status__warn">
-                failed: {kiosk.globalShortcutsFailed.join(', ')}
-              </span>
-            )}
-          </>
-        )}
       </footer>
     </main>
   )
