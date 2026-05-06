@@ -210,11 +210,24 @@ if (gotLock) {
 // any subsequent WebContents — including DevTools in dev — with an
 // unguarded navigation surface.
 app.on('web-contents-created', (_event, contents) => {
+  // Hoist rendererEntry() out of the navigation handler. The value is
+  // process-stable (driven by ELECTRON_RENDERER_URL set once by
+  // electron-vite at boot, or the bundled file:// path), so computing it
+  // once per WebContents creation rather than once per navigation is
+  // both cheaper and simpler to reason about.
+  const allowedEntry = rendererEntry()
+  const allowedStr = allowedEntry instanceof URL ? allowedEntry.href : String(allowedEntry)
+
   contents.setWindowOpenHandler(() => ({ action: 'deny' }))
   contents.on('will-attach-webview', (e) => e.preventDefault())
   contents.on('will-navigate', (event, url) => {
-    const allowed = rendererEntry()
-    const allowedStr = allowed instanceof URL ? allowed.href : String(allowed)
+    // Origin + pathname comparison. In production the renderer is loaded
+    // via loadFile() so `allowedEntry` is a `file://` URL with an exact
+    // pathname; the pathname check is the primary guard. In dev,
+    // `allowedEntry` is the Vite dev URL (typically `http://localhost:5173/`)
+    // and the pathname is `/`, so the guard reduces to origin-only —
+    // this is acceptable because (a) dev is not a kiosk environment and
+    // (b) `webSecurity: true` + sandbox prevent escalation regardless.
     try {
       const parsedAllowed = new URL(allowedStr)
       const parsedTarget = new URL(url)

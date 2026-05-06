@@ -15,9 +15,26 @@ import { randomDeviceId } from '@code-rouge/shared-utils'
 const STORAGE_KEY = 'code-rouge:dbr:game-state:v1'
 
 export interface UseGameStateResult {
+  /** Latest hydrated state. Default values until `ready` flips true. */
   readonly state: GameState
+  /**
+   * Replace the persisted state. Resolves once the write to AsyncStorage
+   * completes — callers awaiting this can be confident the new value
+   * survives a force-kill happening immediately after.
+   */
   readonly setState: (next: GameState) => Promise<void>
+  /**
+   * Synchronous accessor for the latest state. Use this inside event
+   * handlers (`onPress`, `onChangeText`) that close over `state` from
+   * the render and would otherwise read a stale value when called
+   * twice in rapid succession (double-tap, repeated keystroke).
+   */
   readonly getLatest: () => GameState
+  /**
+   * False until the first read from AsyncStorage finishes. Apps gate
+   * their first render on this so the player never sees a flash of the
+   * default state followed by a swap to the persisted state.
+   */
   readonly ready: boolean
 }
 
