@@ -2,9 +2,20 @@ import { resolve } from 'node:path'
 import { defineConfig, externalizeDepsPlugin } from 'electron-vite'
 import react from '@vitejs/plugin-react'
 
+// Workspace packages must be BUNDLED into out/main and out/preload, not
+// externalized. externalizeDepsPlugin defaults to externalizing every
+// `dependencies` entry, which means Electron's main process tries to
+// load `@code-rouge/shared-types` at runtime via Node's ESM resolver.
+// That resolver follows the package's `main` field (./src/index.ts),
+// fails to load raw TypeScript, and crashes the boot with
+// `ERR_MODULE_NOT_FOUND ... messages.js`. Excluding the workspace
+// scope keeps node_modules deps (electron, electron-store, zod)
+// externalized while bundling our internal TS sources inline.
+const WORKSPACE_PACKAGES = ['@code-rouge/shared-types', '@code-rouge/shared-utils']
+
 export default defineConfig({
   main: {
-    plugins: [externalizeDepsPlugin()],
+    plugins: [externalizeDepsPlugin({ exclude: WORKSPACE_PACKAGES })],
     build: {
       outDir: 'out/main',
       // No source maps in prod — anyone with brief filesystem access (a
@@ -15,7 +26,7 @@ export default defineConfig({
     },
   },
   preload: {
-    plugins: [externalizeDepsPlugin()],
+    plugins: [externalizeDepsPlugin({ exclude: WORKSPACE_PACKAGES })],
     build: {
       outDir: 'out/preload',
       sourcemap: false,
