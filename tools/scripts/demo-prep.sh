@@ -30,12 +30,37 @@ ok()   { printf '  \xe2\x9c\x93 %s\n' "$1"; }
 warn() { printf '  ! %s\n' "$1"; }
 fail() { printf '  X %s\n' "$1" >&2; }
 
+# Helper: run a command silently, surface ok/warn based on exit.
+# Used everywhere we want `cmd && ok || warn` semantics — but that
+# pattern (`A && B || C`) is shellcheck SC2015 (C may run when A is
+# true), so we centralise the if/else here.
+try_run() {
+  local ok_msg="$1"
+  local warn_msg="$2"
+  shift 2
+  if "$@" >/dev/null 2>&1; then
+    ok "$ok_msg"
+  else
+    warn "$warn_msg"
+  fi
+}
+
+# Same as try_run but silent on failure (use when failure is expected
+# / non-actionable, e.g. "no electron running" during cleanup).
+try_silent() {
+  local ok_msg="$1"
+  shift 1
+  if "$@" >/dev/null 2>&1; then
+    ok "$ok_msg"
+  fi
+}
+
 # ---------- Cleanup trap — sweep background processes on any exit -----------
 # Earlier versions of this script left orphan `pnpm dev` watchers and
 # kiosk Electron windows alive after Ctrl-C of the `tail -F` at the end.
 # On a dev workstation that combination once required a sign-out to
 # recover (kiosk window swallowed every escape key — fixed in
-# apps/assaut/src/main/index.ts by gating kiosk on isProduction, but
+# apps/assaut/src/main/index.ts by gating kiosk on app.isPackaged, but
 # the orphan-process hazard stays even without the kiosk grab).
 SERVER_PID=""
 ASSAUT_PID=""
@@ -45,18 +70,15 @@ cleanup() {
   step "Cleanup — sweeping demo background processes"
   for pid in "$SERVER_PID" "$ASSAUT_PID"; do
     if [[ -n "$pid" ]] && kill -0 "$pid" 2>/dev/null; then
-      taskkill //F //T //PID "$pid" >/dev/null 2>&1 \
-        && ok "killed PID $pid (process tree)" \
-        || warn "could not kill PID $pid"
+      try_run "killed PID $pid (process tree)" "could not kill PID $pid" \
+        taskkill //F //T //PID "$pid"
     fi
   done
-  taskkill //F //IM electron.exe >/dev/null 2>&1 \
-    && ok "swept stray electron.exe" || true
+  try_silent "swept stray electron.exe" taskkill //F //IM electron.exe
   for port in 8080 5173 5174; do
     pid=$(netstat -ano 2>/dev/null | awk -v p=":$port" '$2 ~ p && $4=="LISTENING" {print $5; exit}')
     if [[ -n "${pid:-}" ]]; then
-      taskkill //F //T //PID "$pid" >/dev/null 2>&1 \
-        && ok "freed port $port (pid $pid)" || true
+      try_silent "freed port $port (pid $pid)" taskkill //F //T //PID "$pid"
     fi
   done
   # Do NOT call `exit` here — this IS the EXIT trap. Bash does not
@@ -69,19 +91,24 @@ trap cleanup INT TERM EXIT
 
 # ---------- 1. Kill stragglers ----------
 step "1. Killing stale electron / dev-server processes"
-taskkill //F //IM electron.exe >/dev/null 2>&1 && ok "killed electron.exe" || warn "no electron.exe running"
+if taskkill //F //IM electron.exe >/dev/null 2>&1; then
+  ok "killed electron.exe"
+else
+  warn "no electron.exe running"
+fi
 # Best-effort: anything bound to 8080 / 5173 / 5174.
 for port in 8080 5173 5174; do
   pid=$(netstat -ano 2>/dev/null | awk -v p=":$port" '$2 ~ p && $4=="LISTENING" {print $5; exit}')
   if [[ -n "$pid" ]]; then
-    taskkill //F //PID "$pid" >/dev/null 2>&1 && ok "freed port $port (pid $pid)" || warn "could not free port $port"
+    try_run "freed port $port (pid $pid)" "could not free port $port" \
+      taskkill //F //PID "$pid"
   fi
 done
 sleep 2
 
 # ---------- 2. Boot NUC server ----------
 step "2. Booting NUC server"
-cd "$REPO_ROOT"
+cd "$REPO_ROOT" || { fail "could not cd to $REPO_ROOT"; exit 1; }
 rm -f "$SERVER_LOG"
 nohup pnpm dev --filter @code-rouge/server-nuc >"$SERVER_LOG" 2>&1 &
 SERVER_PID=$!
@@ -111,15 +138,15 @@ step "4. Booting assaut Electron app"
 rm -f "$ASSAUT_LOG"
 nohup pnpm dev --filter @code-rouge/assaut >"$ASSAUT_LOG" 2>&1 &
 ASSAUT_PID=$!
-ok "spawned PID $ASSAUT_PID, waiting for kiosk window..."
+ok "spawned PID $ASSAUT_PID, waiting for window..."
 
 deadline=$((SECONDS + 90))
 # `[assaut] window ready` is emitted from main on ready-to-show — fires
 # in both dev and prod, independent of the kiosk gate. (Dropped the
 # legacy `globalShortcut.register` alternative: it never appears in dev
-# under the new isProduction gate, and a clean prod boot only emits the
-# `[assaut] window ready` line — `globalShortcut.register` would only
-# show up as part of a *failed*-shortcut warning, which is not a
+# under the new app.isPackaged gate, and a clean prod boot only emits
+# the `[assaut] window ready` line — `globalShortcut.register` would
+# only show up as part of a *failed*-shortcut warning, which is not a
 # success signal.)
 until grep -qE "\[assaut\] window ready|App threw|ELIFECYCLE" "$ASSAUT_LOG" 2>/dev/null; do
   if (( SECONDS > deadline )); then
@@ -143,12 +170,12 @@ elif command -v xdg-open >/dev/null 2>&1; then opener="xdg-open"
 elif command -v open >/dev/null 2>&1;     then opener="open"
 fi
 if [[ -n "$opener" ]]; then
-  $opener "$GH_ACTIONS_URL"  >/dev/null 2>&1 && ok "opened GitHub Actions"
+  if $opener "$GH_ACTIONS_URL" >/dev/null 2>&1; then ok "opened GitHub Actions"; fi
   sleep 1
-  $opener "$DIAG_URL"        >/dev/null 2>&1 && ok "opened /diag"
+  if $opener "$DIAG_URL" >/dev/null 2>&1; then ok "opened /diag"; fi
   sleep 1
   if [[ -f "$PDF_PATH" ]]; then
-    $opener "$PDF_PATH" >/dev/null 2>&1 && ok "opened handoff PDF"
+    if $opener "$PDF_PATH" >/dev/null 2>&1; then ok "opened handoff PDF"; fi
   else
     warn "handoff PDF missing at $PDF_PATH"
   fi
