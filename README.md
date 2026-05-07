@@ -60,7 +60,7 @@ Tout ce qu'il faut pour valider M1 sur votre matériel, en 3 liens :
 2. **Suivre le guide d'installation et de validation** — [`docs/m1-validation-guide.pdf`](./docs/m1-validation-guide.pdf), 6 pages, imprimable, avec checklist à 8 cases.
 3. **Lancer l'auto-test sur le NUC** une fois installé : `bash tools/scripts/validate-m1.sh` → verdict vert/rouge sur 8 contrôles automatisés.
 
-**Si une case manque ou si l'auto-test passe au rouge** : envoyer le rapport (`/tmp/m1-validation-*.txt`) à info@newnow.group.
+**Si une case manque ou si l'auto-test passe au rouge** : ouvrir une issue sur [GitHub](https://github.com/gs-imak/code-rouge/issues) en attachant le rapport (`/tmp/m1-validation-*.txt`), ou contacter Georges directement.
 
 ## Status
 

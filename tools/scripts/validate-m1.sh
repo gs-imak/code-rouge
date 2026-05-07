@@ -236,6 +236,6 @@ else
   done
   say ""
   say "  Rapport complet : $REPORT_FILE"
-  say "  En cas de doute : envoyer ce fichier à Georges (info@newnow.group)."
+  say "  En cas de doute : ouvrir une issue GitHub (github.com/gs-imak/code-rouge/issues) en y joignant ce fichier."
   exit 1
 fi

@@ -462,10 +462,10 @@ def page_troubleshooting(styles):
     contact_rows = [
         [Paragraph("<b>Prestataire technique</b>", styles["Body"]),
          Paragraph("Georges &mdash; SMK Studios", styles["Body"])],
-        [Paragraph("<b>Email</b>", styles["Body"]),
-         Paragraph("info@newnow.group", styles["Body"])],
         [Paragraph("<b>Issues GitHub</b>", styles["Body"]),
          Paragraph("https://github.com/gs-imak/code-rouge/issues", styles["Body"])],
+        [Paragraph("<b>Contact direct</b>", styles["Body"]),
+         Paragraph("Coordonn&eacute;es transmises s&eacute;par&eacute;ment.", styles["Body"])],
     ]
     ct = Table(contact_rows, colWidths=[5 * cm, 12 * cm])
     ct.setStyle(TableStyle([

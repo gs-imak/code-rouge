@@ -1300,7 +1300,7 @@ def build():
         [
             Paragraph("Prestataire technique", styles["TableCell"]),
             Paragraph("Georges &mdash; SMK Studios", styles["TableCell"]),
-            Paragraph("info@newnow.group", styles["TableCell"]),
+            Paragraph("github.com/gs-imak/code-rouge/issues", styles["TableCell"]),
         ],
         [
             Paragraph("Graphiste UX/UI", styles["TableCell"]),
