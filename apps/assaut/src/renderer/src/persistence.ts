@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { GameState, DEFAULT_GAME_STATE } from '@code-rouge/shared-types'
+import { randomDeviceId } from '@code-rouge/shared-utils'
 import type { AssautBridge } from '../../shared/ipc'
 
 // The renderer never touches electron-store directly; everything goes
@@ -71,14 +72,40 @@ export function useGameState(): UseGameStateResult {
     }
     bridge
       .getGameState()
-      .then((value) => {
+      .then(async (value) => {
         if (cancelled) return
-        stateRef.current = value
-        setStateRaw(value)
+        let next = value
+        // Mint a deviceId on the very first boot and persist it so
+        // subsequent boots reuse the same identifier (server-side
+        // restore-by-deviceId depends on this; the WS Hello schema
+        // also requires a non-empty string). If the persist fails we
+        // run this session with the in-memory id and re-mint on next
+        // boot — degrades to a one-session restore miss rather than a
+        // crashed handshake. Mirrors the same fix applied to the two
+        // RN apps in chantier 05 retro.
+        if (next.deviceId === '') {
+          next = { ...next, deviceId: randomDeviceId() }
+          try {
+            await bridge.setGameState(next)
+          } catch {
+            // intentional: continue without persistence
+          }
+          if (cancelled) return
+        }
+        stateRef.current = next
+        setStateRaw(next)
         setReady(true)
       })
       .catch(() => {
-        if (!cancelled) setReady(true)
+        // IPC failed (main crashed, preload missing). Boot with an
+        // ephemeral in-memory deviceId so the WS handshake at least
+        // satisfies the schema and the diagnostic dot can light up
+        // green; persistence is gone for this session.
+        if (cancelled) return
+        const ephemeral: GameState = { ...DEFAULT_GAME_STATE, deviceId: randomDeviceId() }
+        stateRef.current = ephemeral
+        setStateRaw(ephemeral)
+        setReady(true)
       })
     return () => {
       cancelled = true
