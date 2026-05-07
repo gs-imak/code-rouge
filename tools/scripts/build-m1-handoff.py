@@ -352,7 +352,7 @@ def build():
             [Paragraph("<b>Client</b>", styles["CoverMeta"]), Paragraph("Nathana&euml;l Masson &mdash; The Game", styles["CoverMeta"])],
             [Paragraph("<b>Prestataire</b>", styles["CoverMeta"]), Paragraph("Georges (SMK Studios)", styles["CoverMeta"])],
             [Paragraph("<b>P&eacute;riode du jalon</b>", styles["CoverMeta"]), Paragraph("28 avril &mdash; 7 mai 2026", styles["CoverMeta"])],
-            [Paragraph("<b>Montant jalon</b>", styles["CoverMeta"]), Paragraph("4 200 &euro; HT &mdash; facturable apr&egrave;s validation", styles["CoverMeta"])],
+            [Paragraph("<b>Montant jalon</b>", styles["CoverMeta"]), Paragraph("4 200 &euro; HT &mdash; r&eacute;gl&eacute; via la plateforme Malt", styles["CoverMeta"])],
             [Paragraph("<b>Date du document</b>", styles["CoverMeta"]), Paragraph("6 mai 2026 &mdash; v1.0", styles["CoverMeta"])],
         ],
         colWidths=[4 * cm, 12 * cm],
@@ -1102,8 +1102,10 @@ def build():
     story.append(
         Paragraph(
             "&Agrave; remplir lors de l'atelier de revue du <b>jeudi 7 mai 2026, 15h00</b>. "
-            "La signature ci-dessous d&eacute;clenche la pose du tag <code>v0.1.0</code> et "
-            "l'&eacute;mission de la facture du jalon M1 (4 200 &euro; HT).",
+            "La signature ci-dessous acte la r&eacute;ception fonctionnelle du jalon M1 "
+            "et d&eacute;clenche la pose du tag <code>v0.1.0</code>. Le r&egrave;glement "
+            "du jalon a d&eacute;j&agrave; &eacute;t&eacute; effectu&eacute; via la plateforme Malt &agrave; la "
+            "commande.",
             styles["Body"],
         )
     )
@@ -1187,8 +1189,8 @@ def build():
         Paragraph(
             "Si les 5 &eacute;tapes ci-dessus sont conformes, le jalon M1 est valid&eacute;. "
             "En cas de non-conformit&eacute;, un <i>punch list</i> est dress&eacute; et une nouvelle "
-            "session de validation est planifi&eacute;e sous 5 jours ouvr&eacute;s &mdash; aucune "
-            "facturation tant que la validation n'est pas concluante.",
+            "session de validation est planifi&eacute;e sous 5 jours ouvr&eacute;s, sans co&ucirc;t "
+            "additionnel pour le client.",
             styles["Body"],
         )
     )
