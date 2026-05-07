@@ -46,8 +46,23 @@ pnpm build                    # production builds
 - [`docs/architecture.md`](./docs/architecture.md) — technical decisions
 - [`docs/m1-plan.md`](./docs/m1-plan.md) — active milestone plan
 - [`docs/glossary.md`](./docs/glossary.md) — vocabulary
+- [`docs/m1-handoff-validation.pdf`](./docs/m1-handoff-validation.pdf) — handoff document signed at the M1 visio
+- [`docs/m1-validation-guide.pdf`](./docs/m1-validation-guide.pdf) — printable client-side validation guide (Nathanaël + IT team)
+
+## Pour Nathanaël & son équipe IT
+
+Tout ce qu'il faut pour valider M1 sur votre matériel, en 3 liens :
+
+1. **Télécharger les binaires** — la release [`v0.1.0`](https://github.com/gs-imak/code-rouge/releases/tag/v0.1.0) contient les 3 fichiers prêts à installer :
+   - `code-rouge-attaque-de-bots-v0.1.0.apk` → tablette Android 10"
+   - `code-rouge-debriefing-v0.1.0.apk` → smartphone Game Master
+   - `code-rouge-assaut-v0.1.0-Setup.exe` → PC Windows mallette
+2. **Suivre le guide d'installation et de validation** — [`docs/m1-validation-guide.pdf`](./docs/m1-validation-guide.pdf), 6 pages, imprimable, avec checklist à 8 cases.
+3. **Lancer l'auto-test sur le NUC** une fois installé : `bash tools/scripts/validate-m1.sh` → verdict vert/rouge sur 8 contrôles automatisés.
+
+**Si une case manque ou si l'auto-test passe au rouge** : envoyer le rapport (`/tmp/m1-validation-*.txt`) à info@newnow.group.
 
 ## Status
 
-**Active milestone:** M1 — Socle technique (28 avr → 4 mai 2026).
-See [`docs/m1-plan.md`](./docs/m1-plan.md).
+**M1 — Socle technique** : validé en visio le **7 mai 2026**. Release [`v0.1.0`](https://github.com/gs-imak/code-rouge/releases/tag/v0.1.0) publiée.
+M2 démarrera dès la livraison des maquettes Laura et de la première salve de contenus côté client.
