@@ -5,9 +5,50 @@
 
 ---
 
-## Last session (2026-05-04) — **M1 100% CODE-COMPLETE**
+## Last session (2026-05-07) — **post-demo hardening: kiosk dev-lockout fix**
 
-Every Malt M1 contract item is now closed code-side. CI green on `main`. Three follow-up PRs (#16/#17/#18) closed the gaps the original 5 chantiers left open. The 4-May validation visio with Nathanaël is the one remaining gate before invoicing.
+The 4-May visio passed (no regressions surfaced during the call). Today's session was triggered by a workstation lockout: running `bash tools/scripts/demo-prep.sh` to rehearse a follow-up dry-run booted the assaut Electron app via `pnpm dev`, which applied the full kiosk lock — `kiosk:true` + `fullscreen:true` + globalShortcut grabs of Alt+Tab / Alt+F4 / Ctrl+Esc / Win+L / Win+D / Ctrl+Shift+Esc — to a developer workstation. Every escape key was swallowed including Task Manager; only Ctrl+Alt+Del got the user out, which felt indistinguishable from a system crash and forced a sign-out.
+
+### Root cause (apps/assaut/src/main/index.ts)
+
+The kiosk lock was applied unconditionally regardless of dev / prod mode. The `will-navigate` guard's comment block already claimed "dev is not a kiosk environment" but the BrowserWindow flags and `registerKioskShortcuts()` call disagreed.
+
+### Fix — PR #23 (branch `fix/m1-pre-demo-blockers`), 4 commits
+
+```
+8205feb fix: M1 pre-demo blockers (Electron postinstall + bundle + deviceId)   [pre-existing]
+c5beed7 fix(assaut): gate kiosk lock on isProduction to prevent dev lockout
+570ec97 refactor: address quality-gate review of c5beed7 (drop NODE_ENV co-gate)
+3cb17b5 fix(scripts): make demo-prep.sh shellcheck-clean (SC2015 + SC2164)
+```
+
+Final state of `isProduction` at apps/assaut/src/main/index.ts:93:
+```ts
+const isProduction = app.isPackaged
+```
+`app.isPackaged` is set by Electron at runtime from ASAR / NSIS detection — cannot be spoofed via NODE_ENV. `kiosk`, `fullscreen`, `frame`, `devTools`, and the `registerKioskShortcuts()` call all key off this single gate. Packaged mallette `.exe` builds keep the full triple verrou unchanged. Dev `pnpm dev` boots run as a normal windowed Electron app.
+
+### Side fixes on the same PR
+- New `console.log('[assaut] window ready')` emitted from `ready-to-show` so demo-prep.sh has a kiosk-independent boot signal.
+- `cleanup()` trap on INT/TERM/EXIT in demo-prep.sh sweeps background `pnpm dev` process trees + stray electron.exe + holders of demo ports 8080/5173/5174. Ctrl-C of the trailing `tail -F` no longer leaves orphan watchers.
+- Centralised `cmd && ok || warn` → `try_run` / `try_silent` helpers (avoids shellcheck SC2015).
+- `cd "$REPO_ROOT" || { fail; exit 1; }` (avoids SC2164).
+- `tools/scripts/demo-prep.sh` is now tracked in the repo (was untracked before).
+
+### CI on PR #23
+
+Run [25494665422](https://github.com/gs-imak/code-rouge/actions/runs/25494665422) — all 5 jobs green:
+- Lint 46s, Typecheck 50s, Test 39s (106/106), Build Windows 3m38s, Build Android 6m28s.
+
+### Awaiting human review
+
+PR #23 is **not merged**. CLAUDE.md immutable rule #1 + memory pause-rule require manual operator review on any kiosk-lock change. CI is fully green; merge is blocked on a human eyeball pass on the diff in `apps/assaut/src/main/index.ts`.
+
+---
+
+## Previous session (2026-05-04) — **M1 100% CODE-COMPLETE**
+
+Every Malt M1 contract item is closed code-side. CI green on `main`. Three follow-up PRs (#16/#17/#18) closed the gaps the original 5 chantiers left open.
 
 ### main now has
 
@@ -75,15 +116,15 @@ Test count: **91 / 91 passing**. `pnpm audit --audit-level=high` clean.
 
 ## Currently in progress
 
-_(none — M1 done, awaiting 4-May visio)_
+- **PR #23** (branch `fix/m1-pre-demo-blockers`) — kiosk dev-lockout fix + demo-prep.sh hardening. CI fully green. Awaiting Georges' eyeball on the kiosk diff per the manual-review pause rule.
 
 ---
 
 ## Blocked / waiting on Georges or Nathanaël
 
+- **Review and merge PR #23** (Georges) — kiosk-lock change, can't auto-merge.
 - Add Nathanaël as a read collaborator on `gs-imak/code-rouge` (GitHub username pending).
 - Confirm "build serveur NUC packagé" interpretation matches `install-nuc.sh + git clone` flow (vs. expecting a `.tar.gz`).
-- 4-May 14h30 visio.
 
 ## Notes (non-blocking)
 
@@ -93,14 +134,13 @@ _(none — M1 done, awaiting 4-May visio)_
 
 ---
 
-## Next concrete task — **post-demo cleanup**
+## Next concrete task — **merge PR #23, then post-demo cleanup**
 
-After the 4-May visio passes:
-
-1. Capture screenshots into `docs/demo/m1/` (the directory has a `.gitkeep`; PNGs are gitignored by default; use `git add -f` if you want to commit specific captures).
-2. Delete the kiosk-status footer in `apps/assaut/src/renderer/src/App.tsx` + the `IpcChannel.KioskStatus` IPC path. The diagnostic dot stays — it moves out of the footer into a dedicated overlay in chantier 06.
-3. **Send invoice for M1.**
-4. Open chantier 06 with a brainstorming session: which design tokens does Laura need from the existing palette? What's the canonical parcours flow Nathanaël wants to ship for the first venue session?
+1. **Review + merge PR #23** (kiosk-lock dev-mode gate). CI green; needs Georges' manual review per CLAUDE.md rule #1. Squash-merge to main.
+2. **Send invoice for M1.** (Visio passed 4-May; PR #23 is hardening, not a contract item.)
+3. Capture screenshots into `docs/demo/m1/` (the directory has a `.gitkeep`; PNGs are gitignored by default; use `git add -f` if you want to commit specific captures).
+4. Delete the kiosk-status footer in `apps/assaut/src/renderer/src/App.tsx` + the `IpcChannel.KioskStatus` IPC path. **Note:** this was already done in a prior commit (`KioskStatus` is removed from `src/shared/ipc.ts:12`); double-check nothing references the footer before closing the punch list item.
+5. Open chantier 06 with a brainstorming session: which design tokens does Laura need from the existing palette? What's the canonical parcours flow Nathanaël wants to ship for the first venue session?
 
 ---
 
