@@ -293,7 +293,7 @@ def build():
         str(out_path),
         pagesize=A4,
         title="Code Rouge — Validation M1",
-        author="Georges (newnow.group) pour The Game",
+        author="Georges (SMK Studios) pour The Game",
         subject="Document de handoff et de validation du jalon M1",
         creator="reportlab",
     )
@@ -350,8 +350,8 @@ def build():
         [
             [Paragraph("<b>Projet</b>", styles["CoverMeta"]), Paragraph("Code Rouge", styles["CoverMeta"])],
             [Paragraph("<b>Client</b>", styles["CoverMeta"]), Paragraph("Nathana&euml;l Masson &mdash; The Game", styles["CoverMeta"])],
-            [Paragraph("<b>Prestataire</b>", styles["CoverMeta"]), Paragraph("Georges (newnow.group)", styles["CoverMeta"])],
-            [Paragraph("<b>P&eacute;riode du jalon</b>", styles["CoverMeta"]), Paragraph("28 avril &mdash; 4 mai 2026", styles["CoverMeta"])],
+            [Paragraph("<b>Prestataire</b>", styles["CoverMeta"]), Paragraph("Georges (SMK Studios)", styles["CoverMeta"])],
+            [Paragraph("<b>P&eacute;riode du jalon</b>", styles["CoverMeta"]), Paragraph("28 avril &mdash; 7 mai 2026", styles["CoverMeta"])],
             [Paragraph("<b>Montant jalon</b>", styles["CoverMeta"]), Paragraph("4 200 &euro; HT &mdash; facturable apr&egrave;s validation", styles["CoverMeta"])],
             [Paragraph("<b>Date du document</b>", styles["CoverMeta"]), Paragraph("6 mai 2026 &mdash; v1.0", styles["CoverMeta"])],
         ],
@@ -1208,7 +1208,7 @@ def build():
                 styles["BodySmall"],
             ),
             Paragraph(
-                "Georges<br/>newnow.group<br/><br/>"
+                "Georges<br/>SMK Studios<br/><br/>"
                 "Date&nbsp;: ____________________<br/><br/>"
                 "Signature&nbsp;:",
                 styles["BodySmall"],
@@ -1299,7 +1299,7 @@ def build():
         ],
         [
             Paragraph("Prestataire technique", styles["TableCell"]),
-            Paragraph("Georges &mdash; newnow.group", styles["TableCell"]),
+            Paragraph("Georges &mdash; SMK Studios", styles["TableCell"]),
             Paragraph("info@newnow.group", styles["TableCell"]),
         ],
         [
