@@ -35,6 +35,16 @@ if (!gotLock) {
 //    Ctrl+Alt+Del cannot be intercepted from user-mode (Windows secure
 //    attention sequence — kernel guarantee). Win+L same path. The third
 //    lock is the only way to stop them.
+//
+// Dev-mode exception: kiosk:true + the global shortcut grabs (esp.
+// Ctrl+Shift+Esc swallowing Task Manager) make a `pnpm dev` window
+// effectively unescapable on a dev workstation — only Ctrl+Alt+Del
+// (sign-out / restart) gets you out, which feels like a system crash.
+// Both the BrowserWindow flags and the globalShortcut registration are
+// gated on `isProduction` (NODE_ENV=production || app.isPackaged), so
+// packaged mallette builds keep the full triple verrou while dev boots
+// run as a normal windowed Electron app. The mid-file comment around
+// `will-navigate` ("dev is not a kiosk environment") relies on this.
 
 const KIOSK_SHORTCUTS = [
   'Alt+Tab',
@@ -97,8 +107,8 @@ function rendererEntry(): string | URL {
 function createMainWindow(): void {
   mainWindow = new BrowserWindow({
     show: false, // show after ready-to-show to avoid white flash
-    kiosk: true,
-    fullscreen: true,
+    kiosk: isProduction,
+    fullscreen: isProduction,
     frame: false,
     autoHideMenuBar: true,
     backgroundColor: '#000',
@@ -117,7 +127,15 @@ function createMainWindow(): void {
     },
   })
 
-  mainWindow.once('ready-to-show', () => mainWindow?.show())
+  mainWindow.once('ready-to-show', () => {
+    mainWindow?.show()
+    // Boot signal for tools/scripts/demo-prep.sh and any operator scripts
+    // grep-watching the log to know "window is up". Fires in both dev and
+    // prod regardless of the kiosk gate, unlike the previous reliance on
+    // registerKioskShortcuts() output (now dev-suppressed).
+    // eslint-disable-next-line no-console
+    console.log('[assaut] window ready')
+  })
 
   mainWindow.removeMenu()
 
@@ -182,7 +200,7 @@ if (gotLock) {
   })
 
   app.whenReady().then(() => {
-    registerKioskShortcuts()
+    if (isProduction) registerKioskShortcuts()
     registerIpcHandlers()
     createMainWindow()
 
