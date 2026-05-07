@@ -59,7 +59,11 @@ cleanup() {
         && ok "freed port $port (pid $pid)" || true
     fi
   done
-  exit "$code"
+  # Do NOT call `exit` here — this IS the EXIT trap. Bash does not
+  # re-enter an already-running trap, so an explicit exit would just
+  # mask `$code` with bash's own trap-exit code path. Returning lets
+  # bash propagate the original exit status.
+  return "$code"
 }
 trap cleanup INT TERM EXIT
 
@@ -111,10 +115,13 @@ ok "spawned PID $ASSAUT_PID, waiting for kiosk window..."
 
 deadline=$((SECONDS + 90))
 # `[assaut] window ready` is emitted from main on ready-to-show — fires
-# in both dev and prod. The legacy `globalShortcut.register` signal no
-# longer appears in dev (kiosk gated on isProduction) so the wait would
-# time out; keep it as an additional success marker for prod boots.
-until grep -qE "\[assaut\] window ready|globalShortcut.register|App threw|ELIFECYCLE" "$ASSAUT_LOG" 2>/dev/null; do
+# in both dev and prod, independent of the kiosk gate. (Dropped the
+# legacy `globalShortcut.register` alternative: it never appears in dev
+# under the new isProduction gate, and a clean prod boot only emits the
+# `[assaut] window ready` line — `globalShortcut.register` would only
+# show up as part of a *failed*-shortcut warning, which is not a
+# success signal.)
+until grep -qE "\[assaut\] window ready|App threw|ELIFECYCLE" "$ASSAUT_LOG" 2>/dev/null; do
   if (( SECONDS > deadline )); then
     fail "assaut did not boot within 90 s"; tail -20 "$ASSAUT_LOG"; exit 1
   fi

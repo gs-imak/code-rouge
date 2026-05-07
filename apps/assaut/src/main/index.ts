@@ -90,7 +90,14 @@ function unregisterKioskShortcuts(): void {
 
 let mainWindow: BrowserWindow | null = null
 
-const isProduction = process.env['NODE_ENV'] === 'production' || app.isPackaged
+// `app.isPackaged` is the only safe gate for the kiosk lock. Electron
+// sets it true when the binary runs from an ASAR archive or an
+// electron-builder NSIS installer — it cannot be spoofed via NODE_ENV.
+// An earlier draft used `NODE_ENV === 'production' || app.isPackaged`,
+// but that meant `NODE_ENV=production pnpm dev` on a developer
+// workstation would re-trigger the unescapable kiosk window — exactly
+// the regression this fix exists to prevent. Dropped the env branch.
+const isProduction = app.isPackaged
 
 function preloadPath(): string {
   return join(fileURLToPath(new URL('.', import.meta.url)), '../preload/index.js')
@@ -109,7 +116,11 @@ function createMainWindow(): void {
     show: false, // show after ready-to-show to avoid white flash
     kiosk: isProduction,
     fullscreen: isProduction,
-    frame: false,
+    // `frame: false` only in prod. In dev a frameless borderless window
+    // with no kiosk lock is harder to grab and close than a normal
+    // titlebar'd window — operationally inconsistent with the stated
+    // dev-mode philosophy.
+    frame: isProduction,
     autoHideMenuBar: true,
     backgroundColor: '#000',
     webPreferences: {
