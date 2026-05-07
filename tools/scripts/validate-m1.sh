@@ -122,7 +122,7 @@ else
 fi
 
 section "4/8  Base SQLite initialisée (migrations appliquées)"
-DB_PATH="${CODE_ROUGE_DB:-/var/lib/code-rouge/code-rouge.sqlite}"
+DB_PATH="${DATABASE_PATH:-${CODE_ROUGE_DB:-/var/lib/code-rouge/coderouge.sqlite}}"
 if [[ -f "$DB_PATH" ]]; then
   if command -v sqlite3 >/dev/null 2>&1; then
     MIGRATIONS=$(sqlite3 "$DB_PATH" "SELECT COUNT(*) FROM sqlite_master WHERE type='table';" 2>/dev/null || echo "0")
@@ -199,16 +199,19 @@ else
   warn "systemctl is-active a échoué (le service tourne peut-être en mode dev, pas via systemd)"
 fi
 
-section "8/8  Logs récents : aucun ERROR dans les 5 dernières minutes"
+section "8/8  Logs récents : aucune erreur dans les 5 dernières minutes"
+# Pino logs raw JSON to journald in production. Levels: 50=error, 60=fatal.
+# A plain `--grep "ERROR"` would always return 0 against JSON output.
 ERROR_COUNT=0
 if command -v journalctl >/dev/null 2>&1; then
-  ERROR_COUNT=$(journalctl -u code-rouge-server --since "5 min ago" --grep "ERROR" --no-pager 2>/dev/null | grep -cE "ERROR" || true)
+  ERROR_COUNT=$(journalctl -u code-rouge-server --since "5 min ago" --no-pager 2>/dev/null \
+    | grep -cE '"level":(50|60)' || true)
 fi
 if (( ERROR_COUNT == 0 )); then
-  pass "Aucune ligne ERROR dans les 5 dernières minutes"
+  pass "Aucune erreur (level 50/60) dans les 5 dernières minutes"
 else
-  fail "$ERROR_COUNT lignes ERROR dans les 5 dernières minutes" \
-       "Inspecter les logs : sudo journalctl -u code-rouge-server -n 100 | grep ERROR"
+  fail "$ERROR_COUNT entrée(s) de niveau ERROR/FATAL dans les 5 dernières minutes" \
+       "Inspecter les logs : sudo journalctl -u code-rouge-server -n 100 | grep -E '\"level\":(50|60)'"
 fi
 
 # ---------- Final verdict ----------
