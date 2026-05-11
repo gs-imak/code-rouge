@@ -23,7 +23,8 @@
       "esbuild"
     ],
     "overrides": {
-      "tar@<7.5.8": ">=7.5.8"
+      "tar@<7.5.8": ">=7.5.8",
+      "fast-uri@<3.1.2": ">=3.1.2"
     }
   },
   "devDependencies": {
