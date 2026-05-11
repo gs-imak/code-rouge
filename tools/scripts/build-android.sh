@@ -28,6 +28,26 @@ for app in "${APPS[@]}"; do
     printf '✗ %s: gradlew missing or not executable at %s\n' "${app}" "${android_dir}/gradlew" >&2
     exit 1
   fi
+
+  # Generate the debug keystore if missing. Android Studio creates this
+  # automatically on first build of a fresh checkout, but bare CI / fresh
+  # `git clone` doesn't have AS. The keystore is intentionally NOT tracked
+  # in git (release signing is a separate keystore managed off-repo per
+  # docs/architecture.md § Signing). Standard Android debug keystore
+  # parameters — alias `androiddebugkey`, password `android`, 10000-day
+  # validity. Anyone holding this key can sign DEBUG-builds only.
+  keystore="${android_dir}/app/debug.keystore"
+  if [[ ! -f "${keystore}" ]]; then
+    printf 'Generating debug keystore for %s\n' "${app}"
+    keytool -genkeypair -noprompt \
+      -keystore "${keystore}" \
+      -storepass android \
+      -keypass android \
+      -alias androiddebugkey \
+      -keyalg RSA -keysize 2048 -validity 10000 \
+      -dname 'CN=Android Debug,O=Android,C=US'
+  fi
+
   printf '\n=== Building %s ===\n' "${app}"
   ( cd "${android_dir}" && ./gradlew --no-daemon --console=plain assembleDebug )
 done
