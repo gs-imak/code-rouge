@@ -1,7 +1,7 @@
 {
   "$schema": "../src/configs.ts:AssautSequenceConfig",
   "schemaVersion": 1,
-  "_comment": "Placeholder Assaut sequence per .claude/rules/assaut.md. Final media files (mp4/mp3) and exact transitions land in chantier 06+. Linear by default; transitions are JSON-described branchements added per step as needed.",
+  "_comment": "Placeholder Assaut sequence per docs/conventions/assaut.md. Final media files (mp4/mp3) and exact transitions land in chantier 06+. Linear by default; transitions are JSON-described branchements added per step as needed.",
   "steps": [
     { "id": "debut", "kind": "debut", "mediaPath": "media/debut.mp4", "transitions": [], "config": {} },
     { "id": "perdus", "kind": "perdus", "mediaPath": "media/perdus.mp4", "transitions": [], "config": {} },

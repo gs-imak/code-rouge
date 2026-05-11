@@ -1,5 +1,5 @@
 // Typed IPC contract between main and renderer processes.
-// Per `.claude/rules/assaut.md`: "Zod-validated IPC channels — no untyped
+// Per `docs/conventions/assaut.md`: "Zod-validated IPC channels — no untyped
 // `ipcRenderer.send`." Schemas live here, both sides import from this file.
 
 import { z } from 'zod'

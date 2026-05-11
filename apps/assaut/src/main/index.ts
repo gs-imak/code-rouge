@@ -20,7 +20,7 @@ if (!gotLock) {
   app.quit()
 }
 
-// ----- Kiosk lock — triple verrou per .claude/rules/assaut.md ----------------
+// ----- Kiosk lock — triple verrou per docs/conventions/assaut.md -------------
 //
 // 1. BrowserWindow: kiosk + fullscreen + frame:false
 //    NB: `alwaysOnTop` is intentionally absent. On Windows, `kiosk:true`

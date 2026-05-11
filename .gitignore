@@ -68,3 +68,16 @@ coverage/
 # Demo
 docs/demo/m1/*.png
 !docs/demo/m1/.gitkeep
+
+# Local AI assistant artifacts (kept out of the public repo on purpose).
+# These are tooling-specific scratch files used by individual contributors;
+# they are not part of the project's engineering deliverable. Engineering
+# conventions live in docs/CONTRIBUTING.md and docs/conventions/ instead.
+.claude/
+CLAUDE.md
+CONTEXT.md
+BOOTSTRAP.md
+.aider*
+.cursor/
+.github-copilot/
+.repomix-output.*

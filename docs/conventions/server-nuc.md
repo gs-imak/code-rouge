@@ -1,6 +1,6 @@
-# Rules — apps/server-nuc
+# Conventions — apps/server-nuc
 
-These rules apply when editing files under `apps/server-nuc/`.
+Engineering conventions for the `apps/server-nuc/` Node.js + WebSocket + SQLite server (runs on Intel NUC).
 
 - **Target host:** Intel NUC, Ubuntu 22.04 LTS or 24.04 LTS, running headless
   (no GUI, no monitor). Resource budget: 8 GB RAM, modest CPU. Don't write

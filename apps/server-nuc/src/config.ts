@@ -16,7 +16,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ServerConfig {
 
   // 127.0.0.1 in dev so the server isn't reachable beyond the dev machine.
   // In production on the NUC, HOST must be set to the LAN interface IP — never 0.0.0.0.
-  // See .claude/rules/server-nuc.md and docs/architecture.md § 6.
+  // See docs/conventions/server-nuc.md and docs/architecture.md § 6.
   const host = env.HOST ?? '127.0.0.1'
 
   const portStr = env.PORT ?? '8080'

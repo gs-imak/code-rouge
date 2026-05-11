@@ -2,7 +2,7 @@
 // between the three apps (attaque-de-bots, assaut, debriefing) and the NUC server.
 //
 // The server validates every inbound payload via parseAppToServerMessage before
-// touching state (per .claude/rules/server-nuc.md). The apps validate incoming
+// touching state (per docs/conventions/server-nuc.md). The apps validate incoming
 // frames via parseServerToAppMessage.
 //
 // Schemas of record live here; never define message shapes inside an app or

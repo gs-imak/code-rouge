@@ -176,7 +176,7 @@ MemoryMax=512M
 MemorySwapMax=0
 CPUQuota=80%
 
-# Outbound network confined to RFC-1918 + loopback. Per CLAUDE.md rule 6
+# Outbound network confined to RFC-1918 + loopback. Per docs/CONTRIBUTING.md rule 6
 # the server makes no internet calls at runtime; this enforces it via the
 # kernel's BPF filter rather than relying on app-level discipline.
 IPAddressAllow=localhost 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16

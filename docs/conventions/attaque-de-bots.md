@@ -1,6 +1,6 @@
-# Rules — apps/attaque-de-bots
+# Conventions — apps/attaque-de-bots
 
-These rules apply when editing files under `apps/attaque-de-bots/`.
+Engineering conventions for the `apps/attaque-de-bots/` React Native Android tablet app.
 
 - **Target device:** Android tablet, 10-inch, landscape-locked. Design for
   touch (min 48dp tap targets), expect heavy fingers, no precision pointing.

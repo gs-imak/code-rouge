@@ -133,7 +133,7 @@ export function parseMailboxConfig(raw: unknown): MailboxConfig {
 
 // -------------------------------------------------------------- Assaut sequence
 //
-// Per `.claude/rules/assaut.md` § Sequence linéaire: 7 ordered steps with
+// Per `docs/conventions/assaut.md` § Sequence linéaire: 7 ordered steps with
 // JSON-described branchements. Today's schema accepts a flat list of
 // steps, each with optional `next: stepId` (defaults to the next entry
 // in the array) and an optional list of conditional transitions.

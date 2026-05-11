@@ -42,10 +42,11 @@ pnpm build                    # production builds
 
 ## Documentation
 
-- [`CLAUDE.md`](./CLAUDE.md) — project memory, conventions, immutable rules
+- [`docs/CONTRIBUTING.md`](./docs/CONTRIBUTING.md) — project conventions, build commands, immutable rules
 - [`docs/architecture.md`](./docs/architecture.md) — technical decisions
 - [`docs/m1-plan.md`](./docs/m1-plan.md) — active milestone plan
 - [`docs/glossary.md`](./docs/glossary.md) — vocabulary
+- [`docs/conventions/`](./docs/conventions/) — per-app engineering conventions
 - [`docs/m1-handoff-validation.pdf`](./docs/m1-handoff-validation.pdf) — handoff document signed at the M1 visio
 - [`docs/m1-validation-guide.pdf`](./docs/m1-validation-guide.pdf) — printable client-side validation guide (Nathanaël + IT team)
 

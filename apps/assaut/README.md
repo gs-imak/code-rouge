@@ -15,7 +15,7 @@ Placeholder UI ships with chantier 04; final maquettes integrate via
 Triple verrou — implementation, accelerator list, and Ctrl+Alt+Del / Win+L
 caveats are documented inline in [`src/main/index.ts`](./src/main/index.ts)
 (top-of-file comment) and authoritatively in
-[`.claude/rules/assaut.md`](../../.claude/rules/assaut.md).
+[`docs/conventions/assaut.md`](../../docs/conventions/assaut.md).
 
 The third lock — **Windows session policy** — is the venue's responsibility:
 a dedicated kiosk user account with auto-login, Group Policy disabling

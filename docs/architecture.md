@@ -27,8 +27,8 @@ code-rouge/
 │   ├── shared-types/         # @code-rouge/shared-types — Zod schemas, TS types
 │   └── shared-utils/         # @code-rouge/shared-utils — date, hash, retry, logger
 ├── tools/scripts/            # install-nuc.sh, demo helpers
-├── docs/                     # this file, m1-plan.md, glossary.md
-└── .claude/rules/            # path-scoped rules per app
+└── docs/                     # this file, m1-plan.md, glossary.md, CONTRIBUTING.md
+    └── conventions/          # per-app engineering conventions
 ```
 
 ### Why packages/ vs apps/

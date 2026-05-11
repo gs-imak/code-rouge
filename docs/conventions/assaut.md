@@ -1,6 +1,6 @@
-# Rules — apps/assaut
+# Conventions — apps/assaut
 
-These rules apply when editing files under `apps/assaut/`.
+Engineering conventions for the `apps/assaut/` Electron + React Windows app.
 
 - **Target device:** Windows 10/11 PC mallette, 15"+ display, keyboard.
   Design for keyboard input + mouse; touch is not assumed.

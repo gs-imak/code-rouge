@@ -1,6 +1,6 @@
-# Rules — apps/debriefing
+# Conventions — apps/debriefing
 
-These rules apply when editing files under `apps/debriefing/`.
+Engineering conventions for the `apps/debriefing/` React Native Android smartphone app (Game Master).
 
 - **Target device:** Android smartphone, portrait, used by the **Game Master only**.
   Not a player device. UX prioritizes speed and clarity, not immersion.

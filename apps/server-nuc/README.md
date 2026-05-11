@@ -106,7 +106,7 @@ The NUC sits on a private LAN behind the venue mesh router. The server **must
 not** be reachable from the public internet. `HOST` is bound to the LAN
 interface explicitly; no firewall rule should ever forward port 8080 from
 WAN. There are no outbound HTTP calls at runtime — no telemetry, no analytics,
-no media pulls — per `CLAUDE.md` immutable rule 6 and architecture decision
+no media pulls — per [`docs/CONTRIBUTING.md`](../../docs/CONTRIBUTING.md) immutable rule 6 and architecture decision
 log.
 
 ## Migrations
