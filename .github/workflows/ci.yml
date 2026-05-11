@@ -103,7 +103,10 @@ jobs:
           name: code-rouge-apks
           path: apps/*/android/app/build/outputs/apk/**/*.apk
           if-no-files-found: error
-          retention-days: 14
+          # 3 days is enough for a preview-from-CI flow while keeping the
+          # account artifact quota in check. Long-term distribution goes
+          # through GitHub Releases (binaries attached to v* tags).
+          retention-days: 3
 
   build-windows:
     name: Build Windows
@@ -138,4 +141,7 @@ jobs:
             apps/assaut/release/*.yml
             apps/assaut/release/*.blockmap
           if-no-files-found: error
-          retention-days: 14
+          # 3 days is enough for a preview-from-CI flow while keeping the
+          # account artifact quota in check. Long-term distribution goes
+          # through GitHub Releases (binaries attached to v* tags).
+          retention-days: 3
