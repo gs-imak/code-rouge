@@ -98,14 +98,17 @@ jobs:
             gradle-${{ runner.os }}-
       - run: pnpm install --frozen-lockfile
       - run: pnpm build:android
+      # Best-effort upload: a transient GitHub Actions account-wide
+      # quota hit must not fail the whole pipeline. The build itself
+      # produced a valid .apk; if the artifact slot is full the binary
+      # is still available from the next successful run (3-day
+      # retention) or from the v* GitHub Release for tagged versions.
       - uses: actions/upload-artifact@v4
+        continue-on-error: true
         with:
           name: code-rouge-apks
           path: apps/*/android/app/build/outputs/apk/**/*.apk
           if-no-files-found: error
-          # 3 days is enough for a preview-from-CI flow while keeping the
-          # account artifact quota in check. Long-term distribution goes
-          # through GitHub Releases (binaries attached to v* tags).
           retention-days: 3
 
   build-windows:
@@ -133,7 +136,11 @@ jobs:
             electron-builder-${{ runner.os }}-
       - run: pnpm install --frozen-lockfile
       - run: pnpm build:windows
+      # Best-effort upload — see the analogous note on the build-android
+      # job above. Released versions are available via the v* GitHub
+      # Release, not just CI artifacts.
       - uses: actions/upload-artifact@v4
+        continue-on-error: true
         with:
           name: code-rouge-assaut-exe
           path: |
@@ -141,7 +148,4 @@ jobs:
             apps/assaut/release/*.yml
             apps/assaut/release/*.blockmap
           if-no-files-found: error
-          # 3 days is enough for a preview-from-CI flow while keeping the
-          # account artifact quota in check. Long-term distribution goes
-          # through GitHub Releases (binaries attached to v* tags).
           retention-days: 3
