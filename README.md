@@ -47,6 +47,9 @@ pnpm build                    # production builds
 - [`docs/m1-plan.md`](./docs/m1-plan.md) — active milestone plan
 - [`docs/glossary.md`](./docs/glossary.md) — vocabulary
 - [`docs/conventions/`](./docs/conventions/) — per-app engineering conventions
+- [`CHANGELOG.md`](./CHANGELOG.md) — release notes per version
+- [`SECURITY.md`](./SECURITY.md) — vulnerability disclosure policy
+- [`LICENSE`](./LICENSE) — proprietary, all rights reserved
 - [`docs/m1-handoff-validation.pdf`](./docs/m1-handoff-validation.pdf) — handoff document signed at the M1 visio
 - [`docs/m1-validation-guide.pdf`](./docs/m1-validation-guide.pdf) — printable client-side validation guide (Nathanaël + IT team)
 

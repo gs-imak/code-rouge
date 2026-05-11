@@ -1,0 +1,36 @@
+# CODEOWNERS — https://docs.github.com/en/repositories/managing-your-repositories-settings-and-features/customizing-your-repository/about-code-owners
+#
+# These owners are requested for review automatically when a PR touches
+# matching paths. While the project is solo-maintained, the repo owner is
+# the default reviewer; this file makes the responsibility explicit and is
+# ready to be split per-area as the team grows.
+
+# Default owner for everything not matched below.
+*           @gs-imak
+
+# Load-bearing surfaces — kiosk lock, persistence, WebSocket protocol,
+# deployment scripts. Any change here requires explicit owner review per
+# docs/CONTRIBUTING.md § Load-bearing rules.
+/apps/assaut/src/main/index.ts             @gs-imak
+/apps/attaque-de-bots/src/kiosk.ts         @gs-imak
+/apps/attaque-de-bots/android/app/src/main/java/**  @gs-imak
+/apps/debriefing/src/kiosk.ts              @gs-imak
+/apps/debriefing/android/app/src/main/java/**       @gs-imak
+/apps/server-nuc/src/index.ts              @gs-imak
+/apps/server-nuc/src/config.ts             @gs-imak
+/apps/server-nuc/src/logger.ts             @gs-imak
+/packages/shared-types/src/messages.ts     @gs-imak
+/packages/shared-types/configs/**          @gs-imak
+/tools/scripts/install-nuc.sh              @gs-imak
+
+# Tooling and CI.
+/.github/**                                @gs-imak
+/turbo.json                                @gs-imak
+/pnpm-workspace.yaml                       @gs-imak
+/package.json                              @gs-imak
+
+# Architectural docs.
+/docs/architecture.md                      @gs-imak
+/docs/m1-plan.md                           @gs-imak
+/docs/CONTRIBUTING.md                      @gs-imak
+/docs/conventions/**                       @gs-imak

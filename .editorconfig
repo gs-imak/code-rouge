@@ -1,0 +1,35 @@
+# EditorConfig — https://editorconfig.org
+# Unified IDE / editor behaviour across contributors.
+
+root = true
+
+[*]
+indent_style = space
+indent_size = 2
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+max_line_length = 100
+
+[*.md]
+# Markdown: preserve trailing spaces (used for hard line breaks).
+trim_trailing_whitespace = false
+max_line_length = off
+
+[*.{sh,bash}]
+# Shell scripts: 2-space indent kept, LF required (already enforced via .gitattributes).
+indent_size = 2
+
+[Makefile]
+indent_style = tab
+
+[*.{json,yml,yaml}]
+indent_size = 2
+
+[*.{ts,tsx,js,jsx,cjs,mjs}]
+indent_size = 2
+quote_type = single
+
+[*.{kt,kts}]
+indent_size = 4
