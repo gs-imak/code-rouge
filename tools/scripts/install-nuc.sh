@@ -122,10 +122,11 @@ corepack prepare "${PINNED_PNPM}" --activate
 
 # ---------- 5. Install dependencies ----------
 echo "[install-nuc] installing pnpm dependencies"
-# `--prod=false` because the workspace shares one lockfile and tsx is in
-# server-nuc's runtime deps. TODO(chantier-04): split tsx out via a
-# pre-compiled `tsc --outDir dist`, then switch to --prod to exclude
-# devDependencies on the NUC.
+# `--prod=false` because the workspace shares one lockfile and tsx is
+# resolved from server-nuc's runtime path. The trade-off (carrying
+# devDependencies on the NUC) is acceptable for M1; a future iteration can
+# pre-compile via `tsc --outDir dist` and switch to `--prod` to slim the
+# install footprint.
 sudo -u "${APP_USER}" \
   bash -c "cd '${APP_DIR}' && pnpm install --frozen-lockfile --prod=false"
 

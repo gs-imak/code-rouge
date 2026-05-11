@@ -1,0 +1,5 @@
+# Signing keys must never be tracked in git. Debug keystore is regenerated
+# locally by the Android build tool on first invocation; release signing
+# keys are managed off-repo (see docs/architecture.md § Signing).
+*.keystore
+*.jks

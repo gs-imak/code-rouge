@@ -35,15 +35,16 @@ End-of-session aggregator. When the GM ends a session:
 5. Generates slides (HTML rendered in `WebView`, captured to images for
    the vidéoprojecteur).
 
-All of the above ships in chantier 05; chantier 04 lands only the placeholder
-screen + kiosk lock.
+M1 ships the placeholder screen, kiosk lock, persistence, and the network
+diagnostic dot. The debrief aggregation flow above (slide generation, log
+collection, stats) is part of M2.
 
 ## Kiosk mode
 
 Less aggressive than the player apps but still required — push
 notifications during a debrief are unprofessional. Screen Pinning via the
 same `Kiosk` native module. The GM holds the device-owner unlock code
-(chantier 05+) and uses it to exit between sessions.
+and uses it to exit between sessions.
 
 `hardwareBackPress` is intercepted at the root.
 
@@ -51,13 +52,13 @@ same `Kiosk` native module. The GM holds the device-owner unlock code
 
 If a player app is offline at debrief time, retry 3× with 2s backoff, then
 mark "logs missing" in the slide and move on. **Don't block the GM.**
-Lands chantier 05+.
+Implementation lands with the M2 debrief flow.
 
 ## Stats logic
 
-`src/stats/` (chantier 05+). Pure functions, fully unit-tested. This is
-the highest-leverage area for unit tests in the project — Nathanael will
-demo it to clients.
+`src/stats/` will hold pure functions, fully unit-tested — this is the
+highest-leverage area for unit tests in the project. Implementation lands
+with the M2 debrief flow.
 
 ## No real-time concerns
 

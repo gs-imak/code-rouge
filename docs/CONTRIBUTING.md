@@ -30,7 +30,7 @@ The active milestone plan lives in [`m1-plan.md`](./m1-plan.md). Read it before 
 ## Tech stack — non-negotiable
 
 - **TypeScript strict everywhere** (`"strict": true`, `"noUncheckedIndexedAccess": true`)
-- **Node 22 LTS**, pnpm 9+, Turborepo
+- **Node 24 LTS**, pnpm 10+, Turborepo
 - **React Native** for Android (latest stable, expects pnpm `node-linker=hoisted`)
 - **Electron + React** for Windows
 - **ws + better-sqlite3 + express** on the NUC server

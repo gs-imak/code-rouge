@@ -42,12 +42,12 @@ pnpm dev --filter @code-rouge/assaut
 ```
 
 This launches `electron-vite dev`, which runs the Vite dev server for the
-renderer + spawns Electron with the kiosk flags applied. **Note:** in dev
-the window is full-screen, frameless, and always-on-top — closing it from
-inside is by design impossible. Kill the dev process from the terminal that
-launched it (Ctrl+C in that terminal), or use Task Manager via Ctrl+Alt+Del
-on Windows. For lighter iteration on the renderer alone (no kiosk), set
-`KIOSK_DISABLED=1` in `.env.local` — TODO chantier 05.
+renderer + spawns Electron with kiosk flags **gated on `app.isPackaged`**.
+In dev (`pnpm dev`) the window is a normal Electron window with a titlebar
+and `Alt+F4` works — the kiosk lock only activates in packaged builds, so
+you can close the dev window like any other app. The full triple verrou
+(BrowserWindow `kiosk:true` + `globalShortcut.register` + Windows session
+policy) only takes effect in the production `.exe`.
 
 ```bash
 pnpm build --filter @code-rouge/assaut    # bundles main + preload + renderer
@@ -55,10 +55,15 @@ pnpm lint --filter @code-rouge/assaut
 pnpm typecheck --filter @code-rouge/assaut
 ```
 
-## Production build (chantier 05+)
+## Production build
 
-Packaging via `electron-builder` is wired in `package.json` devDependencies
-but not yet scripted. Chantier 05 adds the signed `.exe` build pipeline.
+`pnpm package:win` (defined in this app's `package.json`) runs
+`electron-vite build` followed by `electron-builder --config
+electron-builder.yml --win nsis`, producing a `.exe` installer in
+`apps/assaut/release/`. CI runs the same pipeline on every push to `main`
+and uploads the artifact under the name `code-rouge-assaut-exe` (14-day
+retention). The latest stable build is also attached to the
+[`v0.1.0` GitHub Release](https://github.com/gs-imak/code-rouge/releases/tag/v0.1.0).
 
 ## Sequence linéaire
 

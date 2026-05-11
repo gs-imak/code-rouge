@@ -7,7 +7,7 @@ a decision changes, **with a dated entry in "Decision log" at the bottom**.
 
 ## 1. Monorepo
 
-**Tooling:** pnpm 9 workspaces + Turborepo.
+**Tooling:** pnpm 10 workspaces + Turborepo.
 
 **Why pnpm:** efficient disk usage, deterministic, native workspace support.
 RN 0.77+ supports pnpm cleanly with `node-linker=hoisted` (set in `.npmrc`).
@@ -71,17 +71,17 @@ React in both Electron and React Native maximizes design-system reuse.
 Components in `@code-rouge/design-system` compile to web (Electron) and
 native (RN) by exporting both web and native variants from the same package.
 
-> **Implementation note:** the design-system package will have
+> **Implementation note:** the design-system package uses
 > `src/components/Button.tsx` (RN) and `src/components/Button.web.tsx`
 > (Electron). React Native's bundler picks `.tsx`, Vite picks `.web.tsx`
-> via a resolver alias. Document this in `packages/design-system/README.md`
-> when chantier 01 lands.
+> via a resolver alias. See `packages/design-system/README.md` for the
+> full convention.
 
 ---
 
 ## 3. Server (NUC)
 
-- **Runtime:** Node 22 LTS.
+- **Runtime:** Node 24 LTS.
 - **Framework:** Express for HTTP (health, setup endpoints), `ws` for WebSocket.
 - **Database:** SQLite via `better-sqlite3` (synchronous API, perfect for
   embedded use, no async juggling for what is fundamentally a single-writer
@@ -237,8 +237,8 @@ etc., loaded at boot based on game-master selection.
 
 ### Signing (M3 deliverable, not now)
 
-- **Android**: upload key generated and stored in 1Password (Georges) +
-  GitHub Actions secret. `keystore.jks` never committed.
+- **Android**: upload key stored in the project's 1Password vault, exposed
+  to CI via a GitHub Actions secret. `keystore.jks` never committed.
 - **Windows**: code-signing certificate purchased by The Game (per propal,
   client cost), used via Actions secret.
 

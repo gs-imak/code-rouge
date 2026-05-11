@@ -7,12 +7,12 @@ expose beyond the venue router.
 
 ## Endpoints
 
-| Method | Path        | Purpose                                                       |
-| ------ | ----------- | ------------------------------------------------------------- |
-| GET    | `/health`   | 200 OK, `{ status, uptimeSeconds, pid, sessionId, db }`. < 50 ms — apps poll every 5 s. |
-| WS     | `/ws`       | Primary channel: `hello → welcome ⇄ state / log / pong / cmd`. |
-
-`POST /admin/reset` and `GET /diag` arrive in chantier 04+.
+| Method | Path             | Purpose                                                       |
+| ------ | ---------------- | ------------------------------------------------------------- |
+| GET    | `/health`        | 200 OK, `{ status, uptimeSeconds, pid, sessionId, db }`. < 50 ms — apps poll every 5 s. |
+| GET    | `/diag`          | Diagnostic JSON for the in-app connectivity dot — `{ sessionId, uptimeSeconds, connectedClients, schemaVersion }`. |
+| POST   | `/admin/reset`   | Per-session admin reset, gated by a 6-digit code shown to the GM. Constant-time compare + 5-attempts-per-60s lockout. |
+| WS     | `/ws`            | Primary channel: `hello → welcome ⇄ state / log / pong / cmd`. |
 
 ## WebSocket protocol
 

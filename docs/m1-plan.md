@@ -344,7 +344,7 @@ When a `HelloMessage` arrives on the server WebSocket:
   validation scenario from `docs/m1-plan.md#validation` (below) automatically
   where possible (`adb shell am force-stop`, server health check).
 - Take screenshots of each step into `docs/demo/m1/`.
-- Update `CONTEXT.md` with "M1 ready for validation".
+- Tag the validation commit and update the README's status line.
 
 **AC:**
 - Script runs end to end without manual intervention except the physical
