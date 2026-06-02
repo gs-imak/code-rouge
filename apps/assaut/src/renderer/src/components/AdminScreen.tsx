@@ -73,7 +73,11 @@ export function AdminScreen({
             Reset&nbsp;↻
           </button>
           <p className="admin-ctrl__step-label">Sélectionnez votre étape de jeu&nbsp;:</p>
-          <select className="admin-select admin-ctrl__step" defaultValue="">
+          <select
+            className="admin-select admin-ctrl__step"
+            defaultValue=""
+            aria-label="Sélectionnez votre étape de jeu"
+          >
             <option value="">1 - Nom de l’étape</option>
           </select>
         </section>
@@ -83,11 +87,19 @@ export function AdminScreen({
           <HudBrackets />
           <h2 className="admin-panel__title admin-cfg__title">Paramétrage de session</h2>
           <p className="admin-cfg__parcours-label">Sélectionnez le parcours de jeu&nbsp;:</p>
-          <select className="admin-select admin-cfg__parcours" defaultValue="">
+          <select
+            className="admin-select admin-cfg__parcours"
+            defaultValue=""
+            aria-label="Sélectionnez le parcours de jeu"
+          >
             <option value="">Nom du parcours</option>
           </select>
           <p className="admin-cfg__team-label">Sélectionnez l’équipe&nbsp;:</p>
-          <select className="admin-select admin-cfg__team" defaultValue="">
+          <select
+            className="admin-select admin-cfg__team"
+            defaultValue=""
+            aria-label="Sélectionnez l’équipe"
+          >
             <option value="">1 - Nom de l’équipe</option>
           </select>
           <button type="button" className="admin-custom">
