@@ -1,14 +1,8 @@
-/* Placeholder « Section 13 » palette. Actual design tokens land via
-   @code-rouge/design-system once the maquettes arrive. Fonts are system
-   monospace stacks — no external loads (CLAUDE.md immutable rule 3).
-
-   WCAG AA notes (computed against --bg #050609, ratio target 4.5:1 normal /
-   3:1 large):
-     --fg     #c8d1cf  → 14.5:1  (pass)
-     --accent #ff5555  → 4.8:1   (pass — was #ff2c2c at 3.2:1)
-     --muted  #8a9499  → 5.5:1   (pass — was #5a6469 at 3.06:1)
-   The graphiste must keep these constraints in mind: --accent is OK for
-   bold ≥18pt; --muted is OK for body normal-weight at any size. */
+/* Global base for the Assaut renderer. The « Section 13 » palette + type now
+   come from the design-system tokens, injected as `--cr-*` CSS custom
+   properties at boot (see main.tsx). This file only owns the reset and the
+   document-level defaults; each screen owns its own look. No external font
+   loads — CLAUDE.md immutable rule #3 (all assets local). */
 
 * {
   box-sizing: border-box;
@@ -18,13 +12,6 @@
 
 :root {
   color-scheme: dark;
-  --bg: #050609;
-  --fg: #c8d1cf;
-  --accent: #ff5555;
-  --muted: #8a9499;
-  --terminal-font:
-    'Cascadia Mono', 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular,
-    Consolas, 'Courier New', monospace;
 }
 
 html,
@@ -32,121 +19,17 @@ body,
 #root {
   height: 100%;
   width: 100%;
-  background: var(--bg);
-  color: var(--fg);
-  font-family: var(--terminal-font);
-  font-size: 16px;
-  overflow: hidden;
 }
 
 body {
+  background: var(--cr-color-bg-deep, #080d1a);
+  color: var(--cr-color-white, #fff);
+  font-family: var(--cr-font-family, system-ui, -apple-system, sans-serif);
+  font-size: 16px;
+  overflow: hidden;
   /* `user-select:none` skips inputs (browsers always allow selection inside
-     <input> / <textarea>), but applying at body level still suppresses
-     accidental selection of headings/labels under heavy-finger touch. */
+     <input>/<textarea>), but applying it at body level suppresses accidental
+     selection of headings/labels under heavy-finger touch. */
   user-select: none;
   cursor: default;
-}
-
-.screen {
-  display: grid;
-  grid-template-rows: auto 1fr auto;
-  height: 100%;
-  width: 100%;
-  padding: clamp(2rem, 5vw, 5rem);
-  gap: 2rem;
-}
-
-.screen__header {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  border-left: 3px solid var(--accent);
-  padding-left: 1rem;
-}
-
-.screen__brand {
-  font-size: clamp(1.5rem, 3vw, 2.5rem);
-  letter-spacing: 0.18em;
-  font-weight: 700;
-  color: var(--accent);
-}
-
-.screen__sub {
-  font-size: clamp(0.9rem, 1.4vw, 1.1rem);
-  color: var(--muted);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.prompt {
-  align-self: center;
-  justify-self: center;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  width: min(40rem, 80vw);
-  text-align: center;
-}
-
-.prompt__label {
-  font-size: clamp(1rem, 1.6vw, 1.4rem);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--fg);
-}
-
-.prompt__input {
-  background: transparent;
-  border: none;
-  border-bottom: 2px solid var(--accent);
-  color: var(--fg);
-  font-family: inherit;
-  font-size: clamp(2rem, 5vw, 4rem);
-  letter-spacing: 0.5em;
-  text-align: center;
-  padding: 1rem 0;
-  outline: none; /* default browser ring — replaced by the focus rule below */
-}
-
-.prompt__input:focus,
-.prompt__input:focus-visible {
-  /* High-contrast outline that's clearly visible at 3+ metres on a 15"
-     mallette display, replacing the default UA outline. The bottom-border
-     swap to --fg makes the field state legible even without the outline. */
-  outline: 2px solid var(--fg);
-  outline-offset: 6px;
-  border-bottom-color: var(--fg);
-}
-
-.prompt__hint {
-  font-size: 0.9rem;
-  color: var(--muted);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.nuc-status {
-  /* Diagnostic footer, scoped to the NUC connection dot only. The previous
-     kiosk-status footer (kiosk:/fullscreen:/shortcuts: spans, plus error
-     readout) was deleted post-M1 validation: it surfaced kiosk internals
-     to the renderer with no runtime payoff. The dot will move into a
-     dedicated overlay in chantier 06+. */
-  display: flex;
-  gap: 1.5rem;
-  font-size: 0.85rem;
-  color: var(--muted);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  justify-self: end;
-  align-self: end;
-}
-
-.nuc-status__dot {
-  /* Red by default, green when the NUC WebSocket is connected. */
-  font-size: 1rem;
-  color: #ff9090;
-}
-
-.nuc-status__dot--ok {
-  color: #7ee2a8;
 }

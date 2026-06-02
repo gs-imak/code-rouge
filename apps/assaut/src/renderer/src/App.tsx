@@ -1,14 +1,8 @@
 import { useCallback, useMemo } from 'react'
+import { ConnexionScreen } from './ConnexionScreen'
+import { useAssautSequence } from './useAssautSequence'
 import { useGameState } from './persistence'
 import { useServerHandshake } from './sync'
-
-// Placeholder screen for chantier 04 / 05. Final maquettes will replace
-// the entire surface. The footer is intentionally tiny: just a NUC
-// connection dot. The previous kiosk-status footer (kiosk: / fullscreen:
-// / shortcuts: counts surfaced via IPC) was deleted post-validation
-// because it doubled as a fingerprint surface for the renderer with no
-// runtime payoff. Boot-time visibility into globalShortcut.register
-// failures is now a console.warn in main (see registerKioskShortcuts).
 
 declare global {
   interface Window {
@@ -16,75 +10,55 @@ declare global {
   }
 }
 
-export default function App() {
+// The Assaut sequence config is loaded at runtime over the `GetSequenceConfig`
+// IPC channel (main reads assets/config/sequence.json via fs + Zod, exposed
+// through electron-builder extraResources). That channel + the SequenceRunner
+// that maps `currentStep` → a screen are the next slice; until then the config
+// is null, the engine session is dormant, and the entry screen (Connexion /
+// `saisie-acces`) renders by default. Importing the JSON at build time is
+// deliberately avoided — content is edited without recompiling (immutable
+// rule #2: architecture is data-driven).
+const SEQUENCE_CONFIG = null
+
+export default function App(): JSX.Element {
   const { state, setState, getLatest, ready } = useGameState()
   const wsUrl = useMemo(() => `ws://${state.serverIp}:8080/ws`, [state.serverIp])
   const { connection } = useServerHandshake({ url: wsUrl, state, ready })
+  const sequence = useAssautSequence(SEQUENCE_CONFIG)
 
   const onCodeChange = useCallback(
     (next: string) => {
-      // Persist on every keystroke. Read latest via getLatest() rather
-      // than closing over `state` so two keystrokes between renders
-      // can't merge from the same stale base. electron-store is sync
-      // on-disk so a force-kill immediately after the keypress
-      // preserves the buffer. Bounded to 64 chars by the GameState schema.
+      // Persist on every keystroke. Read latest via getLatest() rather than
+      // closing over `state` so two keystrokes between renders can't merge from
+      // the same stale base. electron-store is sync on-disk, so a force-kill
+      // immediately after the keypress preserves the buffer. Bounded to 64
+      // chars by the GameState schema.
       const current = getLatest()
       void setState({ ...current, draftAuthCode: next.slice(0, 64), lastSync: Date.now() })
     },
     [setState, getLatest],
   )
 
-  // Hold first paint until we know the persisted value. Avoids a flash
-  // of the empty placeholder and then a swap to the persisted code.
+  const onValidate = useCallback(() => {
+    // Advances past `saisie-acces` once the sequence config is wired in. A no-op
+    // while the engine session is dormant (see SEQUENCE_CONFIG above).
+    sequence.submit()
+  }, [sequence])
+
+  // Hold first paint until the persisted state is known. The empty container
+  // carries the page background so there's no flash before the screen mounts.
   if (!ready) {
-    return <main className="screen" />
+    return <div className="connexion" aria-hidden="true" />
   }
 
-  const dotGlyph =
-    connection === 'connected' ? '●' : connection === 'connecting' ? '◐' : '○'
-  const dotLabel =
-    connection === 'connected'
-      ? 'NUC connecté'
-      : connection === 'connecting'
-        ? 'NUC connexion…'
-        : 'NUC hors-ligne'
-
+  // The screen for the current engine step. Until the SequenceRunner slice maps
+  // every step.kind, the entry screen is Connexion (`saisie-acces`).
   return (
-    <main className="screen">
-      <header className="screen__header">
-        <span className="screen__brand">SECTION 13</span>
-        <span className="screen__sub">authentification opérationnelle</span>
-      </header>
-
-      <section className="prompt">
-        <label className="prompt__label" htmlFor="auth-code">
-          Saisie code autorisation
-        </label>
-        <input
-          id="auth-code"
-          className="prompt__input"
-          type="text"
-          autoComplete="off"
-          spellCheck={false}
-          placeholder="——————"
-          value={state.draftAuthCode}
-          onChange={(event) => onCodeChange(event.target.value)}
-          maxLength={64}
-        />
-        <p className="prompt__hint">placeholder — chantier 05 persistance</p>
-      </section>
-
-      <footer className="nuc-status" aria-live="polite">
-        <span
-          className={`nuc-status__dot ${
-            connection === 'connected' ? 'nuc-status__dot--ok' : ''
-          }`}
-          aria-label={dotLabel}
-          title={dotLabel}
-        >
-          {dotGlyph}
-        </span>
-      </footer>
-    </main>
+    <ConnexionScreen
+      code={state.draftAuthCode}
+      onCodeChange={onCodeChange}
+      onValidate={onValidate}
+      nucConnection={connection}
+    />
   )
 }

@@ -13,6 +13,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json"
   },
   "dependencies": {
+    "@code-rouge/design-system": "workspace:*",
     "@code-rouge/shared-types": "workspace:*",
     "@code-rouge/shared-utils": "workspace:*",
     "electron-store": "^11.0.2",
