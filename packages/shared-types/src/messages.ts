@@ -82,11 +82,60 @@ export const PongMessage = z.object({
 })
 export type PongMessage = z.infer<typeof PongMessage>
 
+// ---- Access-point approval + MG authorisation code (Assaut ↔ GM) -----------
+//
+// Low-volume, GM-mediated exchanges (a handful per game — within the WS remit,
+// immutable rule #5; not high-frequency or media). The « point d'accès » loop:
+// a team's Assaut app SUBMITS an entry point → the server relays it to the GM
+// (Débriefing) app → the GM rules on it (access-decision) → the server relays
+// the verdict back to that team (access-result), driving the Validation/Refus
+// screens. The « attente code MG » loop: the GM SETS the authorisation code
+// (mg-code-set) → the server relays it to the waiting team (mg-code).
+
+export const AccessDecision = z.enum(['approved', 'refused'])
+export type AccessDecision = z.infer<typeof AccessDecision>
+
+// App → Server: a team's Assaut app submits an entry point for GM approval.
+export const AccessSubmitMessage = z.object({
+  type: z.literal('access-submit'),
+  app: AppName,
+  deviceId: DeviceId,
+  teamId: TeamId,
+  point: z.string().min(1).max(128),
+})
+export type AccessSubmitMessage = z.infer<typeof AccessSubmitMessage>
+
+// App → Server: the GM (Débriefing) app rules on a team's submission. The server
+// relays it to that team as an AccessResultMessage.
+export const AccessDecisionMessage = z.object({
+  type: z.literal('access-decision'),
+  app: AppName,
+  deviceId: DeviceId,
+  targetTeamId: z.number().int().nonnegative(),
+  decision: AccessDecision,
+  // Optional label of the validated option (e.g. « Toits »), shown on success.
+  label: z.string().max(128).optional(),
+})
+export type AccessDecisionMessage = z.infer<typeof AccessDecisionMessage>
+
+// App → Server: the GM sets the authorisation code a team is waiting for.
+export const McodeSetMessage = z.object({
+  type: z.literal('mg-code-set'),
+  app: AppName,
+  deviceId: DeviceId,
+  targetTeamId: z.number().int().nonnegative(),
+  code: z.string().min(1).max(64),
+})
+export type McodeSetMessage = z.infer<typeof McodeSetMessage>
+
 export const AppToServerMessage = z.discriminatedUnion('type', [
   HelloMessage,
   StateUpdateMessage,
   LogPushMessage,
   PongMessage,
+  AccessSubmitMessage,
+  AccessDecisionMessage,
+  McodeSetMessage,
 ])
 export type AppToServerMessage = z.infer<typeof AppToServerMessage>
 
@@ -120,10 +169,28 @@ export const ServerCommandMessage = z.object({
 })
 export type ServerCommandMessage = z.infer<typeof ServerCommandMessage>
 
+// Server → App: the GM's verdict on this team's access-point submission. Drives
+// the Validation (« Félicitations ») / Refus (« Échec ») screens on Assaut.
+export const AccessResultMessage = z.object({
+  type: z.literal('access-result'),
+  decision: AccessDecision,
+  label: z.string().max(128).optional(),
+})
+export type AccessResultMessage = z.infer<typeof AccessResultMessage>
+
+// Server → App: the authorisation code the team was waiting for (« attente code MG »).
+export const McodeMessage = z.object({
+  type: z.literal('mg-code'),
+  code: z.string().min(1).max(64),
+})
+export type McodeMessage = z.infer<typeof McodeMessage>
+
 export const ServerToAppMessage = z.discriminatedUnion('type', [
   WelcomeMessage,
   RestoreMessage,
   ServerCommandMessage,
+  AccessResultMessage,
+  McodeMessage,
 ])
 export type ServerToAppMessage = z.infer<typeof ServerToAppMessage>
 
