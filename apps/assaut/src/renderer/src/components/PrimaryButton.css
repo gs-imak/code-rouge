@@ -1,0 +1,40 @@
+/* Shared primary button — the maquette's glossy light-blue « Buttom » face with a
+   dark-navy label (#67C4F0 over #0078AF base). `--dark` is the teal secondary. */
+
+.primary-button {
+  min-width: clamp(180px, 18vw, 247px);
+  height: clamp(46px, 6.2vh, 63px);
+  padding-inline: clamp(20px, 2vw, 32px);
+  border: none;
+  border-radius: 15px;
+  background: linear-gradient(180deg, #7ccbf2 0%, #3d9ad4 100%);
+  color: var(--cr-color-text-on-accent, #020e53);
+  font-family: inherit;
+  font-size: clamp(16px, 2.4vh, 24px);
+  font-weight: var(--cr-weight-bold, 700);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 45%),
+    0 6px 16px rgb(0 0 0 / 35%);
+  cursor: pointer;
+  transition:
+    filter 0.12s ease,
+    transform 0.12s ease;
+}
+
+.primary-button--dark {
+  background: linear-gradient(180deg, #0f7fae 0%, #0a3a63 100%);
+  color: var(--cr-color-white, #fff);
+}
+
+.primary-button:hover {
+  filter: brightness(1.06);
+}
+
+.primary-button:active {
+  transform: translateY(1px);
+}
+
+.primary-button:focus-visible {
+  outline: 2px solid var(--cr-color-white, #fff);
+  outline-offset: 3px;
+}
