@@ -53,13 +53,11 @@
   line-height: 2.9; /* maquette title box 67px ÷ 23px — centres the text */
   text-transform: uppercase;
   color: var(--cr-color-white, #fff);
-}
-.admin-panel__title {
-  top: 3.1rem;
+  top: 3.1rem; /* Contrôle / Paramétrage title @427 */
 }
 .admin-panel--diag .admin-panel__title,
 .admin-panel--hw .admin-panel__title {
-  top: 2.3rem;
+  top: 2.3rem; /* Diagnostic / État matériel title @132 */
 }
 
 /* --- Diagnostic réseau ------------------------------------------------------ */

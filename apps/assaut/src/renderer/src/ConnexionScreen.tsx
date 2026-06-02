@@ -1,6 +1,7 @@
 import type { ConnectionState } from '@code-rouge/shared-utils'
 import { ScreenChrome } from './components/ScreenChrome'
 import { SectionHeader } from './components/SectionHeader'
+import { PrimaryButton } from './components/PrimaryButton'
 import emblemUrl from './assets/section13-emblem.svg'
 import './ConnexionScreen.css'
 
@@ -61,9 +62,9 @@ export function ConnexionScreen({
             // the code, so focus it on mount.
             autoFocus
           />
-          <button type="submit" className="connexion__submit">
+          <PrimaryButton type="submit" className="connexion__submit">
             Valider
-          </button>
+          </PrimaryButton>
         </form>
       </div>
     </ScreenChrome>
