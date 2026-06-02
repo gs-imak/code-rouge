@@ -1,145 +1,251 @@
-.admin {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  gap: 2.5rem;
-  padding: 3.1rem 5rem 2.7rem;
-}
+/* « Admin et paramétrages » (maquette frame 9:1028). Every element absolutely
+   positioned at its exact frame coordinate (body = frame_Y − 78, header 7.8rem).
+   Panels are positioned boxes; their children use panel-relative offsets (panel
+   padding is 0 so they read from the border box). All rem (maquette_px / 10). */
 
-.admin__grid {
-  flex: 1 1 auto;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
-  gap: 2rem;
-  min-height: 0;
+.admin {
+  position: absolute;
+  inset: 0;
 }
 
 .admin-panel {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  padding: 2.25rem 2.9rem;
+  position: absolute;
+  padding: 0;
   border: 0.1rem solid rgb(89 183 255 / 28%);
   border-radius: 1.2rem;
-  background: rgb(9 16 40 / 45%);
+  background: rgb(9 16 40 / 42%);
+}
+
+.admin-panel--diag {
+  left: 12.7rem;
+  top: 3.1rem;
+  width: 49.3rem;
+  height: 25.7rem;
+}
+.admin-panel--hw {
+  left: 66.1rem;
+  top: 3.1rem;
+  width: 65.3rem;
+  height: 25.7rem;
+}
+.admin-panel--ctrl {
+  left: 12.7rem;
+  top: 31.8rem;
+  width: 48.9rem;
+  height: 49.3rem;
+}
+.admin-panel--cfg {
+  left: 66.1rem;
+  top: 31.8rem;
+  width: 65.3rem;
+  height: 49.4rem;
 }
 
 .admin-panel__title {
-  margin: 0 0 1.8rem;
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin: 0;
   text-align: center;
-  font-size: 2rem;
-  font-weight: var(--cr-weight-semibold, 600);
-  letter-spacing: 0.1em;
+  font-size: 2.3rem; /* maquette 23px */
+  font-weight: var(--cr-weight-regular, 400);
+  letter-spacing: 0.08em; /* maquette ls 1.84 */
+  line-height: 2.9; /* maquette title box 67px ÷ 23px — centres the text */
   text-transform: uppercase;
-  color: rgb(255 255 255 / 92%);
+  color: var(--cr-color-white, #fff);
+}
+.admin-panel__title {
+  top: 3.1rem;
+}
+.admin-panel--diag .admin-panel__title,
+.admin-panel--hw .admin-panel__title {
+  top: 2.3rem;
 }
 
-.admin-panel__body {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  flex: 1 1 auto;
-  gap: 2rem;
-  font-size: 1.7rem;
-  color: rgb(255 255 255 / 88%);
-}
-
-.admin-panel__hw {
-  flex-direction: row;
-  justify-content: space-around;
-  align-items: center;
-}
-
-.admin-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1.7rem;
+/* --- Diagnostic réseau ------------------------------------------------------ */
+.admin-diag__text {
+  position: absolute;
+  top: 9.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  width: 28rem;
   text-align: center;
+  font-size: 2.4rem; /* maquette 24px */
+  font-weight: var(--cr-weight-regular, 400);
+  line-height: 1.2;
+  color: var(--cr-color-white, #fff);
+}
+.admin-diag__dots {
+  position: absolute;
+  top: 16.9rem;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
+/* --- État matériel: two columns (Batterie / Wifi) --------------------------- */
 .admin-hw {
+  position: absolute;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
+  gap: 2.3rem;
 }
-
+.admin-hw--bat {
+  left: 5.6rem;
+  top: 10.8rem;
+  width: 22.7rem;
+}
+.admin-hw--wifi {
+  left: 37rem;
+  top: 10.8rem;
+  width: 22.7rem;
+}
 .admin-hw__label {
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-weight: var(--cr-weight-semibold, 600);
+  font-size: 2.5rem; /* maquette 25px/700 */
+  font-weight: var(--cr-weight-bold, 700);
+  color: var(--cr-color-white, #fff);
 }
 
+/* --- Six-dot indicator (maquette 30px, 8px gap) ----------------------------- */
 .admin-dots {
   display: flex;
-  gap: 0.6rem;
-}
-
-.admin-dot {
-  width: 1.2rem;
-  height: 1.2rem;
-  border-radius: 50%;
-  background: rgb(255 255 255 / 25%);
-}
-
-.admin-dot--ok {
-  background: #2ecf7c;
-  box-shadow: 0 0 0.8rem rgb(46 207 124 / 60%);
-}
-
-.admin-field {
-  display: flex;
-  flex-direction: column;
   gap: 0.8rem;
 }
-
-.admin-field__label {
-  font-size: 1.6rem;
-  color: rgb(255 255 255 / 80%);
+.admin-dot {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 30%);
+  border: 0.1rem solid rgb(255 255 255 / 60%);
+}
+.admin-dot--on {
+  background: var(--cr-color-white, #fff);
+  border-color: var(--cr-color-white, #fff);
 }
 
-.admin-select,
-.admin-reset,
-.admin-custom {
-  font-family: inherit;
-  color: var(--cr-color-white, #fff);
-  border-radius: 1rem;
-  border: 0.1rem solid rgb(89 183 255 / 45%);
-  background: rgb(7 12 28 / 70%);
-  padding: 1.43rem 1.73rem;
-  font-size: 1.6rem;
-}
-
-.admin-select {
-  appearance: none;
-  cursor: pointer;
-  background-image: linear-gradient(45deg, transparent 50%, #59b7ff 50%),
-    linear-gradient(135deg, #59b7ff 50%, transparent 50%);
-  background-position:
-    calc(100% - 2rem) center,
-    calc(100% - 1.4rem) center;
-  background-size:
-    0.6rem 0.6rem,
-    0.6rem 0.6rem;
-  background-repeat: no-repeat;
-}
-
-.admin-reset {
-  align-self: flex-start;
-  cursor: pointer;
-  background: linear-gradient(180deg, #1c99ff 0%, #0a3a63 100%);
-  font-weight: var(--cr-weight-semibold, 600);
-}
-
-.admin-custom {
-  cursor: pointer;
+/* --- Contrôle de session ---------------------------------------------------- */
+.admin-ctrl__reset-label,
+.admin-ctrl__step-label,
+.admin-cfg__parcours-label,
+.admin-cfg__team-label {
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin: 0;
   text-align: center;
+  font-size: 2.4rem; /* maquette 24px */
+  font-weight: var(--cr-weight-regular, 400);
+  color: var(--cr-color-white, #fff);
+}
+.admin-ctrl__reset-label {
+  top: 13rem;
+}
+.admin-ctrl__step-label {
+  top: 31.3rem;
+}
+.admin-cfg__parcours-label {
+  top: 11.8rem;
+}
+.admin-cfg__team-label {
+  top: 25.4rem;
 }
 
-.admin__footer {
+/* Reset button (maquette #00B0FF, 255×54, « Reset » 23px/600 navy) */
+.admin-reset {
+  position: absolute;
+  top: 19.4rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 25.5rem;
+  height: 5.4rem;
+  border: none;
+  border-radius: 1.4rem;
+  background: linear-gradient(180deg, #2ec5ff 0%, #00a6ef 100%);
+  color: var(--cr-color-text-on-accent, #020e53);
+  font-family: inherit;
+  font-size: 2.3rem;
+  font-weight: var(--cr-weight-semibold, 600);
+  cursor: pointer;
+}
+
+/* --- Selects (maquette dropdown: white@16%, r10, left 18px/600 + chevron) ---- */
+.admin-select {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 36.3rem;
+  height: 5.1rem;
+  padding: 0 1.9rem;
+  border: 0.1rem solid rgb(255 255 255 / 90%);
+  border-radius: 1rem;
+  background: rgb(255 255 255 / 16%);
+  color: var(--cr-color-white, #fff);
+  font-family: inherit;
+  font-size: 1.8rem;
+  font-weight: var(--cr-weight-semibold, 600);
+  text-align: left;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28' fill='none'%3E%3Cpath d='M7 11l7 7 7-7' stroke='%23ffffff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1.4rem center;
+  background-size: 2.8rem 2.8rem;
+}
+.admin-ctrl__step {
+  top: 36.4rem;
+}
+.admin-cfg__parcours {
+  top: 16.9rem;
+}
+.admin-cfg__team {
+  top: 30.5rem;
+}
+
+/* Personnaliser (maquette outline button, 332×51, 20px/600 left + cog) */
+.admin-custom {
+  position: absolute;
+  top: 39.9rem;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
-  justify-content: center;
-  gap: 2.9rem;
+  align-items: center;
+  justify-content: space-between;
+  width: 33.2rem;
+  height: 5.1rem;
+  padding: 0 1.9rem;
+  border: 0.1rem solid rgb(255 255 255 / 85%);
+  border-radius: 1.3rem;
+  background: rgb(255 255 255 / 8%);
+  color: var(--cr-color-white, #fff);
+  font-family: inherit;
+  font-size: 2rem;
+  font-weight: var(--cr-weight-semibold, 600);
+  cursor: pointer;
+}
+
+/* --- Footer actions (@[411,927]) -------------------------------------------- */
+.admin-action {
+  position: absolute;
+  top: 84.9rem;
+  height: 6.8rem;
+  border: none;
+  border-radius: 1.3rem;
+  font-family: inherit;
+  font-size: 2.6rem; /* maquette 26px */
+  cursor: pointer;
+}
+.admin-action--transmit {
+  left: 41.1rem;
+  width: 34.4rem;
+  background: linear-gradient(180deg, #0a6378 0%, #004c5e 100%);
+  color: var(--cr-color-white, #fff);
+  font-weight: var(--cr-weight-semibold, 500);
+}
+.admin-action--save {
+  left: 77.9rem;
+  width: 25rem;
+  background: linear-gradient(180deg, #7fcdf3 0%, #54b4e6 52%, #3a9ad4 100%);
+  color: var(--cr-color-text-on-accent, #020e53);
+  font-weight: var(--cr-weight-bold, 700);
 }
