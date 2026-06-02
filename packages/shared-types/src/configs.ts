@@ -133,10 +133,53 @@ export function parseMailboxConfig(raw: unknown): MailboxConfig {
 
 // -------------------------------------------------------------- Assaut sequence
 //
-// Per `docs/conventions/assaut.md` § Sequence linéaire: 7 ordered steps with
-// JSON-described branchements. Today's schema accepts a flat list of
-// steps, each with optional `next: stepId` (defaults to the next entry
-// in the array) and an optional list of conditional transitions.
+// Per `docs/conventions/assaut.md` § Sequence linéaire + M2 cadrage doc
+// (M2_Detail_CodeRouge.pdf, chantier 02): a `préparation` phase (saisie
+// d'accès, choix frontale/furtive, point d'entrée, attente du code MG) then
+// the linear 7-step assault (debut…epilogue), with `timers dédiés` per step
+// and `embranchements scénaristiques` that pilot the score "% de données
+// récupérées". The schema is additive: prep + timers + scoring deltas are
+// optional, so the chantier-06-prep placeholder JSON (assault steps only)
+// stays valid and `schemaVersion` remains 1.
+
+// --- Preparation phase ---
+//
+// Prep steps take player input rather than playing media — they have NO
+// `mediaPath`. `choix-approche` (and any future fork) carries `choices`,
+// each with a score delta and an optional branch target.
+
+export const AssautPrepStepKind = z.enum([
+  'saisie-acces', // access-code entry
+  'choix-approche', // frontale vs furtive
+  'point-entree', // entry-point selection
+  'attente-code-mg', // blocking wait for the GM-provided code
+])
+export type AssautPrepStepKind = z.infer<typeof AssautPrepStepKind>
+
+export const AssautChoice = z.object({
+  id: z.string().min(1).max(64),
+  /** Player-facing label — stays French. */
+  label: z.string().min(1).max(256),
+  /** Contribution to the running "% données récupérées". Exact weights = content. */
+  dataRecoveredDelta: z.number().int().min(-100).max(100).default(0),
+  /** Optional branch target; absent = linear next step in the flow. */
+  goto: z.string().min(1).max(64).optional(),
+})
+export type AssautChoice = z.infer<typeof AssautChoice>
+
+export const AssautPrepStep = z.object({
+  id: z.string().min(1).max(64),
+  kind: AssautPrepStepKind,
+  /** Dedicated timer in seconds; absent = no timed limit on this step. */
+  timerSec: z.number().int().positive().max(60 * 60).optional(),
+  /** Branching choices; empty for plain input/wait steps. */
+  choices: z.array(AssautChoice).max(8).default([]),
+  /** Step-specific bag — e.g. `{ codeExpected: '4242' }`. */
+  config: z.record(z.unknown()).default({}),
+})
+export type AssautPrepStep = z.infer<typeof AssautPrepStep>
+
+// --- Assault phase ---
 
 export const AssautStepKind = z.enum([
   'debut',
@@ -153,6 +196,8 @@ export type AssautStepKind = z.infer<typeof AssautStepKind>
 export const AssautTransition = z.object({
   when: z.string().min(1).max(64), // event/condition name; chantier 06 names them
   goto: z.string().min(1).max(64),
+  /** Score contribution when this branch is taken. */
+  dataRecoveredDelta: z.number().int().min(-100).max(100).default(0),
 })
 
 export const AssautStep = z.object({
@@ -162,6 +207,8 @@ export const AssautStep = z.object({
   mediaPath: z.string().regex(/^media\/[a-zA-Z0-9_/.-]+$/, {
     message: 'mediaPath: must start with "media/" and use safe path chars',
   }),
+  /** Dedicated timer in seconds; absent = step ends when its media does. */
+  timerSec: z.number().int().positive().max(60 * 60).optional(),
   /** Step transitions; first matching transition wins. */
   transitions: z.array(AssautTransition).default([]),
   /** Step-specific bag — e.g. `{ codeExpected: '4242' }` for a code-entry step. */
@@ -169,9 +216,27 @@ export const AssautStep = z.object({
 })
 export type AssautStep = z.infer<typeof AssautStep>
 
+// --- Scoring ---
+//
+// "% de données récupérées" — a 0-100 running total. `startPercent` is the
+// value before any branch fires; deltas on choices/transitions move it and
+// the engine clamps to [0, 100]. Numbers are content (CDC v1.3); the schema
+// only fixes the mechanism.
+
+export const AssautScoring = z
+  .object({
+    metric: z.literal('data-recovered').default('data-recovered'),
+    startPercent: z.number().int().min(0).max(100).default(0),
+  })
+  .default({})
+export type AssautScoring = z.infer<typeof AssautScoring>
+
 export const AssautSequenceConfig = z.object({
   schemaVersion: z.literal(1),
+  /** Preparation phase; empty = jump straight into the assault. */
+  prep: z.array(AssautPrepStep).max(16).default([]),
   steps: z.array(AssautStep).min(1).max(32),
+  scoring: AssautScoring,
 })
 export type AssautSequenceConfig = z.infer<typeof AssautSequenceConfig>
 
@@ -184,15 +249,19 @@ export function parseAssautSequenceConfig(raw: unknown): AssautSequenceConfig {
   if (!result.success) {
     throw new AssautSequenceError(`invalid assaut sequence — ${result.error.message}`)
   }
-  // Reject duplicates; assert every transition.goto resolves to a real step.
+  const data = result.data
+  // IDs are unique across the WHOLE flow (prep + assault): transitions and
+  // choice.goto navigate a single id space, so a prep id may not collide
+  // with an assault step id.
   const ids = new Set<string>()
-  for (const s of result.data.steps) {
+  for (const s of [...data.prep, ...data.steps]) {
     if (ids.has(s.id)) {
       throw new AssautSequenceError(`duplicate assaut step id: ${s.id}`)
     }
     ids.add(s.id)
   }
-  for (const s of result.data.steps) {
+  // Every transition.goto must resolve to a real step.
+  for (const s of data.steps) {
     for (const t of s.transitions) {
       if (!ids.has(t.goto)) {
         throw new AssautSequenceError(
@@ -201,7 +270,17 @@ export function parseAssautSequenceConfig(raw: unknown): AssautSequenceConfig {
       }
     }
   }
-  return result.data
+  // Every prep choice.goto (when present) must resolve too.
+  for (const p of data.prep) {
+    for (const c of p.choices) {
+      if (c.goto !== undefined && !ids.has(c.goto)) {
+        throw new AssautSequenceError(
+          `assaut prep "${p.id}" choice.goto "${c.goto}" does not resolve`,
+        )
+      }
+    }
+  }
+  return data
 }
 
 // -------------------------------------------------------------- Game variant
