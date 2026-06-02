@@ -1,0 +1,36 @@
+{
+  "$schema": "../../../../packages/shared-types/src/configs.ts:AssautSequenceConfig",
+  "schemaVersion": 1,
+  "_comment": "Placeholder « Assaut » flow per M2_Detail_CodeRouge.pdf (chantier 02): séquence de préparation puis assaut linéaire. Media files (mp4/mp3), exact timer durations, scoring weights (dataRecoveredDelta) and scenario branches are CONTENT — they arrive from Nathanael / CDC v1.3 and are edited here WITHOUT recompiling. Deltas are neutral (0) until then; one demonstrative branchement (couper-fil → epilogue on 'wire-correct') is kept from the chantier-06 prep placeholder.",
+  "scoring": { "startPercent": 0 },
+  "prep": [
+    { "id": "saisie-acces", "kind": "saisie-acces", "timerSec": 120, "config": {} },
+    {
+      "id": "choix-approche",
+      "kind": "choix-approche",
+      "choices": [
+        { "id": "frontale", "label": "Approche frontale", "dataRecoveredDelta": 0 },
+        { "id": "furtive", "label": "Approche furtive", "dataRecoveredDelta": 0 }
+      ],
+      "config": {}
+    },
+    { "id": "point-entree", "kind": "point-entree", "config": {} },
+    { "id": "attente-code-mg", "kind": "attente-code-mg", "config": {} }
+  ],
+  "steps": [
+    { "id": "debut", "kind": "debut", "mediaPath": "media/debut.mp4", "timerSec": 60, "transitions": [], "config": {} },
+    { "id": "perdus", "kind": "perdus", "mediaPath": "media/perdus.mp4", "transitions": [], "config": {} },
+    { "id": "patrouille", "kind": "patrouille", "mediaPath": "media/patrouille.mp4", "transitions": [], "config": {} },
+    { "id": "perdus2", "kind": "perdus2", "mediaPath": "media/perdus-2.mp4", "transitions": [], "config": {} },
+    { "id": "mcgyver", "kind": "mcgyver", "mediaPath": "media/mcgyver.mp4", "transitions": [], "config": {} },
+    { "id": "rdv-indic", "kind": "rdv-indic", "mediaPath": "media/rdv-indic.mp4", "transitions": [], "config": {} },
+    {
+      "id": "couper-fil",
+      "kind": "couper-fil",
+      "mediaPath": "media/couper-fil.mp4",
+      "transitions": [{ "when": "wire-correct", "goto": "epilogue", "dataRecoveredDelta": 0 }],
+      "config": {}
+    },
+    { "id": "epilogue", "kind": "epilogue", "mediaPath": "media/epilogue.mp4", "transitions": [], "config": {} }
+  ]
+}

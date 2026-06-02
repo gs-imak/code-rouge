@@ -45,7 +45,7 @@ const AssautSessionSchema = z.object({
   visited: z.array(z.string()),
 })
 
-function clampPercent(n: number): number {
+export function clampPercent(n: number): number {
   return Math.max(0, Math.min(100, n))
 }
 
@@ -54,8 +54,13 @@ function flowIds(config: AssautSequenceConfig): string[] {
   return [...config.prep.map((p) => p.id), ...config.steps.map((s) => s.id)]
 }
 
-function phaseOf(config: AssautSequenceConfig, stepId: string): 'prep' | 'assault' {
+export function phaseOf(config: AssautSequenceConfig, stepId: string): 'prep' | 'assault' {
   return config.prep.some((p) => p.id === stepId) ? 'prep' : 'assault'
+}
+
+/** True if `id` names a real step anywhere in the flow (prep or assault). */
+export function hasStep(config: AssautSequenceConfig, id: string): boolean {
+  return config.prep.some((p) => p.id === id) || config.steps.some((s) => s.id === id)
 }
 
 function findPrep(config: AssautSequenceConfig, id: string): AssautPrepStep | undefined {
