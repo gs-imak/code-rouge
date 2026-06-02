@@ -11,6 +11,21 @@
    `#root` centers the stage; the dark body shows as letterbox bars when the
    display aspect ≠ 1.40625. (Senior-Reviewer rule #7: CSS, not JS, for layout.) */
 
+/* Roboto — the maquette typeface — bundled locally as a single weight-axis
+   variable woff2 (latin subset). One file covers every weight the screens use
+   (400 regular / 600 semibold / 700 bold); classic static Roboto has no 600, so
+   the variable build is what renders SemiBold exactly. No network load (immutable
+   rule #3) — the file ships in the renderer bundle, served same-origin under the
+   CSP `font-src 'self'`. `font-display: block` so a kiosk never flashes the
+   system-ui fallback the token used to fall through to. */
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: block;
+  src: url('./assets/fonts/roboto-latin-wght-normal.woff2') format('woff2');
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
