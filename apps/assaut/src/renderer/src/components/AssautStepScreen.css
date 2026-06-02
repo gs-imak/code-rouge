@@ -1,0 +1,190 @@
+/* « Assaut lancé » step layout (maquette screens 13–24). A large HUD-bracketed
+   media frame with the subtitle pinned to its lower area; interactive steps add a
+   column of four response buttons to the right; an optional photo overlay covers
+   the stage when the chef d’escouade sends an image. */
+
+.step {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(20px, 2.4vw, 48px);
+  height: 100%;
+  padding: clamp(24px, 4vh, 56px) clamp(24px, 3.5vw, 64px);
+}
+
+/* ---- Media frame --------------------------------------------------------- */
+
+.step__media {
+  position: relative;
+  flex: 1 1 0;
+  max-width: min(1060px, 100%);
+  aspect-ratio: 1.85;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid rgb(89 183 255 / 20%);
+  border-radius: 8px;
+  background: linear-gradient(180deg, #0b1322 0%, #060a14 100%);
+}
+
+.step--interactive .step__media {
+  flex: 1 1 auto;
+  max-width: min(760px, 66%);
+}
+
+.step__video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Audio-waveform placeholder (until local media lands). */
+.step__waveform {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(2px, 0.3vw, 4px);
+  width: 78%;
+  height: 46%;
+}
+
+.step__waveform span {
+  flex: 1 1 0;
+  min-width: 0;
+  border-radius: 2px;
+  background: linear-gradient(180deg, #59b7ff 0%, #0cb1f2 100%);
+  opacity: 0.85;
+}
+
+.step__subtitle {
+  position: absolute;
+  bottom: clamp(18px, 6%, 44px);
+  left: 5%;
+  right: 5%;
+  margin: 0;
+  text-align: center;
+  font-size: clamp(15px, 2.2vh, 22px);
+  font-weight: var(--cr-weight-semibold, 600);
+  text-shadow: 0 2px 8px rgb(0 0 0 / 60%);
+}
+
+/* HUD corner brackets on the media frame. */
+.brackets {
+  position: absolute;
+  width: clamp(18px, 2.4vh, 30px);
+  height: clamp(18px, 2.4vh, 30px);
+  border-color: var(--cr-color-accent, #1c99ff);
+  border-style: solid;
+  border-width: 0;
+  pointer-events: none;
+}
+
+.brackets--tl {
+  top: 10px;
+  left: 10px;
+  border-top-width: 2px;
+  border-left-width: 2px;
+}
+
+.brackets--tr {
+  top: 10px;
+  right: 10px;
+  border-top-width: 2px;
+  border-right-width: 2px;
+}
+
+.brackets--bl {
+  bottom: 10px;
+  left: 10px;
+  border-bottom-width: 2px;
+  border-left-width: 2px;
+}
+
+.brackets--br {
+  bottom: 10px;
+  right: 10px;
+  border-bottom-width: 2px;
+  border-right-width: 2px;
+}
+
+/* ---- Interactive response buttons ---------------------------------------- */
+
+.step__responses {
+  flex: 0 0 clamp(200px, 22vw, 300px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(10px, 1.8vh, 20px);
+}
+
+.step__response {
+  padding: clamp(12px, 1.8vh, 20px) clamp(14px, 1.4vw, 22px);
+  border: 1px solid rgb(89 183 255 / 55%);
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgb(28 153 255 / 22%) 0%, rgb(43 46 127 / 30%) 100%);
+  color: var(--cr-color-white, #fff);
+  font-family: inherit;
+  font-size: clamp(14px, 1.9vh, 18px);
+  font-weight: var(--cr-weight-semibold, 600);
+  text-align: center;
+  cursor: pointer;
+  transition:
+    filter 0.12s ease,
+    transform 0.12s ease;
+}
+
+.step__response:hover {
+  filter: brightness(1.15);
+}
+
+.step__response:active {
+  transform: translateY(1px);
+}
+
+.step__response:focus-visible {
+  outline: 2px solid var(--cr-color-white, #fff);
+  outline-offset: 2px;
+}
+
+/* ---- Received-photo overlay (Mc Gyver Photo) ----------------------------- */
+
+.step__overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(2 5 18 / 55%);
+}
+
+.step__photo {
+  position: relative;
+  max-width: min(620px, 64vw);
+  border-radius: 8px;
+  border: 1px solid rgb(89 183 255 / 45%);
+  box-shadow: 0 16px 48px rgb(0 0 0 / 55%);
+  overflow: hidden;
+}
+
+.step__photo img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.step__photo-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 50%;
+  background: rgb(2 5 18 / 70%);
+  color: var(--cr-color-white, #fff);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
