@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from 'react'
 import { ConnexionScreen } from './ConnexionScreen'
+import { SequenceRunner } from './components/SequenceRunner'
 import { useAssautSequence } from './useAssautSequence'
 import { useGameState } from './persistence'
 import { useServerHandshake } from './sync'
@@ -10,54 +11,52 @@ declare global {
   }
 }
 
-// The Assaut sequence config is loaded at runtime over the `GetSequenceConfig`
-// IPC channel (main reads assets/config/sequence.json via fs + Zod, exposed
-// through electron-builder extraResources). That channel + the SequenceRunner
-// that maps `currentStep` → a screen are the next slice; until then the config
-// is null, the engine session is dormant, and the entry screen (Connexion /
-// `saisie-acces`) renders by default. Importing the JSON at build time is
-// deliberately avoided — content is edited without recompiling (immutable
-// rule #2: architecture is data-driven).
-const SEQUENCE_CONFIG = null
-
 export default function App(): JSX.Element {
   const { state, setState, getLatest, ready } = useGameState()
   const wsUrl = useMemo(() => `ws://${state.serverIp}:8080/ws`, [state.serverIp])
   const { connection } = useServerHandshake({ url: wsUrl, state, ready })
-  const sequence = useAssautSequence(SEQUENCE_CONFIG)
+  const sequence = useAssautSequence()
 
   const onCodeChange = useCallback(
     (next: string) => {
       // Persist on every keystroke. Read latest via getLatest() rather than
       // closing over `state` so two keystrokes between renders can't merge from
-      // the same stale base. electron-store is sync on-disk, so a force-kill
-      // immediately after the keypress preserves the buffer. Bounded to 64
-      // chars by the GameState schema.
+      // a stale base. electron-store is sync, so a force-kill right after the
+      // keypress preserves the buffer. Bounded to 64 chars by the GameState schema.
       const current = getLatest()
       void setState({ ...current, draftAuthCode: next.slice(0, 64), lastSync: Date.now() })
     },
     [setState, getLatest],
   )
 
-  const onValidate = useCallback(() => {
-    // Advances past `saisie-acces` once the sequence config is wired in. A no-op
-    // while the engine session is dormant (see SEQUENCE_CONFIG above).
-    sequence.submit()
-  }, [sequence])
-
-  // Hold first paint until the persisted state is known. The empty chrome
-  // carries the dark background so there's no flash before the screen mounts.
+  // Hold first paint until the persisted state is known (no flash).
   if (!ready) {
     return <div className="screen" aria-hidden="true" />
   }
 
-  // The screen for the current engine step. Until the SequenceRunner slice maps
-  // every step.kind, the entry screen is Connexion (`saisie-acces`).
+  // Engine-driven: render the screen for the current step. The flow config loads
+  // over the GetSequenceConfig IPC channel; until it does (or without the Electron
+  // bridge — browser screenshot harness), fall back to the entry screen.
+  if (sequence.step !== null) {
+    return (
+      <SequenceRunner
+        step={sequence.step}
+        dataRecoveredPercent={sequence.dataRecoveredPercent}
+        onSubmit={sequence.submit}
+        onChoose={sequence.choose}
+        authCode={state.draftAuthCode}
+        onAuthCodeChange={onCodeChange}
+        teamName={state.teamId !== null ? `Équipe ${state.teamId}` : 'Opérateurs'}
+        nucConnection={connection}
+      />
+    )
+  }
+
   return (
     <ConnexionScreen
       code={state.draftAuthCode}
       onCodeChange={onCodeChange}
-      onValidate={onValidate}
+      onValidate={() => undefined}
       nucConnection={connection}
     />
   )

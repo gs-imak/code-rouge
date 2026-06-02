@@ -149,10 +149,16 @@ export function parseMailboxConfig(raw: unknown): MailboxConfig {
 // each with a score delta and an optional branch target.
 
 export const AssautPrepStepKind = z.enum([
-  'saisie-acces', // access-code entry
+  'saisie-acces', // access-code entry (Connexion)
+  'accueil', // welcome « Bienvenue équipe X »
+  'preparation', // hub: add point / choose approach / launch
   'choix-approche', // frontale vs furtive
-  'point-entree', // entry-point selection
-  'attente-code-mg', // blocking wait for the GM-provided code
+  'point-entree', // entry-point submission for GM approval
+  'point-acces-valide', // GM approved the entry point (success result)
+  'point-acces-refus', // GM refused the entry point (failure result)
+  'attente-code-mg', // enter the GM-provided authorisation code
+  'accueil-assaut', // « C'est parti » intro to the assault phase
+  'tuto', // annotated tutorial of the assault interface
 ])
 export type AssautPrepStepKind = z.infer<typeof AssautPrepStepKind>
 
@@ -183,10 +189,13 @@ export type AssautPrepStep = z.infer<typeof AssautPrepStep>
 
 export const AssautStepKind = z.enum([
   'debut',
+  'general',
+  'interaction',
   'perdus',
   'patrouille',
   'perdus2',
   'mcgyver',
+  'mcgyver-photo',
   'rdv-indic',
   'couper-fil',
   'epilogue',

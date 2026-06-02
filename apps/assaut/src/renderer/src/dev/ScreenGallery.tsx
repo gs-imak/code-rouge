@@ -5,6 +5,7 @@ import { ChoixApprocheScreen } from '../components/ChoixApprocheScreen'
 import { PanelScreen } from '../components/PanelScreen'
 import { AdminScreen } from '../components/AdminScreen'
 import { TutoScreen } from '../components/TutoScreen'
+import { DevFlow } from './DevFlow'
 
 // DEV-ONLY screen gallery. Reachable at `?screen=<name>` in the renderer dev
 // server so each screen can be screenshot-verified against its maquette without
@@ -119,6 +120,8 @@ export function ScreenGallery({ name }: { readonly name: string }): JSX.Element 
       return (
         <AdminScreen connection="connected" onReset={noop} onTransmit={noop} onSave={noop} />
       )
+    case 'flow':
+      return <DevFlow />
 
     default:
       return <div style={{ color: '#fff', padding: 24 }}>unknown screen: {name}</div>

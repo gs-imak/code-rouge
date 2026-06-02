@@ -1,5 +1,10 @@
 import { describe, expect, it, vi } from 'vitest'
-import { DEFAULT_GAME_STATE, type GameState } from '@code-rouge/shared-types'
+import {
+  DEFAULT_GAME_STATE,
+  parseAssautSequenceConfig,
+  type GameState,
+} from '@code-rouge/shared-types'
+import sequence from '../../../assets/config/sequence.json' with { type: 'json' }
 import { commitGameState } from './persistence'
 import type { AssautBridge, SetGameStateResponse } from '../../shared/ipc'
 
@@ -20,6 +25,7 @@ function makeBridge(setGameStateImpl: AssautBridge['setGameState']): AssautBridg
     getGameState: vi.fn(async () => DEFAULT_GAME_STATE as GameState),
     setGameState: setGameStateImpl,
     getAppVersion: vi.fn(async () => ({ app: '0.0.0' })),
+    getSequenceConfig: vi.fn(async () => parseAssautSequenceConfig(sequence)),
   }
 }
 

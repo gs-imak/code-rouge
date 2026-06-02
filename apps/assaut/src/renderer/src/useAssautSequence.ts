@@ -9,62 +9,63 @@ import {
   type AssautSession,
 } from './engine/assaut-sequence'
 
-// Thin React glue over the pure Assaut engine (engine/assaut-sequence.ts is
-// headless + unit-tested; per Senior-Reviewer rule #3 the hook holds no
-// business logic). The sequence config is loaded at runtime over the
-// `GetSequenceConfig` IPC channel (main reads assets/config/sequence.json via
-// fs + Zod) — that channel + the SequenceRunner that maps `currentStep` → a
-// screen land in the navigation slice. Until then callers pass `null`: the hook
-// reports `ready: false` and the host renders the entry screen (Connexion /
-// `saisie-acces`) by default, which also lets the browser screenshot harness
-// run without the Electron bridge.
+// React glue over the pure Assaut engine (engine/assaut-sequence.ts is headless +
+// unit-tested; per Senior-Reviewer rule #3 the hook holds no business logic). The
+// flow config is loaded at runtime over the `GetSequenceConfig` IPC channel (main
+// reads assets/config/sequence.json via fs + Zod). Without the Electron bridge
+// (browser screenshot harness / dev gallery) the hook stays dormant and the host
+// renders the entry screen by default. Restoring a persisted session (choices +
+// visit history) is the follow-up slice; the baseline is a fresh session.
 
 export interface UseAssautSequenceResult {
-  /** True once a session exists (i.e. a config has been supplied). */
   readonly ready: boolean
-  /** The current phase, or `null` before a config is loaded. */
   readonly phase: AssautPhase | null
-  /** The active step descriptor, or `null` when dormant / complete. */
   readonly step: ReturnType<typeof currentStep>
-  /** Running « % de données récupérées » (0 before a session exists). */
   readonly dataRecoveredPercent: number
-  /** Advance a non-choice step (e.g. validate `saisie-acces`). No-op while dormant. */
   readonly submit: (event?: string) => void
-  /** Resolve a branching choice on the current prep step. No-op while dormant. */
   readonly choose: (choiceId: string) => void
 }
 
-export function useAssautSequence(
-  config: AssautSequenceConfig | null,
-): UseAssautSequenceResult {
-  const [session, setSession] = useState<AssautSession | null>(() =>
-    config ? createSession(config) : null,
-  )
+export function useAssautSequence(): UseAssautSequenceResult {
+  const [config, setConfig] = useState<AssautSequenceConfig | null>(null)
+  const [session, setSession] = useState<AssautSession | null>(null)
 
-  // Initialise the session when a config arrives after first render (the IPC
-  // load resolves asynchronously). Restoring a persisted session — choices and
-  // visit history via a dedicated store key — is the follow-up slice; the
-  // baseline here is a fresh session at the entry step.
   useEffect(() => {
-    if (config && session === null) {
-      setSession(createSession(config))
+    const bridge = window.assaut
+    if (bridge === undefined) return undefined
+    let cancelled = false
+    bridge
+      .getSequenceConfig()
+      .then((cfg) => {
+        if (cancelled) return
+        setConfig(cfg)
+        setSession(createSession(cfg))
+      })
+      .catch((err: unknown) => {
+        // eslint-disable-next-line no-console
+        console.error('[sequence] getSequenceConfig failed:', err)
+      })
+    return () => {
+      cancelled = true
     }
-  }, [config, session])
+  }, [])
 
+  // Functional updates so the callbacks don't close over `session` (no stale
+  // reads, no exhaustive-deps churn) — only `config` is a dependency.
   const submit = useCallback(
     (event?: string) => {
-      if (config === null || session === null) return
-      setSession(advance(config, session, event))
+      setSession((prev) => (config !== null && prev !== null ? advance(config, prev, event) : prev))
     },
-    [config, session],
+    [config],
   )
 
   const choose = useCallback(
     (choiceId: string) => {
-      if (config === null || session === null) return
-      setSession(applyChoice(config, session, choiceId))
+      setSession((prev) =>
+        config !== null && prev !== null ? applyChoice(config, prev, choiceId) : prev,
+      )
     },
-    [config, session],
+    [config],
   )
 
   const step = useMemo(
