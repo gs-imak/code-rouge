@@ -2,8 +2,8 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  gap: clamp(14px, 2.4vh, 28px);
-  padding: clamp(18px, 3vh, 36px) clamp(24px, 3.5vw, 64px) clamp(16px, 2.6vh, 32px);
+  gap: 2.5rem;
+  padding: 3.1rem 5rem 2.7rem;
 }
 
 .admin__grid {
@@ -11,7 +11,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-template-rows: 1fr 1fr;
-  gap: clamp(14px, 2vh, 26px);
+  gap: 2rem;
   min-height: 0;
 }
 
@@ -19,16 +19,16 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  padding: clamp(14px, 2.2vh, 26px) clamp(20px, 2vw, 34px);
-  border: 1px solid rgb(89 183 255 / 28%);
-  border-radius: 12px;
+  padding: 2.25rem 2.9rem;
+  border: 0.1rem solid rgb(89 183 255 / 28%);
+  border-radius: 1.2rem;
   background: rgb(9 16 40 / 45%);
 }
 
 .admin-panel__title {
-  margin: 0 0 clamp(10px, 1.8vh, 18px);
+  margin: 0 0 1.8rem;
   text-align: center;
-  font-size: clamp(14px, 2vh, 20px);
+  font-size: 2rem;
   font-weight: var(--cr-weight-semibold, 600);
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -40,8 +40,8 @@
   flex-direction: column;
   justify-content: center;
   flex: 1 1 auto;
-  gap: clamp(12px, 2vh, 20px);
-  font-size: clamp(13px, 1.8vh, 17px);
+  gap: 2rem;
+  font-size: 1.7rem;
   color: rgb(255 255 255 / 88%);
 }
 
@@ -55,7 +55,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: clamp(10px, 1.2vw, 18px);
+  gap: 1.7rem;
   text-align: center;
 }
 
@@ -63,7 +63,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 1rem;
 }
 
 .admin-hw__label {
@@ -74,29 +74,29 @@
 
 .admin-dots {
   display: flex;
-  gap: 6px;
+  gap: 0.6rem;
 }
 
 .admin-dot {
-  width: 12px;
-  height: 12px;
+  width: 1.2rem;
+  height: 1.2rem;
   border-radius: 50%;
   background: rgb(255 255 255 / 25%);
 }
 
 .admin-dot--ok {
   background: #2ecf7c;
-  box-shadow: 0 0 8px rgb(46 207 124 / 60%);
+  box-shadow: 0 0 0.8rem rgb(46 207 124 / 60%);
 }
 
 .admin-field {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0.8rem;
 }
 
 .admin-field__label {
-  font-size: clamp(12px, 1.7vh, 16px);
+  font-size: 1.6rem;
   color: rgb(255 255 255 / 80%);
 }
 
@@ -105,11 +105,11 @@
 .admin-custom {
   font-family: inherit;
   color: var(--cr-color-white, #fff);
-  border-radius: 10px;
-  border: 1px solid rgb(89 183 255 / 45%);
+  border-radius: 1rem;
+  border: 0.1rem solid rgb(89 183 255 / 45%);
   background: rgb(7 12 28 / 70%);
-  padding: clamp(8px, 1.4vh, 14px) clamp(12px, 1.2vw, 18px);
-  font-size: clamp(13px, 1.7vh, 16px);
+  padding: 1.43rem 1.73rem;
+  font-size: 1.6rem;
 }
 
 .admin-select {
@@ -118,11 +118,11 @@
   background-image: linear-gradient(45deg, transparent 50%, #59b7ff 50%),
     linear-gradient(135deg, #59b7ff 50%, transparent 50%);
   background-position:
-    calc(100% - 20px) center,
-    calc(100% - 14px) center;
+    calc(100% - 2rem) center,
+    calc(100% - 1.4rem) center;
   background-size:
-    6px 6px,
-    6px 6px;
+    0.6rem 0.6rem,
+    0.6rem 0.6rem;
   background-repeat: no-repeat;
 }
 
@@ -141,5 +141,5 @@
 .admin__footer {
   display: flex;
   justify-content: center;
-  gap: clamp(16px, 2vw, 32px);
+  gap: 2.9rem;
 }

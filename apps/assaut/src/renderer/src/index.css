@@ -1,8 +1,15 @@
-/* Global base for the Assaut renderer. The « Section 13 » palette + type now
-   come from the design-system tokens, injected as `--cr-*` CSS custom
-   properties at boot (see main.tsx). This file only owns the reset and the
-   document-level defaults; each screen owns its own look. No external font
-   loads — CLAUDE.md immutable rule #3 (all assets local). */
+/* Global base for the Assaut renderer. The « Section 13 » palette + type come
+   from the design-system tokens, injected as `--cr-*` CSS custom properties at
+   boot (see main.tsx). No external font loads — immutable rule #3.
+
+   FIXED DESIGN CANVAS: the maquettes are a fixed 1440×1024 design. Rather than
+   reflow (which clashes + drifts from the maquette), the whole screen is one
+   stage scaled uniformly to fit the viewport. The trick: `1rem` = a viewport-fit
+   unit — at 1440×1024 it is exactly 10px, and it scales by the limiting
+   dimension on any other resolution. Every screen value is then authored in rem
+   as `maquette_px / 10`, so spacing + sizing stay maquette-exact at every size.
+   `#root` centers the stage; the dark body shows as letterbox bars when the
+   display aspect ≠ 1.40625. (Senior-Reviewer rule #7: CSS, not JS, for layout.) */
 
 * {
   box-sizing: border-box;
@@ -12,6 +19,9 @@
 
 :root {
   color-scheme: dark;
+  /* 1rem = min(viewport-width/144, viewport-height/102.4) → 10px at the design
+     size, uniformly scaled to fit elsewhere. */
+  font-size: min(calc(100vw / 144), calc(100vh / 102.4));
 }
 
 html,
@@ -25,11 +35,15 @@ body {
   background: var(--cr-color-bg-deep, #080d1a);
   color: var(--cr-color-white, #fff);
   font-family: var(--cr-font-family, system-ui, -apple-system, sans-serif);
-  font-size: 16px;
+  font-size: 1.6rem; /* 16px at design */
   overflow: hidden;
-  /* `user-select:none` skips inputs (browsers always allow selection inside
-     <input>/<textarea>), but applying it at body level suppresses accidental
-     selection of headings/labels under heavy-finger touch. */
   user-select: none;
   cursor: default;
+}
+
+/* Centre the fixed stage; letterbox the remainder with the dark page colour. */
+#root {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
 }

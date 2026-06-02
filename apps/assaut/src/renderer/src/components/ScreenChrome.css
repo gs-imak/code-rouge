@@ -1,15 +1,16 @@
-/* Shared screen chrome. The background SVG is positioned to match the maquette:
-   the `Layer_1` art is 1803x970 anchored at the frame's (0, 50), so it overflows
-   the right edge (clipped) and sits 50/1024 = 4.88% down. Expressed in %/auto so
-   it scales to the mallette's native resolution while keeping the HUD brackets in
-   the corners. */
+/* The fixed design stage: exactly the maquette's 1440×1024 frame, expressed in
+   rem (144rem × 102.4rem) so it scales uniformly to fit the viewport. Children
+   are all authored in rem (maquette_px / 10) — no reflow, so spacing + sizing
+   stay maquette-exact at every resolution. The background SVG is positioned to
+   match the maquette: `Layer_1` art is 1803×970 anchored at the frame's (0, 50),
+   so it overflows the right edge (clipped) and sits 50/1024 = 4.88% down. */
 
 .screen {
   position: relative;
   display: grid;
   grid-template-rows: auto 1fr;
-  height: 100%;
-  width: 100%;
+  width: 144rem;
+  height: 102.4rem;
   overflow: hidden;
   background: var(--cr-color-bg-deep, #080d1a);
   color: var(--cr-color-white, #fff);

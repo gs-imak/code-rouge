@@ -4,19 +4,19 @@
   align-items: center;
   justify-content: center;
   height: 100%;
-  gap: clamp(20px, 3.5vh, 40px);
-  padding: clamp(20px, 4vh, 56px) clamp(20px, 3vw, 48px);
+  gap: 3.6rem;
+  padding: 4.1rem 4.3rem;
 }
 
 .choix__icon {
   display: flex;
   justify-content: center;
-  margin-bottom: clamp(6px, 1.4vh, 14px);
+  margin-bottom: 1.4rem;
 }
 
 .choix__title {
-  margin: 0 0 clamp(10px, 1.8vh, 18px);
-  font-size: clamp(20px, 3.2vh, 32px);
+  margin: 0 0 1.8rem;
+  font-size: 3.2rem;
   font-weight: var(--cr-weight-semibold, 600);
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -24,26 +24,26 @@
 }
 
 .choix__text {
-  margin: 0 auto clamp(20px, 3vh, 34px);
+  margin: 0 auto 3.1rem;
   max-width: 80%;
-  font-size: clamp(15px, 2.1vh, 20px);
+  font-size: 2rem;
   line-height: 1.5;
   color: rgb(255 255 255 / 90%);
 }
 
 .choix__cards {
   display: flex;
-  gap: clamp(16px, 2vw, 32px);
+  gap: 2.9rem;
   justify-content: center;
 }
 
 .choix__card {
   display: flex;
   flex-direction: column;
-  gap: clamp(8px, 1.2vh, 14px);
+  gap: 1.2rem;
   padding: 0;
-  border: 2px solid transparent;
-  border-radius: 10px;
+  border: 0.2rem solid transparent;
+  border-radius: 1rem;
   background: none;
   color: var(--cr-color-white, #fff);
   font-family: inherit;
@@ -55,7 +55,7 @@
 }
 
 .choix__card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-0.2rem);
 }
 
 .choix__card--selected {
@@ -67,10 +67,10 @@
 }
 
 .choix__card-img {
-  width: clamp(150px, 16vw, 220px);
-  height: clamp(95px, 11vw, 150px);
-  border-radius: 8px;
-  border: 1px solid rgb(89 183 255 / 30%);
+  width: 22rem;
+  height: 15rem;
+  border-radius: 0.8rem;
+  border: 0.1rem solid rgb(89 183 255 / 30%);
 }
 
 /* Placeholder card imagery (real frontale/furtive photos are content). */
@@ -83,6 +83,6 @@
 }
 
 .choix__card-label {
-  font-size: clamp(14px, 1.9vh, 18px);
+  font-size: 1.8rem;
   font-weight: var(--cr-weight-semibold, 600);
 }

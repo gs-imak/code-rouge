@@ -1,20 +1,20 @@
-/* Shared primary button — the maquette's glossy light-blue « Buttom » face with a
-   dark-navy label (#67C4F0 over #0078AF base). `--dark` is the teal secondary. */
+/* Shared primary button — glossy light-blue « Buttom » face, dark-navy label.
+   `--dark` is the teal secondary. rem so it scales with the stage. */
 
 .primary-button {
-  min-width: clamp(180px, 18vw, 247px);
-  height: clamp(46px, 6.2vh, 63px);
-  padding-inline: clamp(20px, 2vw, 32px);
+  min-width: 24.7rem;
+  height: 6.3rem;
+  padding-inline: 2.9rem;
   border: none;
-  border-radius: 15px;
+  border-radius: 1.5rem;
   background: linear-gradient(180deg, #7ccbf2 0%, #3d9ad4 100%);
   color: var(--cr-color-text-on-accent, #020e53);
   font-family: inherit;
-  font-size: clamp(16px, 2.4vh, 24px);
+  font-size: 2.4rem;
   font-weight: var(--cr-weight-bold, 700);
   box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 45%),
-    0 6px 16px rgb(0 0 0 / 35%);
+    inset 0 0.1rem 0 rgb(255 255 255 / 45%),
+    0 0.6rem 1.6rem rgb(0 0 0 / 35%);
   cursor: pointer;
   transition:
     filter 0.12s ease,
@@ -31,10 +31,10 @@
 }
 
 .primary-button:active {
-  transform: translateY(1px);
+  transform: translateY(0.1rem);
 }
 
 .primary-button:focus-visible {
-  outline: 2px solid var(--cr-color-white, #fff);
-  outline-offset: 3px;
+  outline: 0.2rem solid var(--cr-color-white, #fff);
+  outline-offset: 0.3rem;
 }

@@ -1,34 +1,30 @@
-/* « Connexion » body (the chrome + header live in ScreenChrome / SectionHeader).
-   Maquette: Figma node 9:1382 (.figma-ref/02-connexion.png). Colours/type come
-   from the injected design tokens (var(--cr-*)); sizes are tuned to the 1440x1024
-   maquette in vh/vw + clamp() so the layout holds on the mallette's resolution. */
+/* « Connexion » body (chrome + header live in ScreenChrome / SectionHeader).
+   Maquette node 9:1382. All rem (maquette_px / 10) so it scales with the stage. */
 
 .connexion {
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* Top-weighted like the maquette: emblem sits just below the header (~26px),
-     with the larger empty space falling below the button. */
+  /* Top-weighted like the maquette: emblem just below the header (~26px). */
   justify-content: flex-start;
   height: 100%;
   min-height: 0;
-  padding: clamp(16px, 2.6vh, 30px) clamp(12px, 2vw, 32px) clamp(12px, 2vh, 32px);
+  padding: 2.7rem 2.9rem 2rem;
 }
 
-/* Central SECTION 13 emblem + wordmark lockup (≈281×398, top ≈ y113). */
 .connexion__emblem-wrap {
   position: relative;
   display: flex;
   justify-content: center;
 }
 
-/* Teal halo behind the hex mark (maquette: Ellipse #2295AA, ~390px, 84px blur). */
+/* Teal halo behind the hex mark (maquette Ellipse #2295AA, ~390px, 84px blur). */
 .connexion__emblem-wrap::before {
   content: '';
   position: absolute;
   left: 50%;
   top: 38%;
-  width: clamp(220px, 40vh, 400px);
+  width: 40rem;
   aspect-ratio: 1;
   transform: translate(-50%, -50%);
   border-radius: 50%;
@@ -37,7 +33,7 @@
     rgb(34 149 170 / 50%) 0%,
     rgb(34 149 170 / 0%) 68%
   );
-  filter: blur(40px);
+  filter: blur(4rem);
   pointer-events: none;
   z-index: 0;
 }
@@ -47,7 +43,7 @@
   z-index: 1;
   display: block;
   width: auto;
-  height: min(39vh, 398px);
+  height: 39.8rem;
 }
 
 /* ---- Form (label + input + button) --------------------------------------- */
@@ -58,26 +54,26 @@
   align-items: center;
   width: 100%;
   /* Wordmark bottom (≈y510) → label top (≈y615) ≈ 105px. */
-  margin-top: clamp(36px, 10vh, 104px);
+  margin-top: 10.2rem;
 }
 
 .connexion__label {
-  font-size: clamp(18px, 2.7vh, 28px);
+  font-size: 2.8rem;
   font-weight: var(--cr-weight-regular, 400);
   text-align: center;
 }
 
 .connexion__input {
   /* Maquette: 457×81, white @19%, 1px white stroke, radius 16. */
-  margin-top: clamp(10px, 1.4vh, 16px);
-  width: min(457px, 56vw);
-  height: clamp(52px, 7.9vh, 81px);
-  border: 1px solid rgb(255 255 255 / 55%);
-  border-radius: 16px;
+  margin-top: 1.4rem;
+  width: 45.7rem;
+  height: 8.1rem;
+  border: 0.1rem solid rgb(255 255 255 / 55%);
+  border-radius: 1.6rem;
   background: rgb(255 255 255 / 19%);
   color: var(--cr-color-white, #fff);
   font-family: inherit;
-  font-size: clamp(18px, 2.4vh, 26px);
+  font-size: 2.6rem;
   letter-spacing: 0.18em;
   text-align: center;
   outline: none;
@@ -85,25 +81,24 @@
 
 .connexion__input:focus-visible {
   border-color: var(--cr-color-accent, #1c99ff);
-  box-shadow: 0 0 0 3px rgb(28 153 255 / 45%);
+  box-shadow: 0 0 0 0.3rem rgb(28 153 255 / 45%);
 }
 
 .connexion__submit {
-  /* Maquette: 247×63, glossy light-blue face (#67C4F0 over #0078AF base),
-     radius 15, dark-navy label. */
-  margin-top: clamp(28px, 5.5vh, 57px);
-  width: min(247px, 22vw);
-  height: clamp(46px, 6.2vh, 63px);
+  /* Maquette: 247×63, glossy light-blue face, radius 15, dark-navy label. */
+  margin-top: 5.7rem;
+  width: 24.7rem;
+  height: 6.3rem;
   border: none;
-  border-radius: 15px;
+  border-radius: 1.5rem;
   background: linear-gradient(180deg, #7ccbf2 0%, #3d9ad4 100%);
   color: var(--cr-color-text-on-accent, #020e53);
   font-family: inherit;
-  font-size: clamp(17px, 2.5vh, 26px);
+  font-size: 2.6rem;
   font-weight: var(--cr-weight-bold, 700);
   box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 45%),
-    0 6px 16px rgb(0 0 0 / 35%);
+    inset 0 0.1rem 0 rgb(255 255 255 / 45%),
+    0 0.6rem 1.6rem rgb(0 0 0 / 35%);
   cursor: pointer;
   transition:
     filter 0.12s ease,
@@ -115,10 +110,10 @@
 }
 
 .connexion__submit:active {
-  transform: translateY(1px);
+  transform: translateY(0.1rem);
 }
 
 .connexion__submit:focus-visible {
-  outline: 2px solid var(--cr-color-white, #fff);
-  outline-offset: 3px;
+  outline: 0.2rem solid var(--cr-color-white, #fff);
+  outline-offset: 0.3rem;
 }

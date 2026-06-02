@@ -1,5 +1,4 @@
-/* Panel screen layout — centered panel with the primary button below it (the
-   maquette places Valider / Continuer / Recommencer outside the panel). */
+/* Panel screen layout — centered panel with the primary button below it. All rem. */
 
 .panel-screen {
   display: flex;
@@ -7,19 +6,19 @@
   align-items: center;
   justify-content: center;
   height: 100%;
-  gap: clamp(20px, 3.5vh, 40px);
-  padding: clamp(20px, 4vh, 56px) clamp(20px, 3vw, 48px);
+  gap: 3.6rem;
+  padding: 4.1rem 4.3rem;
 }
 
 .panel-screen__icon {
   display: flex;
   justify-content: center;
-  margin-bottom: clamp(8px, 1.8vh, 18px);
+  margin-bottom: 1.8rem;
 }
 
 .panel-screen__title {
-  margin: 0 0 clamp(12px, 2vh, 20px);
-  font-size: clamp(20px, 3.2vh, 32px);
+  margin: 0 0 2rem;
+  font-size: 3.2rem;
   font-weight: var(--cr-weight-semibold, 600);
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -34,46 +33,46 @@
 .panel-screen__body--with-photo {
   display: flex;
   align-items: center;
-  gap: clamp(16px, 2vw, 32px);
+  gap: 2.9rem;
   text-align: left;
 }
 
 .panel-screen__text {
   margin: 0;
-  font-size: clamp(15px, 2.2vh, 21px);
+  font-size: 2.1rem;
   line-height: 1.5;
   color: rgb(255 255 255 / 90%);
 }
 
 .panel-screen__photo {
   flex: 0 0 auto;
-  width: clamp(180px, 32%, 300px);
-  border-radius: 8px;
-  border: 1px solid rgb(89 183 255 / 30%);
+  width: clamp(18rem, 32%, 30rem);
+  border-radius: 0.8rem;
+  border: 0.1rem solid rgb(89 183 255 / 30%);
 }
 
 .panel-screen__field {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: clamp(10px, 1.6vh, 16px);
-  margin-top: clamp(18px, 3vh, 32px);
+  gap: 1.6rem;
+  margin-top: 3.1rem;
 }
 
 .panel-screen__field-label {
-  font-size: clamp(14px, 2vh, 19px);
+  font-size: 1.9rem;
   color: rgb(255 255 255 / 88%);
 }
 
 .panel-screen__input {
-  width: min(420px, 70vw);
-  height: clamp(50px, 7vh, 76px);
-  border: 1px solid rgb(255 255 255 / 55%);
-  border-radius: 14px;
+  width: 42rem;
+  height: 7.2rem;
+  border: 0.1rem solid rgb(255 255 255 / 55%);
+  border-radius: 1.4rem;
   background: rgb(255 255 255 / 17%);
   color: var(--cr-color-white, #fff);
   font-family: inherit;
-  font-size: clamp(17px, 2.3vh, 24px);
+  font-size: 2.4rem;
   letter-spacing: 0.16em;
   text-align: center;
   outline: none;
@@ -81,5 +80,5 @@
 
 .panel-screen__input:focus-visible {
   border-color: var(--cr-color-accent, #1c99ff);
-  box-shadow: 0 0 0 3px rgb(28 153 255 / 45%);
+  box-shadow: 0 0 0 0.3rem rgb(28 153 255 / 45%);
 }
