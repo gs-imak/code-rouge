@@ -81,6 +81,7 @@ export function AssautStepScreen({
 
         {responses !== undefined && responses.length > 0 && (
           <div className="step__responses">
+            <p className="step__responses-heading">Réponses possibles&nbsp;:</p>
             {responses.map((response) => (
               <button
                 key={response.id}
@@ -98,6 +99,8 @@ export function AssautStepScreen({
       {photo != null && (
         <div className="step__overlay" role="dialog" aria-modal="true" aria-label="Image reçue">
           <div className="step__photo">
+            <HudBrackets />
+            <img src={photo.src} alt="" />
             <button
               type="button"
               className="step__photo-close"
@@ -106,7 +109,6 @@ export function AssautStepScreen({
             >
               ×
             </button>
-            <img src={photo.src} alt="" />
           </div>
         </div>
       )}
