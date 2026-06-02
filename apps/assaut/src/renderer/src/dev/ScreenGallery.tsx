@@ -147,7 +147,7 @@ export function ScreenGallery({ name }: { readonly name: string }): JSX.Element 
       return (
         <PanelScreen
           title="Opérateur,"
-          text="L'assaut sur la planque du Réseau est sur le point d'être initiée. Quelques rappels sur le fonctionnement de votre interface tactique vont suivre …"
+          text={'L\'assaut sur la planque du Réseau est sur le point d\'être initiée.\n\nQuelques rappels sur le fonctionnement de votre interface tactique vont suivre …'}
           buttonLabel="C'est parti !"
           onSubmit={noop}
         />

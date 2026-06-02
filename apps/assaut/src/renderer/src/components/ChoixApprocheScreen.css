@@ -36,7 +36,7 @@
   font-size: 3rem; /* maquette 30px */
   font-weight: var(--cr-weight-regular, 400);
   letter-spacing: 0.24rem;
-  line-height: 1.1;
+  line-height: 1.87; /* maquette title box 56px ÷ 30px */
   text-transform: uppercase;
   color: var(--cr-color-white, #fff);
 }

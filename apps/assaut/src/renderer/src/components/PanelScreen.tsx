@@ -78,13 +78,12 @@ export function PanelScreen({
       >
         <div className="panel-screen__panel">
           <Panel tone={tone}>
-            {/* Text column (icon/badge + title + body). On the wide validation
-                panel the photo sits beside it; the panel becomes a flex row. */}
-            <div className="panel-screen__main">
-              {iconEl !== null && <div className="panel-screen__icon">{iconEl}</div>}
-              <h2 className="panel-screen__title">{title}</h2>
-              <p className="panel-screen__text">{text}</p>
-            </div>
+            {/* Each element is absolutely positioned at its exact maquette
+                panel-relative Y (PanelScreen.css) so nothing drifts. On the wide
+                validation panel the photo sits to the right of the text column. */}
+            {iconEl !== null && <div className="panel-screen__icon">{iconEl}</div>}
+            <h2 className="panel-screen__title">{title}</h2>
+            <p className="panel-screen__text">{text}</p>
             {photoSrc !== undefined && (
               <img className="panel-screen__photo" src={photoSrc} alt="" />
             )}
