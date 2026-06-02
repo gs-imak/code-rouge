@@ -1,84 +1,21 @@
-/* « Connexion » screen — maquette Figma node 9:1382 (.figma-ref/02-connexion.png).
-   All colours/type come from the injected design tokens (var(--cr-*), see
-   main.tsx); sizes are tuned to the 1440x1024 maquette and expressed in vh/vw +
-   clamp() so the layout holds on the mallette's native resolution (rule #7: CSS
-   over JS for layout). Reference coordinates are noted inline as (x,y w×h). */
+/* « Connexion » body (the chrome + header live in ScreenChrome / SectionHeader).
+   Maquette: Figma node 9:1382 (.figma-ref/02-connexion.png). Colours/type come
+   from the injected design tokens (var(--cr-*)); sizes are tuned to the 1440x1024
+   maquette in vh/vw + clamp() so the layout holds on the mallette's resolution. */
 
 .connexion {
-  height: 100%;
-  width: 100%;
-  display: grid;
-  grid-template-rows: auto 1fr;
-  overflow: hidden;
-  color: var(--cr-color-white, #fff);
-  font-family: var(--cr-font-family, system-ui, sans-serif);
-  background: var(
-    --cr-gradient-background,
-    radial-gradient(circle at 50% 40%, #1c3f54 0%, #080d1a 100%)
-  );
-}
-
-/* ---- Header bar (full width, h≈77) ---------------------------------------- */
-
-.connexion__bar {
-  position: relative;
-  display: flex;
-  align-items: center;
-  height: clamp(56px, 7.5vh, 88px);
-  padding-inline: clamp(16px, 1.9vw, 32px);
-  background: var(--cr-color-bg-deep, #080d1a);
-  border-bottom: 1px solid rgb(255 255 255 / 16%);
-}
-
-.connexion__brand {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  gap: clamp(8px, 0.8vw, 14px);
-}
-
-.connexion__brand-mark {
-  display: block;
-  width: auto;
-  height: clamp(28px, 4.2vh, 42px);
-}
-
-.connexion__brand-name {
-  font-size: clamp(14px, 1.7vh, 19px);
-  font-weight: var(--cr-weight-bold, 700);
-  letter-spacing: 0.12em;
-}
-
-.connexion__title {
-  position: absolute;
-  inset: 0;
-  margin: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--cr-size-header, 20px);
-  font-weight: var(--cr-weight-semibold, 600);
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  pointer-events: none;
-}
-
-/* ---- Stage (everything below the bar) ------------------------------------- */
-
-.connexion__stage {
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* Top-weighted like the maquette: emblem sits just below the header (~36px
-     gap), with the larger empty space falling below the button. */
+  /* Top-weighted like the maquette: emblem sits just below the header (~26px),
+     with the larger empty space falling below the button. */
   justify-content: flex-start;
+  height: 100%;
   min-height: 0;
-  padding: clamp(24px, 4vh, 44px) clamp(12px, 2vw, 32px) clamp(12px, 2vh, 32px);
+  padding: clamp(16px, 2.6vh, 30px) clamp(12px, 2vw, 32px) clamp(12px, 2vh, 32px);
 }
 
-/* Central SECTION 13 emblem + wordmark (lockup ≈ 281×398, top ≈ y113). */
+/* Central SECTION 13 emblem + wordmark lockup (≈281×398, top ≈ y113). */
 .connexion__emblem-wrap {
   position: relative;
   display: flex;
@@ -153,8 +90,7 @@
 
 .connexion__submit {
   /* Maquette: 247×63, glossy light-blue face (#67C4F0 over #0078AF base),
-     radius 15, dark-navy label. The accent token gradient is darker (panel
-     edge); this button uses the lighter face values from the maquette. */
+     radius 15, dark-navy label. */
   margin-top: clamp(28px, 5.5vh, 57px);
   width: min(247px, 22vw);
   height: clamp(46px, 6.2vh, 63px);

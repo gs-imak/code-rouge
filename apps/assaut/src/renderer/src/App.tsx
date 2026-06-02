@@ -45,10 +45,10 @@ export default function App(): JSX.Element {
     sequence.submit()
   }, [sequence])
 
-  // Hold first paint until the persisted state is known. The empty container
-  // carries the page background so there's no flash before the screen mounts.
+  // Hold first paint until the persisted state is known. The empty chrome
+  // carries the dark background so there's no flash before the screen mounts.
   if (!ready) {
-    return <div className="connexion" aria-hidden="true" />
+    return <div className="screen" aria-hidden="true" />
   }
 
   // The screen for the current engine step. Until the SequenceRunner slice maps
