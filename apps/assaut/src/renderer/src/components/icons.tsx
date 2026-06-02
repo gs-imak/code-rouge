@@ -6,6 +6,22 @@ export interface IconProps {
   readonly size?: number
 }
 
+/** Chunky right arrow — the « Arrow right-big » glyph inside the prep-hub action
+    circles (maquette 42×42). Colour follows `currentColor`. */
+export function ArrowRightIcon({ size = 42 }: IconProps): JSX.Element {
+  return (
+    <svg width={size} height={size} viewBox="0 0 42 42" fill="none" aria-hidden="true">
+      <path
+        d="M7 21h25M23 10.5 33.5 21 23 31.5"
+        stroke="currentColor"
+        strokeWidth="4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
 /** Target / radar reticle — top of the « Bonjour opérateur » prompt panels. */
 export function RadarIcon({ size = 56 }: IconProps): JSX.Element {
   return (

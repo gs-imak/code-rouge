@@ -1,5 +1,6 @@
 import { ScreenChrome } from './ScreenChrome'
 import { SectionHeader } from './SectionHeader'
+import { ArrowRightIcon } from './icons'
 import './PreparationScreen.css'
 
 // « Préparation » hub (maquette screen 4): three action cards. « Lancer l'assaut »
@@ -25,13 +26,13 @@ export function PreparationScreen({
         <button type="button" className="prep-hub__card" onClick={onAddPoint}>
           <span className="prep-hub__label">Ajouter un point d’accès</span>
           <span className="prep-hub__arrow" aria-hidden="true">
-            →
+            <ArrowRightIcon />
           </span>
         </button>
         <button type="button" className="prep-hub__card" onClick={onChooseApproach}>
           <span className="prep-hub__label">Choisir l’approche pour l’intervention</span>
           <span className="prep-hub__arrow" aria-hidden="true">
-            →
+            <ArrowRightIcon />
           </span>
         </button>
         <button
@@ -41,7 +42,7 @@ export function PreparationScreen({
         >
           <span className="prep-hub__label">Lancer l’assaut</span>
           <span className="prep-hub__arrow" aria-hidden="true">
-            →
+            <ArrowRightIcon />
           </span>
         </button>
       </div>
