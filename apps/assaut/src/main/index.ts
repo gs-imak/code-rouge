@@ -203,7 +203,15 @@ function registerIpcHandlers(): void {
   ipcMain.handle(IpcChannel.GetSequenceConfig, () => {
     // Read + Zod-validate the flow from disk. A malformed config throws here
     // and rejects on the renderer side rather than rendering a broken flow.
-    return readSequenceConfig()
+    // Logged because the venue PC is headless — ops sees this in the journal,
+    // not a renderer console.
+    try {
+      return readSequenceConfig()
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('[assaut] sequence config load failed:', err)
+      throw err
+    }
   })
 }
 

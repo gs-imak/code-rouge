@@ -13,6 +13,15 @@ import react from '@vitejs/plugin-react'
 // externalized while bundling our internal TS sources inline.
 const WORKSPACE_PACKAGES = ['@code-rouge/shared-types', '@code-rouge/shared-utils']
 
+// The preload runs SANDBOXED (webPreferences.sandbox: true), so it must be a
+// fully self-contained bundle — a sandboxed preload cannot `require()` from
+// node_modules at runtime. `zod` is pulled in transitively via @code-rouge/
+// shared-types (GameState/AssautSequenceConfig validation); if it stays
+// externalized the preload throws `module not found: zod` at load, which
+// silently kills the `window.assaut` bridge (every IPC call then degrades).
+// Main runs in full Node and can keep zod external, so this is preload-only.
+const PRELOAD_EXCLUDE = [...WORKSPACE_PACKAGES, 'zod']
+
 export default defineConfig({
   main: {
     plugins: [externalizeDepsPlugin({ exclude: WORKSPACE_PACKAGES })],
@@ -26,7 +35,7 @@ export default defineConfig({
     },
   },
   preload: {
-    plugins: [externalizeDepsPlugin({ exclude: WORKSPACE_PACKAGES })],
+    plugins: [externalizeDepsPlugin({ exclude: PRELOAD_EXCLUDE })],
     build: {
       outDir: 'out/preload',
       sourcemap: false,
