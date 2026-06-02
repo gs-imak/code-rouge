@@ -10,6 +10,8 @@ export interface PrimaryButtonProps {
   readonly type?: 'button' | 'submit'
   readonly onClick?: () => void
   readonly tone?: 'light' | 'dark'
+  /** Extra class for positioning the button from its parent screen. */
+  readonly className?: string
 }
 
 export function PrimaryButton({
@@ -17,8 +19,10 @@ export function PrimaryButton({
   type = 'button',
   onClick,
   tone = 'light',
+  className: extra,
 }: PrimaryButtonProps): JSX.Element {
-  const className = tone === 'dark' ? 'primary-button primary-button--dark' : 'primary-button'
+  const base = tone === 'dark' ? 'primary-button primary-button--dark' : 'primary-button'
+  const className = extra !== undefined ? `${base} ${extra}` : base
   // Literal `type` per branch — keeps the union without an inline disable.
   return type === 'submit' ? (
     <button type="submit" className={className} onClick={onClick}>

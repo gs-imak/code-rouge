@@ -1,79 +1,161 @@
-/* Panel screen layout — centered panel with the primary button below it. All rem. */
+/* Panel screen layout. The maquette places elements at fixed frame-Y; the chrome
+   header is 7.8rem tall, so a frame element at Y sits at (Y − 78)/10 rem inside
+   the body. `.panel-screen` fills the body and positions the panel / input field
+   / action button at those exact offsets per layout. All rem (maquette_px / 10). */
 
 .panel-screen {
+  position: absolute;
+  inset: 0;
+}
+
+/* Centred horizontally; top set per layout below. */
+.panel-screen__panel,
+.panel-screen__field,
+.panel-screen__action {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* --- Panel vertical anchor + size per layout --------------------------------- */
+/* input  : panel @142 → 6.4rem  (Ajout Point d'accès, Code d'autorisation) */
+/* result : panel @231 → 15.3rem (Refus, Validation) */
+/* message: popin @192 → 11.4rem (Accueil Assaut lancé) */
+.panel-screen--input .panel-screen__panel {
+  top: 6.4rem;
+}
+.panel-screen--result .panel-screen__panel {
+  top: 15.3rem;
+}
+.panel-screen--message .panel-screen__panel {
+  top: 11.4rem;
+}
+
+.panel-screen--input .panel,
+.panel-screen--result .panel {
+  min-height: 46.7rem; /* maquette 467 */
+}
+
+/* Wide validation panel (1158×467) — text column beside the photo. */
+.panel-screen--wide .panel {
+  width: 115.8rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4.4rem;
+  padding: 4.4rem 5.5rem;
+  text-align: left;
+}
+
+/* Message popin (788×573) — title + body + button stacked inside, no brackets. */
+.panel-screen--message .panel {
+  width: 78.8rem;
+  min-height: 57.3rem;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  height: 100%;
-  gap: 3.6rem;
-  padding: 4.1rem 4.3rem;
+  justify-content: flex-start;
+  padding: 3.7rem 4rem 4rem;
+}
+.panel-screen--message .panel::before,
+.panel-screen--message .panel::after {
+  content: none;
+}
+
+/* --- Panel content column ---------------------------------------------------- */
+.panel-screen__main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.panel-screen--wide .panel-screen__main {
+  flex: 0 0 auto;
+  width: 61.3rem; /* maquette left column 613 */
+  align-items: center;
+}
+
+/* Top padding lifts the first element to its maquette Y inside the panel. */
+.panel-screen--input .panel-screen__main {
+  padding-top: 1.3rem;
+}
+.panel-screen--result:not(.panel-screen--wide) .panel-screen__main {
+  padding-top: 0;
 }
 
 .panel-screen__icon {
   display: flex;
   justify-content: center;
-  margin-bottom: 1.8rem;
+  margin-bottom: 0.3rem;
+}
+.panel-screen--result .panel-screen__icon {
+  margin-bottom: 2.6rem;
 }
 
 .panel-screen__title {
-  margin: 0 0 2rem;
-  font-size: 3.2rem;
-  font-weight: var(--cr-weight-semibold, 600);
-  letter-spacing: 0.1em;
+  margin: 0 0 3.1rem;
+  font-size: 3rem; /* maquette 30px */
+  font-weight: var(--cr-weight-regular, 400);
+  letter-spacing: 0.24rem; /* maquette ls 2.4 */
+  line-height: 1.1;
   text-transform: uppercase;
-  color: rgb(255 255 255 / 94%);
+  color: var(--cr-color-white, #fff);
 }
-
-.panel-screen__body {
-  margin: 0 auto;
-  max-width: 92%;
-}
-
-.panel-screen__body--with-photo {
-  display: flex;
-  align-items: center;
-  gap: 2.9rem;
-  text-align: left;
+.panel-screen--message .panel-screen__title {
+  margin-bottom: 0;
 }
 
 .panel-screen__text {
   margin: 0;
-  font-size: 2.1rem;
-  line-height: 1.5;
-  color: rgb(255 255 255 / 90%);
+  max-width: 55.1rem; /* maquette body width 551 */
+  font-size: 3.4rem; /* maquette 34px — was badly undersized */
+  font-weight: var(--cr-weight-regular, 400);
+  line-height: 1.2;
+  color: var(--cr-color-white, #fff);
+}
+.panel-screen--wide .panel-screen__text {
+  max-width: none;
+  text-align: center;
+}
+.panel-screen--message .panel-screen__text {
+  margin-top: 3rem;
 }
 
+/* Validation photo (maquette 494×370, right of the text column). */
 .panel-screen__photo {
   flex: 0 0 auto;
-  width: clamp(18rem, 32%, 30rem);
+  width: 49.4rem;
+  height: 37rem;
+  object-fit: cover;
   border-radius: 0.8rem;
-  border: 0.1rem solid rgb(89 183 255 / 30%);
+  border: 0.1rem solid rgb(255 255 255 / 30%);
 }
 
+/* --- Input field (frame @633 → 55.5rem; matches the Connexion input) ---------- */
 .panel-screen__field {
+  top: 55.5rem;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.6rem;
-  margin-top: 3.1rem;
+  gap: 1.4rem;
 }
 
 .panel-screen__field-label {
-  font-size: 1.9rem;
-  color: rgb(255 255 255 / 88%);
+  font-size: 2.8rem; /* maquette 28px */
+  font-weight: var(--cr-weight-regular, 400);
+  color: var(--cr-color-white, #fff);
 }
 
 .panel-screen__input {
-  width: 42rem;
-  height: 7.2rem;
+  width: 45.7rem;
+  height: 8.1rem;
   border: 0.1rem solid rgb(255 255 255 / 55%);
-  border-radius: 1.4rem;
-  background: rgb(255 255 255 / 17%);
+  border-radius: 1.6rem;
+  background: rgb(255 255 255 / 19%);
   color: var(--cr-color-white, #fff);
   font-family: inherit;
-  font-size: 2.4rem;
-  letter-spacing: 0.16em;
+  font-size: 2.6rem;
+  letter-spacing: 0.18em;
   text-align: center;
   outline: none;
 }
@@ -81,4 +163,9 @@
 .panel-screen__input:focus-visible {
   border-color: var(--cr-color-accent, #1c99ff);
   box-shadow: 0 0 0 0.3rem rgb(28 153 255 / 45%);
+}
+
+/* --- Action button (maquette @843 → 76.5rem) --------------------------------- */
+.panel-screen__action {
+  top: 76.5rem;
 }

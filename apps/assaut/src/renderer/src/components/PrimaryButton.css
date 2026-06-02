@@ -2,15 +2,17 @@
    `--dark` is the teal secondary. rem so it scales with the stage. */
 
 .primary-button {
+  /* Maquette « Buttom » light: 247×64, radius 15, glossy #67c4f0 face over a
+     #0078af base, 26px/700 navy label. */
   min-width: 24.7rem;
-  height: 6.3rem;
+  height: 6.4rem;
   padding-inline: 2.9rem;
   border: none;
   border-radius: 1.5rem;
-  background: linear-gradient(180deg, #7ccbf2 0%, #3d9ad4 100%);
+  background: linear-gradient(180deg, #7fcdf3 0%, #54b4e6 52%, #3a9ad4 100%);
   color: var(--cr-color-text-on-accent, #020e53);
   font-family: inherit;
-  font-size: 2.4rem;
+  font-size: 2.6rem;
   font-weight: var(--cr-weight-bold, 700);
   box-shadow:
     inset 0 0.1rem 0 rgb(255 255 255 / 45%),
