@@ -26,11 +26,8 @@ export function ChoixApprocheScreen({
   onValidate,
   headerTitle = 'Préparation de l’assaut',
 }: ChoixApprocheScreenProps): JSX.Element {
-  const cardClass = (option: ApprocheOption): string => {
-    if (selected === option) return 'choix__card choix__card--selected'
-    if (selected !== null) return 'choix__card choix__card--dimmed'
-    return 'choix__card'
-  }
+  const cardClass = (option: ApprocheOption): string =>
+    selected === option ? 'choix__card choix__card--selected' : 'choix__card'
   return (
     <ScreenChrome header={<SectionHeader title={headerTitle} />}>
       <form
@@ -42,7 +39,7 @@ export function ChoixApprocheScreen({
       >
         <Panel>
           <div className="choix__icon">
-            <RadarIcon />
+            <RadarIcon size={78} />
           </div>
           <h2 className="choix__title">Bonjour opérateur</h2>
           <p className="choix__text">

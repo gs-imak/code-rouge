@@ -1,79 +1,87 @@
+/* « Choix Approche » (maquette frame 29:3485, selected 61:24201). A wide 938×738
+   indigo panel @142 (radar + prompt + two 420×251 photo cards) and « Valider »
+   below @902. The chosen card fills #67c4f0@40% with a 4px white border and a bold
+   label; the other stays a 1px white outline (no dimming). All rem. */
+
 .choix {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  gap: 3.6rem;
-  padding: 4.1rem 4.3rem;
+  position: absolute;
+  inset: 0;
+}
+
+.choix .panel {
+  position: absolute;
+  top: 6.4rem; /* panel @142 → (142 − 78)/10 */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 93.8rem;
+  min-height: 73.8rem;
+  padding: 6.2rem 4rem 4rem;
+}
+
+.choix .primary-button {
+  position: absolute;
+  top: 82.4rem; /* button @902 → (902 − 78)/10 */
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .choix__icon {
   display: flex;
   justify-content: center;
-  margin-bottom: 1.4rem;
+  margin-bottom: 0.4rem;
 }
 
 .choix__title {
-  margin: 0 0 1.8rem;
-  font-size: 3.2rem;
-  font-weight: var(--cr-weight-semibold, 600);
-  letter-spacing: 0.1em;
+  margin: 0 0 2.4rem;
+  font-size: 3rem; /* maquette 30px */
+  font-weight: var(--cr-weight-regular, 400);
+  letter-spacing: 0.24rem;
+  line-height: 1.1;
   text-transform: uppercase;
-  color: rgb(255 255 255 / 94%);
+  color: var(--cr-color-white, #fff);
 }
 
 .choix__text {
-  margin: 0 auto 3.1rem;
-  max-width: 80%;
-  font-size: 2rem;
-  line-height: 1.5;
-  color: rgb(255 255 255 / 90%);
+  margin: 0 auto 4rem;
+  max-width: 68.8rem; /* maquette body width 688 */
+  font-size: 3.4rem; /* maquette 34px */
+  font-weight: var(--cr-weight-regular, 400);
+  line-height: 1.2;
+  color: var(--cr-color-white, #fff);
 }
 
 .choix__cards {
   display: flex;
-  gap: 2.9rem;
+  gap: 2.8rem; /* maquette card gap 28 */
   justify-content: center;
 }
 
 .choix__card {
   display: flex;
   flex-direction: column;
-  gap: 1.2rem;
+  align-items: center;
+  gap: 1.8rem; /* image bottom 777 → label 795 */
   padding: 0;
-  border: 0.2rem solid transparent;
-  border-radius: 1rem;
+  border: none;
   background: none;
   color: var(--cr-color-white, #fff);
   font-family: inherit;
   cursor: pointer;
-  transition:
-    opacity 0.15s ease,
-    border-color 0.15s ease,
-    transform 0.12s ease;
+  transition: transform 0.12s ease;
 }
 
 .choix__card:hover {
   transform: translateY(-0.2rem);
 }
 
-.choix__card--selected {
-  border-color: var(--cr-color-accent-cyan, #00ffff);
-}
-
-.choix__card--dimmed {
-  opacity: 0.5;
-}
-
 .choix__card-img {
-  width: 22rem;
-  height: 15rem;
-  border-radius: 0.8rem;
-  border: 0.1rem solid rgb(89 183 255 / 30%);
+  width: 42rem; /* maquette 420 */
+  height: 25.1rem; /* maquette 251 */
+  border: 0.1rem solid rgb(255 255 255 / 90%);
+  border-radius: 0.4rem;
 }
 
-/* Placeholder card imagery (real frontale/furtive photos are content). */
+/* Placeholder card imagery (real frontale/furtive photos are graphiste assets). */
 .choix__card-img--frontale {
   background: linear-gradient(135deg, #3a4a63 0%, #18202f 100%);
 }
@@ -82,7 +90,20 @@
   background: linear-gradient(135deg, #2a3550 0%, #11161f 100%);
 }
 
+/* Selected card — maquette « Rectangle 9240 » selected: #67c4f0@40% fill, 4px
+   white border, bold label. The other card is left as-is (no dimming). */
+/* Tint as an inset overlay (not a background swap) so it sits over the real
+   frontale/furtive photo once assets land. */
+.choix__card--selected .choix__card-img {
+  border-width: 0.4rem;
+  box-shadow: inset 0 0 0 100rem rgb(103 196 240 / 40%);
+}
+
 .choix__card-label {
-  font-size: 1.8rem;
-  font-weight: var(--cr-weight-semibold, 600);
+  font-size: 3rem; /* maquette 30px */
+  font-weight: var(--cr-weight-regular, 400);
+}
+
+.choix__card--selected .choix__card-label {
+  font-weight: var(--cr-weight-bold, 700);
 }
