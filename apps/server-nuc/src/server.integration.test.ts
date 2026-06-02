@@ -248,3 +248,87 @@ describe('server integration — POST /admin/reset', () => {
     expect(res.status).toBe(429)
   })
 })
+
+describe('server integration — GM access-point + MG-code relay', () => {
+  // Share three connections across these tests — the per-IP WS connection rate
+  // limit (10 / 10 s) would otherwise be exhausted by the cumulative opens in
+  // this file. teamA (9) is the relay target, teamB (22) the non-target, gm the
+  // Débriefing sender.
+  let teamA: WS
+  let teamB: WS
+  let gm: WS
+
+  async function hello(ws: WS, app: string, deviceId: string, teamId: number | null): Promise<void> {
+    const welcomed = recordFrames(ws, (m) => m.type === 'welcome')
+    send(ws, { type: 'hello', app, deviceId, teamId })
+    await welcomed
+  }
+
+  beforeAll(async () => {
+    teamA = new WebSocket(`ws://127.0.0.1:${port}/ws`)
+    teamB = new WebSocket(`ws://127.0.0.1:${port}/ws`)
+    gm = new WebSocket(`ws://127.0.0.1:${port}/ws`)
+    await Promise.all([once(teamA, 'open'), once(teamB, 'open'), once(gm, 'open')])
+    await hello(teamA, 'assaut', 'relay-assaut-9', 9)
+    await hello(teamB, 'assaut', 'relay-assaut-22', 22)
+    await hello(gm, 'debriefing', 'relay-gm', null)
+  }, 10_000)
+
+  afterAll(async () => {
+    for (const ws of [teamA, teamB, gm]) ws.close(1000)
+  })
+
+  it('relays an access-decision to the target team as access-result', async () => {
+    const got = recordFrames(teamA, (m) => m.type === 'access-result')
+    send(gm, {
+      type: 'access-decision',
+      app: 'debriefing',
+      deviceId: 'relay-gm',
+      targetTeamId: 9,
+      decision: 'approved',
+      label: 'Toits',
+    })
+    const frames = await got
+    expect(frames.find((m) => m.type === 'access-result')).toMatchObject({
+      type: 'access-result',
+      decision: 'approved',
+      label: 'Toits',
+    })
+  })
+
+  it('relays an mg-code-set to the target team as mg-code', async () => {
+    const got = recordFrames(teamA, (m) => m.type === 'mg-code')
+    send(gm, {
+      type: 'mg-code-set',
+      app: 'debriefing',
+      deviceId: 'relay-gm',
+      targetTeamId: 9,
+      code: '4242',
+    })
+    const frames = await got
+    expect(frames.find((m) => m.type === 'mg-code')).toMatchObject({
+      type: 'mg-code',
+      code: '4242',
+    })
+  })
+
+  it('does not deliver an access-result to a non-target team', async () => {
+    let otherSaw = false
+    const onOther = (raw: Buffer): void => {
+      if ((JSON.parse(raw.toString()) as Frame).type === 'access-result') otherSaw = true
+    }
+    teamB.on('message', onOther)
+    const got = recordFrames(teamA, (m) => m.type === 'access-result')
+    send(gm, {
+      type: 'access-decision',
+      app: 'debriefing',
+      deviceId: 'relay-gm',
+      targetTeamId: 9,
+      decision: 'refused',
+    })
+    await got
+    await new Promise((r) => setTimeout(r, 150))
+    teamB.off('message', onOther)
+    expect(otherSaw).toBe(false)
+  })
+})

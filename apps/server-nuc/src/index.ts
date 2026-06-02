@@ -1,14 +1,17 @@
 import { createServer, type Server as HttpServer } from 'node:http'
 import { fileURLToPath } from 'node:url'
 import express, { type Express, type Request, type Response } from 'express'
-import { WebSocketServer, type RawData, type WebSocket } from 'ws'
+import { WebSocketServer, WebSocket, type RawData } from 'ws'
 import type { Logger } from 'pino'
 import {
   parseAppToServerMessage,
   MessageParseError,
   type AppToServerMessage,
+  type ServerToAppMessage,
   type RestoreMessage,
   type WelcomeMessage,
+  type AccessResultMessage,
+  type McodeMessage,
 } from '@code-rouge/shared-types'
 import { loadConfig, type ServerConfig } from './config.js'
 import { createLogger } from './logger.js'
@@ -241,15 +244,50 @@ interface WsContext {
 }
 
 // Per-connection metadata captured after Hello so /diag can report
-// connections grouped by app. Stored on the ws instance via a WeakMap
-// rather than monkey-patching the WebSocket — keeps the third-party
-// type intact and lets GC collect metadata when the socket dies.
-export const wsMeta = new WeakMap<WebSocket, { app: string; deviceId: string }>()
+// connections grouped by app, and so GM↔team relays can route by teamId.
+// Stored on the ws instance via a WeakMap rather than monkey-patching the
+// WebSocket — keeps the third-party type intact and lets GC collect metadata
+// when the socket dies.
+export const wsMeta = new WeakMap<
+  WebSocket,
+  { app: string; deviceId: string; teamId: number | null }
+>()
 
-function handleAppMessage(msg: AppToServerMessage, ws: WebSocket, ctx: WsContext): void {
+// Relay a Server → App payload to every OPEN connection of `targetApp` belonging
+// to `targetTeamId`. Used for the GM-mediated access-point / MG-code exchanges:
+// the GM (Débriefing) rules on a team, the server forwards the verdict to that
+// team's Assaut app. Returns the number of recipients (0 = team not connected).
+function relayToTeam(
+  peers: Iterable<WebSocket>,
+  targetApp: string,
+  targetTeamId: number,
+  payload: ServerToAppMessage,
+): number {
+  const data = JSON.stringify(payload)
+  let sent = 0
+  for (const peer of peers) {
+    const meta = wsMeta.get(peer)
+    if (
+      meta?.app === targetApp &&
+      meta.teamId === targetTeamId &&
+      peer.readyState === WebSocket.OPEN
+    ) {
+      peer.send(data)
+      sent += 1
+    }
+  }
+  return sent
+}
+
+function handleAppMessage(
+  msg: AppToServerMessage,
+  ws: WebSocket,
+  ctx: WsContext,
+  peers: () => Iterable<WebSocket>,
+): void {
   switch (msg.type) {
     case 'hello': {
-      wsMeta.set(ws, { app: msg.app, deviceId: msg.deviceId })
+      wsMeta.set(ws, { app: msg.app, deviceId: msg.deviceId, teamId: msg.teamId })
       ctx.logger.info(
         {
           app: msg.app,
@@ -293,6 +331,12 @@ function handleAppMessage(msg: AppToServerMessage, ws: WebSocket, ctx: WsContext
       return
     }
     case 'state': {
+      // Keep the connection's teamId fresh so GM relays route correctly even if
+      // the team was assigned after Hello.
+      const meta = wsMeta.get(ws)
+      if (meta !== undefined && msg.teamId !== null) {
+        wsMeta.set(ws, { ...meta, teamId: msg.teamId })
+      }
       const persisted = ctx.db.upsertTeamState(ctx.sessionId, msg)
       ctx.logger.debug(
         { app: msg.app, teamId: msg.teamId, step: msg.step, score: msg.score, persisted },
@@ -307,6 +351,38 @@ function handleAppMessage(msg: AppToServerMessage, ws: WebSocket, ctx: WsContext
     }
     case 'pong': {
       ctx.logger.trace({ app: msg.app, deviceId: msg.deviceId }, 'WS pong')
+      return
+    }
+    case 'access-submit': {
+      // A team submits an entry point for GM approval. Recorded here; the GM
+      // (Débriefing) app surfaces pending submissions + rules on them. The
+      // verdict comes back as an 'access-decision' (below).
+      ctx.logger.info(
+        { app: msg.app, teamId: msg.teamId, point: msg.point },
+        'WS access-submit',
+      )
+      return
+    }
+    case 'access-decision': {
+      // GM verdict → relay to the target team's Assaut app, which shows the
+      // Validation (« Félicitations ») or Refus (« Échec ») screen.
+      const result: AccessResultMessage = { type: 'access-result', decision: msg.decision }
+      if (msg.label !== undefined) result.label = msg.label
+      const sent = relayToTeam(peers(), 'assaut', msg.targetTeamId, result)
+      ctx.logger.info(
+        { targetTeamId: msg.targetTeamId, decision: msg.decision, recipients: sent },
+        'WS access-decision relayed',
+      )
+      return
+    }
+    case 'mg-code-set': {
+      // GM sets the authorisation code → relay to the waiting team's Assaut app.
+      const code: McodeMessage = { type: 'mg-code', code: msg.code }
+      const sent = relayToTeam(peers(), 'assaut', msg.targetTeamId, code)
+      ctx.logger.info(
+        { targetTeamId: msg.targetTeamId, recipients: sent },
+        'WS mg-code-set relayed',
+      )
       return
     }
   }
@@ -412,7 +488,7 @@ function attachWebSocket(http: HttpServer, ctx: WsContext): WebSocketServer {
         return
       }
       try {
-        handleAppMessage(msg, ws, ctx)
+        handleAppMessage(msg, ws, ctx, () => wss.clients)
       } catch (err) {
         ctx.logger.error({ remote, type: msg.type, err }, 'WS handler error')
       }
