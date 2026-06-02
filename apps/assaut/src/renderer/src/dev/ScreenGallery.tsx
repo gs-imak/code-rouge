@@ -3,6 +3,8 @@ import { AccueilScreen } from '../components/AccueilScreen'
 import { PreparationScreen } from '../components/PreparationScreen'
 import { ChoixApprocheScreen } from '../components/ChoixApprocheScreen'
 import { PanelScreen } from '../components/PanelScreen'
+import { AdminScreen } from '../components/AdminScreen'
+import { TutoScreen } from '../components/TutoScreen'
 
 // DEV-ONLY screen gallery. Reachable at `?screen=<name>` in the renderer dev
 // server so each screen can be screenshot-verified against its maquette without
@@ -109,6 +111,13 @@ export function ScreenGallery({ name }: { readonly name: string }): JSX.Element 
           buttonLabel="C'est parti !"
           onSubmit={noop}
         />
+      )
+
+    case 'tuto':
+      return <TutoScreen />
+    case 'admin':
+      return (
+        <AdminScreen connection="connected" onReset={noop} onTransmit={noop} onSave={noop} />
       )
 
     default:

@@ -1,5 +1,6 @@
 import { ScreenChrome } from './ScreenChrome'
 import { SectionHeader } from './SectionHeader'
+import { HudBrackets } from './HudBrackets'
 import './AssautStepScreen.css'
 
 // Generic « Assaut lancé » step screen — the maquette's assault-phase layout
@@ -62,10 +63,7 @@ export function AssautStepScreen({
     >
       <div className={interactive ? 'step step--interactive' : 'step'}>
         <div className="step__media">
-          <span className="brackets brackets--tl" />
-          <span className="brackets brackets--tr" />
-          <span className="brackets brackets--bl" />
-          <span className="brackets brackets--br" />
+          <HudBrackets />
 
           {mediaSrc !== undefined ? (
             // Decorative assault footage; the subtitle below carries the line.

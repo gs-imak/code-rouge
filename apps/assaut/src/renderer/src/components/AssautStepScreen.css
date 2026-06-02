@@ -69,45 +69,6 @@
   text-shadow: 0 2px 8px rgb(0 0 0 / 60%);
 }
 
-/* HUD corner brackets on the media frame. */
-.brackets {
-  position: absolute;
-  width: clamp(18px, 2.4vh, 30px);
-  height: clamp(18px, 2.4vh, 30px);
-  border-color: var(--cr-color-accent, #1c99ff);
-  border-style: solid;
-  border-width: 0;
-  pointer-events: none;
-}
-
-.brackets--tl {
-  top: 10px;
-  left: 10px;
-  border-top-width: 2px;
-  border-left-width: 2px;
-}
-
-.brackets--tr {
-  top: 10px;
-  right: 10px;
-  border-top-width: 2px;
-  border-right-width: 2px;
-}
-
-.brackets--bl {
-  bottom: 10px;
-  left: 10px;
-  border-bottom-width: 2px;
-  border-left-width: 2px;
-}
-
-.brackets--br {
-  bottom: 10px;
-  right: 10px;
-  border-bottom-width: 2px;
-  border-right-width: 2px;
-}
-
 /* ---- Interactive response buttons ---------------------------------------- */
 
 .step__responses {

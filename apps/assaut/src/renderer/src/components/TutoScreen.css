@@ -1,0 +1,132 @@
+.tuto {
+  position: relative;
+  height: 100%;
+  padding: clamp(20px, 4vh, 52px) clamp(20px, 3vw, 56px);
+}
+
+.tuto__stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(20px, 2.4vw, 48px);
+  height: 100%;
+}
+
+.tuto__media {
+  position: relative;
+  flex: 1 1 auto;
+  max-width: min(700px, 60%);
+  aspect-ratio: 1.7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid rgb(89 183 255 / 20%);
+  border-radius: 8px;
+  background: linear-gradient(180deg, #0b1322 0%, #060a14 100%);
+}
+
+.tuto__waveform {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(2px, 0.3vw, 4px);
+  width: 80%;
+  height: 42%;
+}
+
+.tuto__waveform span {
+  flex: 1 1 0;
+  min-width: 0;
+  border-radius: 2px;
+  background: linear-gradient(180deg, #59b7ff 0%, #0cb1f2 100%);
+  opacity: 0.85;
+}
+
+.tuto__media-caption {
+  position: absolute;
+  bottom: clamp(16px, 7%, 38px);
+  left: 6%;
+  right: 6%;
+  margin: 0;
+  text-align: center;
+  font-size: clamp(14px, 2vh, 20px);
+  font-weight: var(--cr-weight-semibold, 600);
+  text-shadow: 0 2px 8px rgb(0 0 0 / 60%);
+}
+
+.tuto__responses {
+  flex: 0 0 clamp(180px, 20vw, 260px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(10px, 1.8vh, 18px);
+}
+
+.tuto__response {
+  padding: clamp(10px, 1.6vh, 18px) clamp(14px, 1.2vw, 20px);
+  border: 1px solid rgb(89 183 255 / 55%);
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgb(28 153 255 / 22%) 0%, rgb(43 46 127 / 30%) 100%);
+  text-align: center;
+  font-size: clamp(14px, 1.9vh, 18px);
+  font-weight: var(--cr-weight-semibold, 600);
+}
+
+/* ---- Annotation callouts ------------------------------------------------- */
+
+.tuto__note {
+  position: absolute;
+  margin: 0;
+  max-width: clamp(150px, 16vw, 220px);
+  font-size: clamp(11px, 1.5vh, 14px);
+  line-height: 1.35;
+  color: rgb(255 255 255 / 80%);
+  z-index: 3;
+}
+
+.tuto__note::before {
+  content: '';
+  position: absolute;
+  background: rgb(89 183 255 / 55%);
+}
+
+.tuto__note--image {
+  top: clamp(8px, 2vh, 22px);
+  left: clamp(20px, 3vw, 56px);
+  text-align: left;
+}
+
+.tuto__note--image::before {
+  left: 6px;
+  top: 100%;
+  width: 1px;
+  height: clamp(20px, 5vh, 54px);
+}
+
+.tuto__note--score {
+  top: clamp(8px, 2vh, 22px);
+  right: clamp(180px, 22vw, 300px);
+  text-align: right;
+}
+
+.tuto__note--timer {
+  top: clamp(8px, 2vh, 22px);
+  right: clamp(20px, 3vw, 56px);
+  text-align: right;
+}
+
+.tuto__note--responses {
+  bottom: clamp(40px, 9vh, 96px);
+  right: clamp(20px, 3vw, 56px);
+  max-width: clamp(150px, 17vw, 230px);
+  text-align: left;
+}
+
+.tuto__note--responses::before {
+  right: 100%;
+  top: 12px;
+  width: clamp(10px, 1.5vw, 24px);
+  height: 1px;
+  margin-right: 6px;
+}
