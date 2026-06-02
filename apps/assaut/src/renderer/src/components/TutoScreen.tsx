@@ -61,6 +61,7 @@ export function TutoScreen({
           </div>
 
           <div className="tuto__responses">
+            <p className="tuto__responses-heading">Réponses possibles&nbsp;:</p>
             <span className="tuto__response">Réponse 1</span>
             <span className="tuto__response">Réponse 2</span>
             <span className="tuto__response">Réponse 3</span>

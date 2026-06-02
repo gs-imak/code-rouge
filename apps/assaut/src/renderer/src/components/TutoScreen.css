@@ -1,27 +1,28 @@
+/* « Tuto Assaut lancé » (maquette frame 29:3848) — the interaction layout
+   annotated for the players. Same media + response column as the real Interaction
+   step (728×344 media @[89,330], « reponse » column @[1027,284]) plus four 23px
+   callouts. Everything anchored at exact frame-Y (header 7.8rem). All rem. */
+
 .tuto {
-  position: relative;
-  height: 100%;
-  padding: 4.1rem 4.3rem;
+  position: absolute;
+  inset: 0;
 }
 
 .tuto__stage {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 3.5rem;
-  height: 100%;
+  display: contents;
 }
 
 .tuto__media {
-  position: relative;
-  flex: 1 1 auto;
-  max-width: 70rem;
-  aspect-ratio: 1.7;
+  position: absolute;
+  left: 8.9rem; /* media @[89,330] */
+  top: 25.2rem;
+  width: 72.8rem;
+  height: 34.4rem;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  border: 0.1rem solid rgb(89 183 255 / 20%);
+  border: 0.1rem solid rgb(89 183 255 / 22%);
   border-radius: 0.8rem;
   background: linear-gradient(180deg, #0b1322 0%, #060a14 100%);
 }
@@ -43,90 +44,123 @@
   opacity: 0.85;
 }
 
+/* Media caption — maquette 36px/700 near the media bottom. */
 .tuto__media-caption {
   position: absolute;
-  bottom: 3.4rem;
-  left: 6%;
-  right: 6%;
+  bottom: 1.6rem;
+  left: 4%;
+  right: 4%;
   margin: 0;
   text-align: center;
-  font-size: 2rem;
-  font-weight: var(--cr-weight-semibold, 600);
-  text-shadow: 0 0.2rem 0.8rem rgb(0 0 0 / 60%);
+  font-size: 3.6rem;
+  font-weight: var(--cr-weight-bold, 700);
+  line-height: 1.15;
+  text-shadow: 0 0.2rem 0.8rem rgb(0 0 0 / 70%);
 }
 
+/* Response column — maquette « reponse » @[1027,284], 240-wide chips. */
 .tuto__responses {
-  flex: 0 0 26rem;
+  position: absolute;
+  left: 102.7rem;
+  top: 20.6rem; /* heading @284 → (284 − 78)/10 */
+  width: 24rem;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: 1.8rem;
+  gap: 2rem;
+}
+
+.tuto__responses-heading {
+  margin: 0 0 0.7rem;
+  text-align: center;
+  font-size: 2rem; /* maquette 20px/700 */
+  font-weight: var(--cr-weight-bold, 700);
+  color: var(--cr-color-white, #fff);
 }
 
 .tuto__response {
-  padding: 1.6rem 1.73rem;
-  border: 0.1rem solid rgb(89 183 255 / 55%);
-  border-radius: 1rem;
-  background: linear-gradient(180deg, rgb(28 153 255 / 22%) 0%, rgb(43 46 127 / 30%) 100%);
+  height: 7rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0.1rem solid rgb(255 255 255 / 90%);
+  border-radius: 0.8rem;
+  background: rgb(9 26 65 / 70%); /* maquette #091a41 @70% */
   text-align: center;
-  font-size: 1.8rem;
-  font-weight: var(--cr-weight-semibold, 600);
+  font-size: 2.6rem; /* maquette 26px/700 */
+  font-weight: var(--cr-weight-bold, 700);
 }
 
-/* ---- Annotation callouts ------------------------------------------------- */
+/* ---- Annotation callouts (maquette 23px/400, with thin leader lines) ------ */
 
 .tuto__note {
   position: absolute;
   margin: 0;
-  max-width: 22rem;
-  font-size: 1.4rem;
-  line-height: 1.35;
-  color: rgb(255 255 255 / 80%);
+  font-size: 2.3rem; /* maquette 23px */
+  font-weight: var(--cr-weight-regular, 400);
+  line-height: 1.2;
+  text-align: center;
+  color: var(--cr-color-white, #fff);
   z-index: 3;
 }
 
 .tuto__note::before {
   content: '';
   position: absolute;
-  background: rgb(89 183 255 / 55%);
+  background: rgb(255 255 255 / 80%);
 }
 
+/* « Si le chef d'escouade doit vous envoyer une image… » @[187,169 256] */
 .tuto__note--image {
-  top: 2.05rem;
-  left: 4.3rem;
-  text-align: left;
+  left: 18.7rem;
+  top: 9.1rem;
+  width: 25.6rem;
 }
 
 .tuto__note--image::before {
-  left: 0.6rem;
+  left: 50%;
   top: 100%;
-  width: 0.1rem;
-  height: 5.1rem;
+  width: 0.2rem;
+  height: 9rem; /* down to the media top */
 }
 
+/* « Pourcentage des données récupérées… » @[917,169 256] → up to the gauge */
 .tuto__note--score {
-  top: 2.05rem;
-  right: 30rem;
-  text-align: right;
+  left: 91.7rem;
+  top: 9.1rem;
+  width: 25.6rem;
 }
 
+.tuto__note--score::before {
+  left: 50%;
+  bottom: 100%;
+  width: 0.2rem;
+  height: 2.9rem;
+}
+
+/* « Temps restant… » @[1214,169 184] → up to the timer */
 .tuto__note--timer {
-  top: 2.05rem;
-  right: 4.3rem;
-  text-align: right;
+  left: 121.4rem;
+  top: 9.1rem;
+  width: 18.4rem;
 }
 
+.tuto__note--timer::before {
+  left: 50%;
+  bottom: 100%;
+  width: 0.2rem;
+  height: 2.9rem;
+}
+
+/* « Boutons interactifs… » @[931,756 428] → up to the response column */
 .tuto__note--responses {
-  bottom: 9.2rem;
-  right: 4.3rem;
-  max-width: 23rem;
-  text-align: left;
+  left: 93.1rem;
+  top: 67.8rem;
+  width: 42.8rem;
 }
 
 .tuto__note--responses::before {
-  right: 100%;
-  top: 1.2rem;
-  width: 2.16rem;
-  height: 0.1rem;
-  margin-right: 0.6rem;
+  left: 50%;
+  bottom: 100%;
+  width: 0.2rem;
+  height: 1.6rem;
 }
