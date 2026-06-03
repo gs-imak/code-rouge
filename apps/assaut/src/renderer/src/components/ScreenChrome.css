@@ -1,0 +1,35 @@
+/* The fixed design stage: exactly the maquette's 1440×1024 frame, expressed in
+   rem (144rem × 102.4rem) so it scales uniformly to fit the viewport. Children
+   are all authored in rem (maquette_px / 10) — no reflow, so spacing + sizing
+   stay maquette-exact at every resolution. The background SVG is positioned to
+   match the maquette: `Layer_1` art is 1803×970 anchored at the frame's (0, 50),
+   so it overflows the right edge (clipped) and sits 50/1024 = 4.88% down. */
+
+.screen {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  width: 144rem;
+  height: 102.4rem;
+  overflow: hidden;
+  background: var(--cr-color-bg-deep, #080d1a);
+  color: var(--cr-color-white, #fff);
+  font-family: var(--cr-font-family, system-ui, sans-serif);
+}
+
+.screen__bg {
+  position: absolute;
+  left: 0;
+  top: 4.88%;
+  width: 125.2%; /* 1803 / 1440 — Layer_1 natural width vs the frame */
+  height: auto;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+}
+
+.screen__body {
+  position: relative;
+  z-index: 1;
+  min-height: 0;
+}

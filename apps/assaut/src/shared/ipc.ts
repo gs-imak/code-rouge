@@ -3,7 +3,7 @@
 // `ipcRenderer.send`." Schemas live here, both sides import from this file.
 
 import { z } from 'zod'
-import { GameState } from '@code-rouge/shared-types'
+import { GameState, AssautSequenceConfig } from '@code-rouge/shared-types'
 
 // ----- Channel name registry --------------------------------------------------
 // Adding a channel: declare it here, add the request/response schemas below,
@@ -19,6 +19,7 @@ export const IpcChannel = {
   AppVersion: 'app:version',
   GetGameState: 'app:get-game-state',
   SetGameState: 'app:set-game-state',
+  GetSequenceConfig: 'app:get-sequence-config',
 } as const
 export type IpcChannel = (typeof IpcChannel)[keyof typeof IpcChannel]
 
@@ -41,6 +42,10 @@ export { GameState as GetGameStateResponse, GameState as SetGameStateRequest }
 export const SetGameStateResponse = z.object({ ok: z.literal(true) })
 export type SetGameStateResponse = z.infer<typeof SetGameStateResponse>
 
+// The data-driven Assaut flow, read from disk by main (fs + Zod) and served to
+// the renderer. The renderer re-validates with AssautSequenceConfig.parse.
+export { AssautSequenceConfig as GetSequenceConfigResponse }
+
 // ----- Bridge surface --------------------------------------------------------
 // Exact shape of `window.assaut` injected by the preload script. Keep narrow:
 // only what the renderer is allowed to call. Never leak `ipcRenderer` itself.
@@ -49,4 +54,6 @@ export interface AssautBridge {
   readonly getAppVersion: () => Promise<AppVersionResponse>
   readonly getGameState: () => Promise<GameState>
   readonly setGameState: (next: GameState) => Promise<SetGameStateResponse>
+  /** Load the data-driven Assaut sequence config (read from disk by main). */
+  readonly getSequenceConfig: () => Promise<AssautSequenceConfig>
 }

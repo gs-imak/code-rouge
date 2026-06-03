@@ -1,0 +1,49 @@
+{
+  "$schema": "../../../../packages/shared-types/src/configs.ts:AssautSequenceConfig",
+  "schemaVersion": 1,
+  "_comment": "« Assaut » flow per M2_Detail_CodeRouge.pdf + the maquettes. This is the LINEAR happy-path default: every screen the renderer knows how to draw, in maquette order. CONTENT owned by Nathanael / CDC v1.3 (edited here WITHOUT recompiling): exact timers, scoring deltas (dataRecoveredDelta), media files, response wording, and the real branching — the « préparation » hub returns, the GM-driven point-d'accès approval/refusal, and the response-driven score branches. Deltas are neutral (0) and timers nominal until then. point-acces-valide/refus are GM/WS result states layered on point-entree (not in this linear path).",
+  "scoring": { "startPercent": 0 },
+  "prep": [
+    { "id": "saisie-acces", "kind": "saisie-acces", "timerSec": 120, "config": {} },
+    { "id": "accueil", "kind": "accueil", "config": {} },
+    { "id": "preparation", "kind": "preparation", "config": {} },
+    { "id": "point-entree", "kind": "point-entree", "config": {} },
+    {
+      "id": "choix-approche",
+      "kind": "choix-approche",
+      "choices": [
+        { "id": "frontale", "label": "Assaut frontal", "dataRecoveredDelta": 0 },
+        { "id": "furtive", "label": "Assaut furtif", "dataRecoveredDelta": 0 }
+      ],
+      "config": {}
+    },
+    { "id": "attente-code-mg", "kind": "attente-code-mg", "config": {} },
+    { "id": "accueil-assaut", "kind": "accueil-assaut", "config": {} },
+    { "id": "tuto", "kind": "tuto", "config": {} }
+  ],
+  "steps": [
+    { "id": "debut", "kind": "debut", "mediaPath": "media/debut.mp4", "timerSec": 60, "transitions": [], "config": {} },
+    { "id": "general", "kind": "general", "mediaPath": "media/general.mp4", "transitions": [], "config": {} },
+    {
+      "id": "interaction",
+      "kind": "interaction",
+      "mediaPath": "media/interaction.mp4",
+      "transitions": [],
+      "config": { "responses": ["Réponse 1", "Réponse 2", "Réponse 3", "Réponse 4"] }
+    },
+    { "id": "perdus", "kind": "perdus", "mediaPath": "media/perdus.mp4", "transitions": [], "config": {} },
+    { "id": "patrouille", "kind": "patrouille", "mediaPath": "media/patrouille.mp4", "transitions": [], "config": {} },
+    { "id": "perdus2", "kind": "perdus2", "mediaPath": "media/perdus-2.mp4", "transitions": [], "config": {} },
+    { "id": "mcgyver", "kind": "mcgyver", "mediaPath": "media/mcgyver.mp4", "transitions": [], "config": {} },
+    { "id": "mcgyver-photo", "kind": "mcgyver-photo", "mediaPath": "media/mcgyver-photo.mp4", "transitions": [], "config": {} },
+    { "id": "rdv-indic", "kind": "rdv-indic", "mediaPath": "media/rdv-indic.mp4", "transitions": [], "config": {} },
+    {
+      "id": "couper-fil",
+      "kind": "couper-fil",
+      "mediaPath": "media/couper-fil.mp4",
+      "transitions": [{ "when": "wire-correct", "goto": "epilogue", "dataRecoveredDelta": 0 }],
+      "config": {}
+    },
+    { "id": "epilogue", "kind": "epilogue", "mediaPath": "media/epilogue.mp4", "transitions": [], "config": {} }
+  ]
+}

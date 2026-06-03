@@ -1,0 +1,42 @@
+/* Shared primary button — glossy light-blue « Buttom » face, dark-navy label.
+   `--dark` is the teal secondary. rem so it scales with the stage. */
+
+.primary-button {
+  /* Maquette « Buttom » light: 247×64, radius 15, glossy #67c4f0 face over a
+     #0078af base, 26px/700 navy label. */
+  min-width: 24.7rem;
+  height: 6.4rem;
+  padding-inline: 2.9rem;
+  border: none;
+  border-radius: 1.5rem;
+  background: linear-gradient(180deg, #7fcdf3 0%, #54b4e6 52%, #3a9ad4 100%);
+  color: var(--cr-color-text-on-accent, #020e53);
+  font-family: inherit;
+  font-size: 2.6rem;
+  font-weight: var(--cr-weight-bold, 700);
+  box-shadow:
+    inset 0 0.1rem 0 rgb(255 255 255 / 45%),
+    0 0.6rem 1.6rem rgb(0 0 0 / 35%);
+  cursor: pointer;
+  transition:
+    filter 0.12s ease,
+    transform 0.12s ease;
+}
+
+.primary-button--dark {
+  background: linear-gradient(180deg, #0f7fae 0%, #0a3a63 100%);
+  color: var(--cr-color-white, #fff);
+}
+
+.primary-button:hover {
+  filter: brightness(1.06);
+}
+
+.primary-button:active {
+  transform: translateY(0.1rem);
+}
+
+.primary-button:focus-visible {
+  outline: 0.2rem solid var(--cr-color-white, #fff);
+  outline-offset: 0.3rem;
+}

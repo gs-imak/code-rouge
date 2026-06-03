@@ -1,14 +1,9 @@
 import { useCallback, useMemo } from 'react'
+import { ConnexionScreen } from './ConnexionScreen'
+import { SequenceRunner } from './components/SequenceRunner'
+import { useAssautSequence } from './useAssautSequence'
 import { useGameState } from './persistence'
 import { useServerHandshake } from './sync'
-
-// Placeholder screen for chantier 04 / 05. Final maquettes will replace
-// the entire surface. The footer is intentionally tiny: just a NUC
-// connection dot. The previous kiosk-status footer (kiosk: / fullscreen:
-// / shortcuts: counts surfaced via IPC) was deleted post-validation
-// because it doubled as a fingerprint surface for the renderer with no
-// runtime payoff. Boot-time visibility into globalShortcut.register
-// failures is now a console.warn in main (see registerKioskShortcuts).
 
 declare global {
   interface Window {
@@ -16,75 +11,53 @@ declare global {
   }
 }
 
-export default function App() {
+export default function App(): JSX.Element {
   const { state, setState, getLatest, ready } = useGameState()
   const wsUrl = useMemo(() => `ws://${state.serverIp}:8080/ws`, [state.serverIp])
   const { connection } = useServerHandshake({ url: wsUrl, state, ready })
+  const sequence = useAssautSequence()
 
   const onCodeChange = useCallback(
     (next: string) => {
-      // Persist on every keystroke. Read latest via getLatest() rather
-      // than closing over `state` so two keystrokes between renders
-      // can't merge from the same stale base. electron-store is sync
-      // on-disk so a force-kill immediately after the keypress
-      // preserves the buffer. Bounded to 64 chars by the GameState schema.
+      // Persist on every keystroke. Read latest via getLatest() rather than
+      // closing over `state` so two keystrokes between renders can't merge from
+      // a stale base. electron-store is sync, so a force-kill right after the
+      // keypress preserves the buffer. Bounded to 64 chars by the GameState schema.
       const current = getLatest()
       void setState({ ...current, draftAuthCode: next.slice(0, 64), lastSync: Date.now() })
     },
     [setState, getLatest],
   )
 
-  // Hold first paint until we know the persisted value. Avoids a flash
-  // of the empty placeholder and then a swap to the persisted code.
+  // Hold first paint until the persisted state is known (no flash).
   if (!ready) {
-    return <main className="screen" />
+    return <div className="screen" aria-hidden="true" />
   }
 
-  const dotGlyph =
-    connection === 'connected' ? '●' : connection === 'connecting' ? '◐' : '○'
-  const dotLabel =
-    connection === 'connected'
-      ? 'NUC connecté'
-      : connection === 'connecting'
-        ? 'NUC connexion…'
-        : 'NUC hors-ligne'
+  // Engine-driven: render the screen for the current step. The flow config loads
+  // over the GetSequenceConfig IPC channel; until it does (or without the Electron
+  // bridge — browser screenshot harness), fall back to the entry screen.
+  if (sequence.step !== null) {
+    return (
+      <SequenceRunner
+        step={sequence.step}
+        dataRecoveredPercent={sequence.dataRecoveredPercent}
+        onSubmit={sequence.submit}
+        onChoose={sequence.choose}
+        authCode={state.draftAuthCode}
+        onAuthCodeChange={onCodeChange}
+        teamName={state.teamId !== null ? `Équipe ${state.teamId}` : 'Opérateurs'}
+        nucConnection={connection}
+      />
+    )
+  }
 
   return (
-    <main className="screen">
-      <header className="screen__header">
-        <span className="screen__brand">SECTION 13</span>
-        <span className="screen__sub">authentification opérationnelle</span>
-      </header>
-
-      <section className="prompt">
-        <label className="prompt__label" htmlFor="auth-code">
-          Saisie code autorisation
-        </label>
-        <input
-          id="auth-code"
-          className="prompt__input"
-          type="text"
-          autoComplete="off"
-          spellCheck={false}
-          placeholder="——————"
-          value={state.draftAuthCode}
-          onChange={(event) => onCodeChange(event.target.value)}
-          maxLength={64}
-        />
-        <p className="prompt__hint">placeholder — chantier 05 persistance</p>
-      </section>
-
-      <footer className="nuc-status" aria-live="polite">
-        <span
-          className={`nuc-status__dot ${
-            connection === 'connected' ? 'nuc-status__dot--ok' : ''
-          }`}
-          aria-label={dotLabel}
-          title={dotLabel}
-        >
-          {dotGlyph}
-        </span>
-      </footer>
-    </main>
+    <ConnexionScreen
+      code={state.draftAuthCode}
+      onCodeChange={onCodeChange}
+      onValidate={() => undefined}
+      nucConnection={connection}
+    />
   )
 }

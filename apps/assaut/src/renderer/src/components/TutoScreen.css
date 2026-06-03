@@ -1,0 +1,166 @@
+/* « Tuto Assaut lancé » (maquette frame 29:3848) — the interaction layout
+   annotated for the players. Same media + response column as the real Interaction
+   step (728×344 media @[89,330], « reponse » column @[1027,284]) plus four 23px
+   callouts. Everything anchored at exact frame-Y (header 7.8rem). All rem. */
+
+.tuto {
+  position: absolute;
+  inset: 0;
+}
+
+.tuto__stage {
+  display: contents;
+}
+
+.tuto__media {
+  position: absolute;
+  left: 8.9rem; /* media @[89,330] */
+  top: 25.2rem;
+  width: 72.8rem;
+  height: 34.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 0.1rem solid rgb(89 183 255 / 22%);
+  border-radius: 0.8rem;
+  background: linear-gradient(180deg, #0b1322 0%, #060a14 100%);
+}
+
+.tuto__waveform {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  width: 80%;
+  height: 42%;
+}
+
+.tuto__waveform span {
+  flex: 1 1 0;
+  min-width: 0;
+  border-radius: 0.2rem;
+  background: linear-gradient(180deg, #59b7ff 0%, #0cb1f2 100%);
+  opacity: 0.85;
+}
+
+/* Media caption — maquette 36px/700 near the media bottom. */
+.tuto__media-caption {
+  position: absolute;
+  bottom: 1.6rem;
+  left: 4%;
+  right: 4%;
+  margin: 0;
+  text-align: center;
+  font-size: 3.6rem;
+  font-weight: var(--cr-weight-bold, 700);
+  line-height: 1.15;
+  text-shadow: 0 0.2rem 0.8rem rgb(0 0 0 / 70%);
+}
+
+/* Response column — maquette « reponse » @[1027,284], 240-wide chips. */
+.tuto__responses {
+  position: absolute;
+  left: 102.7rem;
+  top: 20.6rem; /* heading @284 → (284 − 78)/10 */
+  width: 24rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.tuto__responses-heading {
+  margin: 0 0 0.7rem;
+  text-align: center;
+  font-size: 2rem; /* maquette 20px/700 */
+  font-weight: var(--cr-weight-bold, 700);
+  color: var(--cr-color-white, #fff);
+}
+
+.tuto__response {
+  height: 7rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0.1rem solid rgb(255 255 255 / 90%);
+  border-radius: 0.8rem;
+  background: rgb(9 26 65 / 70%); /* maquette #091a41 @70% */
+  text-align: center;
+  font-size: 2.6rem; /* maquette 26px/700 */
+  font-weight: var(--cr-weight-bold, 700);
+}
+
+/* ---- Annotation callouts (maquette 23px/400, with thin leader lines) ------ */
+
+.tuto__note {
+  position: absolute;
+  margin: 0;
+  font-size: 2.3rem; /* maquette 23px */
+  font-weight: var(--cr-weight-regular, 400);
+  line-height: 1.2;
+  text-align: center;
+  color: var(--cr-color-white, #fff);
+  z-index: 3;
+}
+
+.tuto__note::before {
+  content: '';
+  position: absolute;
+  background: rgb(255 255 255 / 80%);
+}
+
+/* « Si le chef d'escouade doit vous envoyer une image… » @[187,169 256] */
+.tuto__note--image {
+  left: 18.7rem;
+  top: 9.1rem;
+  width: 25.6rem;
+}
+
+.tuto__note--image::before {
+  left: 50%;
+  top: 100%;
+  width: 0.2rem;
+  height: 9rem; /* down to the media top */
+}
+
+/* « Pourcentage des données récupérées… » @[917,169 256] → up to the gauge */
+.tuto__note--score {
+  left: 91.7rem;
+  top: 9.1rem;
+  width: 25.6rem;
+}
+
+.tuto__note--score::before {
+  left: 50%;
+  bottom: 100%;
+  width: 0.2rem;
+  height: 2.9rem;
+}
+
+/* « Temps restant… » @[1214,169 184] → up to the timer */
+.tuto__note--timer {
+  left: 121.4rem;
+  top: 9.1rem;
+  width: 18.4rem;
+}
+
+.tuto__note--timer::before {
+  left: 50%;
+  bottom: 100%;
+  width: 0.2rem;
+  height: 2.9rem;
+}
+
+/* « Boutons interactifs… » @[931,756 428] → up to the response column */
+.tuto__note--responses {
+  left: 93.1rem;
+  top: 67.8rem;
+  width: 42.8rem;
+}
+
+.tuto__note--responses::before {
+  left: 50%;
+  bottom: 100%;
+  width: 0.2rem;
+  height: 1.6rem;
+}

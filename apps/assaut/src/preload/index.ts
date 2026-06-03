@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import { GameState } from '@code-rouge/shared-types'
+import { GameState, AssautSequenceConfig } from '@code-rouge/shared-types'
 import {
   IpcChannel,
   AppVersionResponse,
@@ -24,6 +24,10 @@ const bridge: AssautBridge = {
   async setGameState(next) {
     const raw = await ipcRenderer.invoke(IpcChannel.SetGameState, next)
     return SetGameStateResponse.parse(raw)
+  },
+  async getSequenceConfig() {
+    const raw = await ipcRenderer.invoke(IpcChannel.GetSequenceConfig)
+    return AssautSequenceConfig.parse(raw)
   },
 }
 

@@ -1,0 +1,128 @@
+/* Header bar — solid dark navy (maquette BG header, opaque #080D1A). Brand left,
+   title absolutely centered; the assault variant adds the score gauge + timer on
+   the right. All sizes in rem (maquette_px / 10) so the bar scales with the stage. */
+
+.section-header {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.4rem;
+  height: 7.8rem;
+  padding-inline: 2.7rem;
+  background: var(--cr-color-bg-deep, #080d1a);
+  border-bottom: 0.1rem solid rgb(255 255 255 / 18%);
+}
+
+.section-header__brand {
+  display: flex;
+  align-items: center;
+  gap: 1.4rem;
+}
+
+.section-header__logo {
+  display: block;
+  width: auto;
+  height: 4.8rem;
+}
+
+.section-header__image-icon {
+  display: block;
+  width: auto;
+  height: 2.8rem;
+  opacity: 0.92;
+}
+
+.section-header__title {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: var(--cr-weight-semibold, 600);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* ---- Assault variant: « Données récupérées » gauge + countdown timer -------- */
+
+.section-header__hud {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.gauge {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.gauge__label {
+  font-size: 1.4rem;
+  font-weight: var(--cr-weight-regular, 400);
+  color: rgb(255 255 255 / 88%);
+  letter-spacing: 0.02em;
+}
+
+.gauge__row {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+}
+
+.gauge__track {
+  width: 18.7rem;
+  height: 1.6rem;
+  border: 0.1rem solid rgb(255 255 255 / 35%);
+  border-radius: var(--cr-radius-pill, 999px);
+  background: rgb(255 255 255 / 8%);
+  overflow: hidden;
+}
+
+.gauge__fill {
+  height: 100%;
+  border-radius: var(--cr-radius-pill, 999px);
+  background: linear-gradient(90deg, #0cb1f2 0%, #59b7ff 100%);
+  transition: width 0.4s ease;
+}
+
+.gauge__pct {
+  font-size: 2.7rem;
+  font-weight: var(--cr-weight-bold, 700);
+  line-height: 1;
+}
+
+.gauge__pct-sign {
+  font-size: 0.6em;
+  font-weight: var(--cr-weight-semibold, 600);
+  margin-left: 0.1rem;
+}
+
+.timer {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.8rem 1.4rem;
+  border-radius: 1.2rem;
+  background: linear-gradient(180deg, rgb(28 153 255 / 35%) 0%, rgb(43 46 127 / 45%) 100%);
+  border: 0.1rem solid rgb(89 183 255 / 45%);
+}
+
+.timer__icon {
+  display: block;
+  width: auto;
+  height: 2.7rem;
+}
+
+.timer__value {
+  font-size: 2.7rem;
+  font-weight: var(--cr-weight-bold, 700);
+  line-height: 1;
+  letter-spacing: 0.02em;
+}

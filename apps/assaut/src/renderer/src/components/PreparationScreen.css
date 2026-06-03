@@ -1,0 +1,84 @@
+/* « Préparation » hub — three action cards (maquette « bloc 1/2/3 », 589×171 each,
+   first card top @208 → body 13rem, 46px gaps). « Lancer l'assaut » is the bright
+   primary card; the others are dark with a filled gradient arrow circle. All rem. */
+
+.prep-hub {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 13rem; /* bloc 1 top: (208 − 78)/10 */
+  gap: 4.6rem;
+}
+
+.prep-hub__card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2.9rem;
+  width: 58.9rem;
+  height: 17.1rem;
+  padding: 0 4.2rem 0 5.5rem;
+  border: 0.1rem solid rgb(89 183 255 / 32%);
+  border-radius: 1.4rem;
+  background: rgb(10 18 44 / 52%);
+  color: var(--cr-color-white, #fff);
+  font-family: inherit;
+  cursor: pointer;
+  transition:
+    filter 0.12s ease,
+    transform 0.12s ease;
+}
+
+.prep-hub__card:hover {
+  filter: brightness(1.12);
+}
+
+.prep-hub__card:active {
+  transform: translateY(0.1rem);
+}
+
+.prep-hub__card:focus-visible {
+  outline: 0.2rem solid var(--cr-color-white, #fff);
+  outline-offset: 0.3rem;
+}
+
+/* « Lancer l'assaut » — bright light-blue gradient face, white-outline arrow. */
+.prep-hub__card--primary {
+  background: linear-gradient(180deg, #6fc3ee 0%, #3f9ed6 100%);
+  border-color: rgb(255 255 255 / 55%);
+  box-shadow: 0 0 3.2rem rgb(28 153 255 / 30%);
+}
+
+.prep-hub__label {
+  flex: 1 1 auto;
+  max-width: 32rem; /* narrower than the 379 box so it wraps 2/3/1 like the maquette */
+  margin: 0 auto;
+  font-size: 2.3rem; /* maquette 23px */
+  font-weight: var(--cr-weight-regular, 400);
+  letter-spacing: 0.08em; /* maquette ls 1.84 */
+  line-height: 1.18;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+/* Action circle — maquette 83×83, radial #67c4f0 (centre) → #2c2f7f (edge),
+   navy arrow. The primary card flips it to a white-outline circle, white arrow. */
+.prep-hub__arrow {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 8.3rem;
+  height: 8.3rem;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%, #67c4f0 0%, #2c2f7f 100%);
+  color: var(--cr-color-text-on-accent, #020e53);
+}
+
+.prep-hub__card--primary .prep-hub__arrow {
+  background: transparent;
+  border: 0.15rem solid rgb(255 255 255 / 90%);
+  color: var(--cr-color-white, #fff);
+}

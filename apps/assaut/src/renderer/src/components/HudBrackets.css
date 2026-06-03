@@ -1,0 +1,40 @@
+/* Cyan HUD corner brackets. The parent must be position:relative. rem so they
+   scale with the stage. */
+
+.hud-bracket {
+  position: absolute;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-color: var(--cr-color-accent, #1c99ff);
+  border-style: solid;
+  border-width: 0;
+  pointer-events: none;
+}
+
+.hud-bracket--tl {
+  top: 1rem;
+  left: 1rem;
+  border-top-width: 0.2rem;
+  border-left-width: 0.2rem;
+}
+
+.hud-bracket--tr {
+  top: 1rem;
+  right: 1rem;
+  border-top-width: 0.2rem;
+  border-right-width: 0.2rem;
+}
+
+.hud-bracket--bl {
+  bottom: 1rem;
+  left: 1rem;
+  border-bottom-width: 0.2rem;
+  border-left-width: 0.2rem;
+}
+
+.hud-bracket--br {
+  bottom: 1rem;
+  right: 1rem;
+  border-bottom-width: 0.2rem;
+  border-right-width: 0.2rem;
+}

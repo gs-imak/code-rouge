@@ -1,0 +1,91 @@
+/* « Connexion » body (chrome + header live in ScreenChrome / SectionHeader).
+   Maquette node 9:1382. All rem (maquette_px / 10) so it scales with the stage. */
+
+.connexion {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* Top-weighted like the maquette: emblem just below the header (~26px). */
+  justify-content: flex-start;
+  height: 100%;
+  min-height: 0;
+  padding: 2.7rem 2.9rem 2rem;
+}
+
+.connexion__emblem-wrap {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+/* Teal halo behind the hex mark (maquette Ellipse #2295AA, ~390px, 84px blur). */
+.connexion__emblem-wrap::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 38%;
+  width: 40rem;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgb(34 149 170 / 50%) 0%,
+    rgb(34 149 170 / 0%) 68%
+  );
+  filter: blur(4rem);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.connexion__emblem {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: auto;
+  height: 39.8rem;
+}
+
+/* ---- Form (label + input + button) --------------------------------------- */
+
+.connexion__form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  /* Wordmark bottom (≈y510) → label top (≈y615) ≈ 105px. */
+  margin-top: 10.2rem;
+}
+
+.connexion__label {
+  font-size: 2.8rem;
+  font-weight: var(--cr-weight-regular, 400);
+  text-align: center;
+}
+
+.connexion__input {
+  /* Maquette: 457×81, white @19%, 1px white stroke, radius 16. */
+  margin-top: 1.4rem;
+  width: 45.7rem;
+  height: 8.1rem;
+  border: 0.1rem solid rgb(255 255 255 / 55%);
+  border-radius: 1.6rem;
+  background: rgb(255 255 255 / 19%);
+  color: var(--cr-color-white, #fff);
+  font-family: inherit;
+  font-size: 2.6rem;
+  letter-spacing: 0.18em;
+  text-align: center;
+  outline: none;
+}
+
+.connexion__input:focus-visible {
+  border-color: var(--cr-color-accent, #1c99ff);
+  box-shadow: 0 0 0 0.3rem rgb(28 153 255 / 45%);
+}
+
+/* Shared « Buttom » face comes from PrimaryButton; only the maquette offset
+   (wordmark/input → button @816, ≈5.7rem below the input) lives here. */
+.connexion__submit {
+  margin-top: 5.7rem;
+}

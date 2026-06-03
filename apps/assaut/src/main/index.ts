@@ -8,6 +8,7 @@ import {
 } from '../shared/ipc.js'
 import { GameState } from '@code-rouge/shared-types'
 import { readGameState, writeGameState } from './store.js'
+import { readSequenceConfig } from './sequence-config.js'
 
 // ----- Single-instance lock — must be acquired before whenReady() -----------
 //
@@ -197,6 +198,20 @@ function registerIpcHandlers(): void {
     }
     writeGameState(result.data)
     return { ok: true as const }
+  })
+
+  ipcMain.handle(IpcChannel.GetSequenceConfig, () => {
+    // Read + Zod-validate the flow from disk. A malformed config throws here
+    // and rejects on the renderer side rather than rendering a broken flow.
+    // Logged because the venue PC is headless — ops sees this in the journal,
+    // not a renderer console.
+    try {
+      return readSequenceConfig()
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('[assaut] sequence config load failed:', err)
+      throw err
+    }
   })
 }
 

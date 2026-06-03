@@ -11,6 +11,11 @@ import {
   type StateUpdateMessage,
   type LogPushMessage,
   type RestoreMessage,
+  type AccessSubmitMessage,
+  type AccessDecisionMessage,
+  type McodeSetMessage,
+  type AccessResultMessage,
+  type McodeMessage,
 } from './messages.js'
 
 describe('parseAppToServerMessage — round-trip', () => {
@@ -179,6 +184,68 @@ describe('parseServerToAppMessage', () => {
 
   it('rejects a cmd with an unknown verb', () => {
     const bogus = JSON.stringify({ type: 'cmd', cmd: 'self-destruct' })
+    expect(() => parseServerToAppMessage(bogus)).toThrowError(MessageParseError)
+  })
+})
+
+describe('access-point + MG-code messages', () => {
+  it('parses an access-submit (App → Server)', () => {
+    const msg: AccessSubmitMessage = {
+      type: 'access-submit',
+      app: 'assaut',
+      deviceId: 'pc-mallette-1',
+      teamId: 7,
+      point: 'Toits',
+    }
+    expect(parseAppToServerMessage(JSON.stringify(msg))).toEqual(msg)
+  })
+
+  it('parses an access-decision from the GM (App → Server)', () => {
+    const msg: AccessDecisionMessage = {
+      type: 'access-decision',
+      app: 'debriefing',
+      deviceId: 'phone-gm-1',
+      targetTeamId: 7,
+      decision: 'approved',
+      label: 'Toits',
+    }
+    expect(parseAppToServerMessage(JSON.stringify(msg))).toEqual(msg)
+  })
+
+  it('parses an mg-code-set from the GM (App → Server)', () => {
+    const msg: McodeSetMessage = {
+      type: 'mg-code-set',
+      app: 'debriefing',
+      deviceId: 'phone-gm-1',
+      targetTeamId: 7,
+      code: '4242',
+    }
+    expect(parseAppToServerMessage(JSON.stringify(msg))).toEqual(msg)
+  })
+
+  it('rejects an access-decision with an unknown verdict', () => {
+    const bogus = JSON.stringify({
+      type: 'access-decision',
+      app: 'debriefing',
+      deviceId: 'd1',
+      targetTeamId: 7,
+      decision: 'maybe',
+    })
+    expect(() => parseAppToServerMessage(bogus)).toThrowError(MessageParseError)
+  })
+
+  it('parses an access-result (Server → App)', () => {
+    const msg: AccessResultMessage = { type: 'access-result', decision: 'refused' }
+    expect(parseServerToAppMessage(JSON.stringify(msg))).toEqual(msg)
+  })
+
+  it('parses an mg-code (Server → App)', () => {
+    const msg: McodeMessage = { type: 'mg-code', code: '4242' }
+    expect(parseServerToAppMessage(JSON.stringify(msg))).toEqual(msg)
+  })
+
+  it('rejects an mg-code with an empty code', () => {
+    const bogus = JSON.stringify({ type: 'mg-code', code: '' })
     expect(() => parseServerToAppMessage(bogus)).toThrowError(MessageParseError)
   })
 })

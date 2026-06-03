@@ -33,6 +33,16 @@ files:
 # handles deps via package.json's dependencies field.
 asarUnpack: []
 
+# Game-content config (sequence.json) ships OUTSIDE the asar so it can be
+# edited on the mallette without repackaging (immutable rule #2: content is
+# data, not code). Main reads it from process.resourcesPath/config/ at boot
+# and serves it to the renderer over the GetSequenceConfig IPC channel.
+extraResources:
+  - from: assets/config
+    to: config
+    filter:
+      - '**/*.json'
+
 win:
   target:
     - target: nsis

@@ -81,3 +81,6 @@ BOOTSTRAP.md
 .cursor/
 .github-copilot/
 .repomix-output.*
+
+# Figma reference renders (re-fetchable anytime via the REST API)
+.figma-ref/

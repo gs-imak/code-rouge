@@ -1,14 +1,30 @@
-/* Placeholder « Section 13 » palette. Actual design tokens land via
-   @code-rouge/design-system once the maquettes arrive. Fonts are system
-   monospace stacks — no external loads (CLAUDE.md immutable rule 3).
+/* Global base for the Assaut renderer. The « Section 13 » palette + type come
+   from the design-system tokens, injected as `--cr-*` CSS custom properties at
+   boot (see main.tsx). No external font loads — immutable rule #3.
 
-   WCAG AA notes (computed against --bg #050609, ratio target 4.5:1 normal /
-   3:1 large):
-     --fg     #c8d1cf  → 14.5:1  (pass)
-     --accent #ff5555  → 4.8:1   (pass — was #ff2c2c at 3.2:1)
-     --muted  #8a9499  → 5.5:1   (pass — was #5a6469 at 3.06:1)
-   The graphiste must keep these constraints in mind: --accent is OK for
-   bold ≥18pt; --muted is OK for body normal-weight at any size. */
+   FIXED DESIGN CANVAS: the maquettes are a fixed 1440×1024 design. Rather than
+   reflow (which clashes + drifts from the maquette), the whole screen is one
+   stage scaled uniformly to fit the viewport. The trick: `1rem` = a viewport-fit
+   unit — at 1440×1024 it is exactly 10px, and it scales by the limiting
+   dimension on any other resolution. Every screen value is then authored in rem
+   as `maquette_px / 10`, so spacing + sizing stay maquette-exact at every size.
+   `#root` centers the stage; the dark body shows as letterbox bars when the
+   display aspect ≠ 1.40625. (Senior-Reviewer rule #7: CSS, not JS, for layout.) */
+
+/* Roboto — the maquette typeface — bundled locally as a single weight-axis
+   variable woff2 (latin subset). One file covers every weight the screens use
+   (400 regular / 600 semibold / 700 bold); classic static Roboto has no 600, so
+   the variable build is what renders SemiBold exactly. No network load (immutable
+   rule #3) — the file ships in the renderer bundle, served same-origin under the
+   CSP `font-src 'self'`. `font-display: block` so a kiosk never flashes the
+   system-ui fallback the token used to fall through to. */
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: block;
+  src: url('./assets/fonts/roboto-latin-wght-normal.woff2') format('woff2');
+}
 
 * {
   box-sizing: border-box;
@@ -18,13 +34,9 @@
 
 :root {
   color-scheme: dark;
-  --bg: #050609;
-  --fg: #c8d1cf;
-  --accent: #ff5555;
-  --muted: #8a9499;
-  --terminal-font:
-    'Cascadia Mono', 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular,
-    Consolas, 'Courier New', monospace;
+  /* 1rem = min(viewport-width/144, viewport-height/102.4) → 10px at the design
+     size, uniformly scaled to fit elsewhere. */
+  font-size: min(calc(100vw / 144), calc(100vh / 102.4));
 }
 
 html,
@@ -32,121 +44,21 @@ body,
 #root {
   height: 100%;
   width: 100%;
-  background: var(--bg);
-  color: var(--fg);
-  font-family: var(--terminal-font);
-  font-size: 16px;
-  overflow: hidden;
 }
 
 body {
-  /* `user-select:none` skips inputs (browsers always allow selection inside
-     <input> / <textarea>), but applying at body level still suppresses
-     accidental selection of headings/labels under heavy-finger touch. */
+  background: var(--cr-color-bg-deep, #080d1a);
+  color: var(--cr-color-white, #fff);
+  font-family: var(--cr-font-family, system-ui, -apple-system, sans-serif);
+  font-size: 1.6rem; /* 16px at design */
+  overflow: hidden;
   user-select: none;
   cursor: default;
 }
 
-.screen {
+/* Centre the fixed stage; letterbox the remainder with the dark page colour. */
+#root {
   display: grid;
-  grid-template-rows: auto 1fr auto;
-  height: 100%;
-  width: 100%;
-  padding: clamp(2rem, 5vw, 5rem);
-  gap: 2rem;
-}
-
-.screen__header {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  border-left: 3px solid var(--accent);
-  padding-left: 1rem;
-}
-
-.screen__brand {
-  font-size: clamp(1.5rem, 3vw, 2.5rem);
-  letter-spacing: 0.18em;
-  font-weight: 700;
-  color: var(--accent);
-}
-
-.screen__sub {
-  font-size: clamp(0.9rem, 1.4vw, 1.1rem);
-  color: var(--muted);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.prompt {
-  align-self: center;
-  justify-self: center;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  width: min(40rem, 80vw);
-  text-align: center;
-}
-
-.prompt__label {
-  font-size: clamp(1rem, 1.6vw, 1.4rem);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--fg);
-}
-
-.prompt__input {
-  background: transparent;
-  border: none;
-  border-bottom: 2px solid var(--accent);
-  color: var(--fg);
-  font-family: inherit;
-  font-size: clamp(2rem, 5vw, 4rem);
-  letter-spacing: 0.5em;
-  text-align: center;
-  padding: 1rem 0;
-  outline: none; /* default browser ring — replaced by the focus rule below */
-}
-
-.prompt__input:focus,
-.prompt__input:focus-visible {
-  /* High-contrast outline that's clearly visible at 3+ metres on a 15"
-     mallette display, replacing the default UA outline. The bottom-border
-     swap to --fg makes the field state legible even without the outline. */
-  outline: 2px solid var(--fg);
-  outline-offset: 6px;
-  border-bottom-color: var(--fg);
-}
-
-.prompt__hint {
-  font-size: 0.9rem;
-  color: var(--muted);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.nuc-status {
-  /* Diagnostic footer, scoped to the NUC connection dot only. The previous
-     kiosk-status footer (kiosk:/fullscreen:/shortcuts: spans, plus error
-     readout) was deleted post-M1 validation: it surfaced kiosk internals
-     to the renderer with no runtime payoff. The dot will move into a
-     dedicated overlay in chantier 06+. */
-  display: flex;
-  gap: 1.5rem;
-  font-size: 0.85rem;
-  color: var(--muted);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  justify-self: end;
-  align-self: end;
-}
-
-.nuc-status__dot {
-  /* Red by default, green when the NUC WebSocket is connected. */
-  font-size: 1rem;
-  color: #ff9090;
-}
-
-.nuc-status__dot--ok {
-  color: #7ee2a8;
+  place-items: center;
+  overflow: hidden;
 }

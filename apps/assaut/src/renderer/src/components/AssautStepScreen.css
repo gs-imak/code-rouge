@@ -1,0 +1,180 @@
+/* « Assaut lancé » step layout (maquette screens 13–24). All rem so it scales
+   with the stage. HUD-bracketed media frame + 36px/700 subtitle; interactive
+   steps add the « Réponses possibles : » column on the right. The annotation
+   labels + leader lines on the maquette spec frames are design notes, not screen
+   content — they are deliberately not rendered. */
+
+.step {
+  position: relative;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9rem;
+  padding: 1.4rem 4rem;
+}
+
+.step__media {
+  position: relative;
+  flex: 0 1 auto;
+  /* Passive step (Début): large media filling most of the stage. */
+  width: 134rem;
+  height: 73rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 0.1rem solid rgb(89 183 255 / 22%);
+  border-radius: 0.8rem;
+  background: linear-gradient(180deg, #0b1322 0%, #060a14 100%);
+}
+
+/* Interactive step (Interaction): smaller media (728×344) on the left, top-aligned
+   to its maquette Y, with the response column to its right. */
+.step--interactive {
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 21rem; /* maquette media right-edge 817 → response col 1027 */
+  padding-top: 25.2rem; /* media top: (330 − 78)/10 */
+  padding-left: 8.9rem;
+}
+
+.step--interactive .step__media {
+  width: 72.8rem;
+  height: 34.4rem;
+}
+
+.step__video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Audio-waveform placeholder (until local media lands — rule #3). */
+.step__waveform {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  width: 78%;
+  height: 46%;
+}
+
+.step__waveform span {
+  flex: 1 1 0;
+  min-width: 0;
+  border-radius: 0.2rem;
+  background: linear-gradient(180deg, #59b7ff 0%, #0cb1f2 100%);
+  opacity: 0.85;
+}
+
+/* Subtitle — maquette « Dernière phrase figée », 36px/700, near the media bottom. */
+.step__subtitle {
+  position: absolute;
+  bottom: 6.5rem;
+  left: 4%;
+  right: 4%;
+  margin: 0;
+  text-align: center;
+  font-size: 3.6rem;
+  font-weight: var(--cr-weight-bold, 700);
+  text-shadow: 0 0.2rem 0.8rem rgb(0 0 0 / 70%);
+}
+
+/* ---- Interactive response column (maquette « reponse » frame) ------------- */
+
+.step__responses {
+  flex: 0 0 24rem; /* maquette button width 240 */
+  display: flex;
+  flex-direction: column;
+  gap: 2rem; /* maquette 20px between buttons */
+}
+
+.step__responses-heading {
+  margin: 0 0 0.7rem;
+  text-align: center;
+  font-size: 2rem; /* maquette « Réponses possibles : » 20px/700 */
+  font-weight: var(--cr-weight-bold, 700);
+  color: var(--cr-color-white, #fff);
+}
+
+.step__response {
+  height: 7rem; /* maquette 70 */
+  padding: 0 1.6rem;
+  border: 0.1rem solid rgb(255 255 255 / 90%);
+  border-radius: 0.8rem;
+  background: rgb(9 26 65 / 70%); /* maquette #091a41 @70% */
+  color: var(--cr-color-white, #fff);
+  font-family: inherit;
+  font-size: 2.6rem; /* maquette 26px/700 */
+  font-weight: var(--cr-weight-bold, 700);
+  text-align: center;
+  cursor: pointer;
+  transition:
+    filter 0.12s ease,
+    transform 0.12s ease;
+}
+
+.step__response:hover {
+  filter: brightness(1.25);
+}
+
+.step__response:active {
+  transform: translateY(0.1rem);
+}
+
+.step__response:focus-visible {
+  outline: 0.2rem solid var(--cr-color-accent, #1c99ff);
+  outline-offset: 0.2rem;
+}
+
+/* ---- Received-photo overlay (Mc Gyver Photo) ----------------------------- */
+
+.step__overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(2 5 18 / 55%);
+}
+
+/* Photo popin (maquette « popin », ~788×573): glowing blue HUD-bracketed frame. */
+.step__photo {
+  position: relative;
+  width: 78.8rem;
+  height: 57.3rem;
+  padding: 1.2rem;
+  border-radius: 0.6rem;
+  border: 0.2rem solid rgb(89 183 255 / 85%);
+  background: rgb(8 13 26 / 92%);
+  box-shadow:
+    0 0 4.4rem rgb(28 153 255 / 45%),
+    inset 0 0 2.4rem rgb(28 153 255 / 18%),
+    0 1.6rem 4.8rem rgb(0 0 0 / 60%);
+}
+
+.step__photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0.3rem;
+}
+
+/* Black-circle close (maquette « Group 39483 », 52×52 #000000 + white ×). */
+.step__photo-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 5.2rem;
+  height: 5.2rem;
+  border: none;
+  border-radius: 50%;
+  background: rgb(0 0 0 / 80%);
+  color: var(--cr-color-white, #fff);
+  font-size: 3rem;
+  line-height: 1;
+  cursor: pointer;
+}

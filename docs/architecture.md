@@ -260,3 +260,24 @@ Keep this section append-only. Date every entry.
   uses `setup_24.x`, not `setup_22.x`. Root `package.json` engines now
   pins `"node": ">=22.0.0"` — kept loose to allow either 22 or 24 on
   contributor machines, while the deployed NUC will be on 24.
+- **2026-06-02 — Assaut sequence engine + scoring model (M2 chantier 02/04).**
+  Source: `M2_Detail_CodeRouge.pdf` (préparation + assaut linéaire, timers
+  dédiés, embranchements pilotant le score « % de données récupérées »).
+  Three decisions:
+  1. **Schema grown additively** (`AssautSequenceConfig`, `schemaVersion` stays
+     1): optional `prep[]` (input-step kinds, no `mediaPath`), `timerSec?` per
+     step, `dataRecoveredDelta?` on choices/transitions. Existing placeholder
+     JSON stays valid. IDs are unique across the whole prep+assault flow
+     (single navigation id space).
+  2. **Engine is pure TS, data-driven** (`apps/assaut/src/renderer/src/engine/
+     assaut-sequence.ts`) — a state machine over the config; the renderer is
+     thin glue that renders the screen for `currentStepId`. No hardcoded step
+     `if`s (immutable rule #2). Located in the app, **not** a shared package:
+     Attaque de Bots's 8-mechanic/A-B-C-D model is structurally different, so
+     extracting now would be premature abstraction. Revisit if real reuse
+     appears.
+  3. **Scoring = one clamped 0-100 metric** ("% données récupérées"):
+     `startPercent` + signed deltas, clamped to [0,100]. The schema fixes the
+     mechanism; exact weights are content (CDC v1.3). Chosen over per-step
+     point tallies or time-based scoring because the doc frames the score as a
+     single recovered-data percentage driven by branch choices.

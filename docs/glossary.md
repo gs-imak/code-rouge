@@ -95,3 +95,35 @@ simple à coder pour notre cas) et plus rapide que la concurrence.
 Système de gestion des services sous Linux. C'est lui qui démarrera notre
 serveur automatiquement au boot du NUC, le redémarrera s'il plante, et
 gérera les logs.
+
+---
+
+**Machine à états (state machine)**
+La logique qui sait toujours « où en est » une séquence de jeu : quelle étape,
+quel choix déjà fait, quel score. Elle ne décide rien « en dur » dans le code,
+elle lit la séquence dans un fichier de configuration. C'est le cœur de
+« Assaut », testé à 100 %.
+
+**Séquence de préparation**
+La phase d'avant-assaut sur « Assaut » : saisie du code d'accès, choix d'une
+approche (frontale ou furtive), point d'entrée, attente du code donné par le
+Game Master. Les choix faits ici influencent la suite et le score.
+
+**Embranchement scénaristique**
+Une bifurcation du scénario : selon un choix du joueur ou une condition, la
+séquence saute à une autre étape que celle prévue par défaut. Décrit dans le
+fichier de configuration, jamais codé « en dur ».
+
+**% de données récupérées**
+Le score de « Assaut », exprimé en pourcentage (0 à 100). Il part d'une valeur
+de départ et monte ou descend selon les choix et les embranchements. C'est ce
+chiffre que le Game Master voit évoluer pendant la partie.
+
+**Matrice A/B/C/D**
+Les quatre parcours différents d'« Attaque de Bots ». Permet à plusieurs
+équipes d'alterner sur les modules physiques de la salle sans se gêner. Lue
+depuis la configuration, jamais codée en dur.
+
+**Version de jeu**
+Standard, courte, longue ou personnalisée. Le Game Master choisit la version
+au menu admin ; le moteur data-driven adapte durées et contenus.

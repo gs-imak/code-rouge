@@ -1,0 +1,43 @@
+/* « Accueil » (maquette frame 29:3662): welcome title @189 + intro paragraph
+   @355 + « Commencer » @810, on the bare chrome (no panel). All rem. */
+
+.accueil {
+  position: absolute;
+  inset: 0;
+}
+
+.accueil__title {
+  position: absolute;
+  top: 11.1rem; /* title @189 → (189 − 78)/10 */
+  left: 0;
+  right: 0;
+  margin: 0;
+  font-size: 4rem; /* maquette 40px */
+  font-weight: var(--cr-weight-regular, 400);
+  letter-spacing: 0.08em; /* maquette ls 3.2 */
+  text-transform: uppercase;
+  line-height: 1.4;
+  text-align: center;
+  color: var(--cr-color-white, #fff);
+}
+
+.accueil__body {
+  position: absolute;
+  top: 27.7rem; /* body @355 → (355 − 78)/10 */
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  width: 83.1rem; /* maquette body width 831 */
+  font-size: 2.5rem; /* maquette 25px (was 1.8rem) */
+  font-weight: var(--cr-weight-regular, 400);
+  line-height: 1.5;
+  text-align: center;
+  color: var(--cr-color-white, #fff);
+}
+
+.accueil .primary-button {
+  position: absolute;
+  top: 73.2rem; /* button @810 → (810 − 78)/10 */
+  left: 50%;
+  transform: translateX(-50%);
+}

@@ -188,6 +188,108 @@ describe('parseAssautSequenceConfig — negative paths', () => {
   })
 })
 
+describe('parseAssautSequenceConfig — M2 prep + timers + scoring', () => {
+  const debutStep = {
+    id: 'debut',
+    kind: 'debut' as const,
+    mediaPath: 'media/debut.mp4',
+  }
+
+  it('parses a config with a preparation phase', () => {
+    const result = parseAssautSequenceConfig({
+      schemaVersion: 1,
+      prep: [
+        { id: 'acces', kind: 'saisie-acces' },
+        {
+          id: 'approche',
+          kind: 'choix-approche',
+          choices: [
+            { id: 'frontale', label: 'Approche frontale', dataRecoveredDelta: 10, goto: 'debut' },
+            { id: 'furtive', label: 'Approche furtive' },
+          ],
+        },
+      ],
+      steps: [debutStep],
+    })
+    expect(result.prep).toHaveLength(2)
+    expect(result.prep[0]!.kind).toBe('saisie-acces')
+  })
+
+  it('defaults an omitted choice dataRecoveredDelta to 0', () => {
+    const result = parseAssautSequenceConfig({
+      schemaVersion: 1,
+      prep: [
+        {
+          id: 'approche',
+          kind: 'choix-approche',
+          choices: [{ id: 'furtive', label: 'Approche furtive' }],
+        },
+      ],
+      steps: [debutStep],
+    })
+    expect(result.prep[0]!.choices[0]!.dataRecoveredDelta).toBe(0)
+  })
+
+  it('accepts a per-step timerSec ("timers dédiés")', () => {
+    const result = parseAssautSequenceConfig({
+      schemaVersion: 1,
+      steps: [{ ...debutStep, timerSec: 45 }],
+    })
+    expect(result.steps[0]!.timerSec).toBe(45)
+  })
+
+  it('defaults an omitted transition dataRecoveredDelta to 0', () => {
+    const result = parseAssautSequenceConfig({
+      schemaVersion: 1,
+      steps: [
+        { ...debutStep, transitions: [{ when: 'wire-correct', goto: 'debut' }] },
+      ],
+    })
+    expect(result.steps[0]!.transitions[0]!.dataRecoveredDelta).toBe(0)
+  })
+
+  it('defaults scoring.startPercent to 0 when scoring is omitted', () => {
+    const result = parseAssautSequenceConfig({ schemaVersion: 1, steps: [debutStep] })
+    expect(result.scoring.startPercent).toBe(0)
+    expect(result.prep).toEqual([])
+  })
+
+  it('honors an explicit scoring.startPercent', () => {
+    const result = parseAssautSequenceConfig({
+      schemaVersion: 1,
+      steps: [debutStep],
+      scoring: { startPercent: 100 },
+    })
+    expect(result.scoring.startPercent).toBe(100)
+  })
+
+  it('rejects a prep choice.goto that does not resolve to any step', () => {
+    expect(() =>
+      parseAssautSequenceConfig({
+        schemaVersion: 1,
+        prep: [
+          {
+            id: 'approche',
+            kind: 'choix-approche',
+            choices: [{ id: 'frontale', label: 'F', goto: 'no-such-step' }],
+          },
+        ],
+        steps: [debutStep],
+      }),
+    ).toThrowError(/goto/)
+  })
+
+  it('rejects a prep step id that collides with an assault step id', () => {
+    expect(() =>
+      parseAssautSequenceConfig({
+        schemaVersion: 1,
+        prep: [{ id: 'debut', kind: 'saisie-acces' }],
+        steps: [debutStep],
+      }),
+    ).toThrowError(/duplicate/)
+  })
+})
+
 describe('parseGameVariantConfig — negative paths', () => {
   const baseVariant = {
     schemaVersion: 1 as const,
