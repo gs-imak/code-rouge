@@ -1,24 +1,28 @@
 import type { JSX } from 'react'
-import { StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, Text } from 'react-native'
 import { colors } from '../theme/tokens'
 
 // The shared « Buttom » CTA (maquette: 337×80 r20, orange gradient #ff740d→#fb5344,
 // 34px/700 white centred label). The gradient is approximated by a solid accent for
 // now — react-native-linear-gradient lands when polishing. Positioned by the caller
-// at exact maquette px (left defaults to the canvas-centred 794; pass `top`).
+// at exact maquette px (left defaults to the canvas-centred 794; pass `top`). The
+// 80px height clears the 48dp touch-target floor. `onPress` is optional so the dev
+// gallery renders statically; screens wire navigation through it during BUILD.
 export function PrimaryButton({
   label,
   top,
   left = 794,
+  onPress,
 }: {
   readonly label: string
   readonly top: number
   readonly left?: number
+  readonly onPress?: () => void
 }): JSX.Element {
   return (
-    <View style={[styles.button, { top, left }]}>
+    <Pressable style={[styles.button, { top, left }]} onPress={onPress}>
       <Text style={styles.label}>{label}</Text>
-    </View>
+    </Pressable>
   )
 }
 

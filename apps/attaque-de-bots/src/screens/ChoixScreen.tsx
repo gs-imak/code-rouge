@@ -11,6 +11,9 @@ import { ScreenBackground } from '../components/ScreenBackground'
 // caller passes the card set so the Gallery can render both maquette variants; the
 // real screen will map the parcours config to this same `cards` prop.
 export type ChoixCard = {
+  /** Stable énigme identifier (the parcours config key) — used as the React key,
+   *  never a layout coord (panel positions can collide across A/B/C/D variants). */
+  readonly id: string
   /** Card panel left edge in maquette px (image = +21, both 555 / 513 wide). */
   readonly panelLeft: number
   readonly title: string
@@ -21,15 +24,15 @@ export type ChoixCard = {
 
 // Maquette 1:345 — two cards centred (panel 555, gap 60).
 export const CARDS_2: readonly ChoixCard[] = [
-  { panelLeft: 375, title: 'Attaque du système de téléphonie', titleLeft: 427, titleWidth: 452 },
-  { panelLeft: 990, title: 'Déconnexion du réseau', titleLeft: 990, titleWidth: 555 },
+  { id: 'telephonie', panelLeft: 375, title: 'Attaque du système de téléphonie', titleLeft: 427, titleWidth: 452 },
+  { id: 'reseau', panelLeft: 990, title: 'Déconnexion du réseau', titleLeft: 990, titleWidth: 555 },
 ]
 
 // Maquette 61:23581 — three cards (panel 555, gap 40).
 export const CARDS_3: readonly ChoixCard[] = [
-  { panelLeft: 87, title: 'Attaque du système de téléphonie', titleLeft: 139, titleWidth: 452 },
-  { panelLeft: 682, title: 'Déconnexion du réseau', titleLeft: 682, titleWidth: 555 },
-  { panelLeft: 1277, title: 'Lorem ipsum', titleLeft: 1278, titleWidth: 555 },
+  { id: 'telephonie', panelLeft: 87, title: 'Attaque du système de téléphonie', titleLeft: 139, titleWidth: 452 },
+  { id: 'reseau', panelLeft: 682, title: 'Déconnexion du réseau', titleLeft: 682, titleWidth: 555 },
+  { id: 'placeholder', panelLeft: 1277, title: 'Lorem ipsum', titleLeft: 1278, titleWidth: 555 },
 ]
 
 function Card({ panelLeft, title, titleLeft, titleWidth }: ChoixCard): JSX.Element {
@@ -52,7 +55,7 @@ export function ChoixScreen({ cards }: { readonly cards: readonly ChoixCard[] })
       <HudHeader />
       <Text style={styles.title}>Choisissez l’attaque de Bots que vous souhaitez contrer</Text>
       {cards.map((c) => (
-        <Card key={c.panelLeft} {...c} />
+        <Card key={c.id} {...c} />
       ))}
       <PrimaryButton label="C’est partie !" top={1047} />
     </>
