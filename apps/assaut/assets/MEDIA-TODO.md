@@ -38,6 +38,19 @@ le cadre média (HUD brackets). En attendant : forme d'onde animée (placeholder
 Format : MP4 H.264, muet ou avec piste audio locale, lecture en boucle. Pas de
 flux réseau (règle #3). Chemins définis dans `sequence.json` (`mediaPath`).
 
+## Fond plein-cadre (affichage hors-format) — TODO
+
+Les écrans sont une **toile fixe 1440×1024** (aspect 1.406), centrée + letterboxée
+sur un affichage d'un autre ratio. Le fond Figma (`Layer_1`, 1803×970) ne déborde
+le cadre que de ~360px à droite : **insuffisant pour remplir les barres** d'un
+écran 16:9 (mallette ≈ 1920×1080 → ~200px de barres latérales). Aujourd'hui les
+barres prennent `#080d1a` (la teinte de bord du fond Figma).
+
+À fournir : un **fond tactique plein-cadre** dessiné pour la résolution réelle de
+la mallette (contour jusqu'aux bords, brackets HUD aux vrais coins). Bloquant :
+**confirmer la résolution native de l'écran mallette**. Vu avec le client le
+2026-06-03, laissé en TODO.
+
 ## Icône application
 
 | Fichier | Format | Usage |
