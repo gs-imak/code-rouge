@@ -11,11 +11,31 @@ export const colors = {
   /** Emblem halo (maquette « Ellipse 322 »). */
   halo: '#A23304',
   white: '#FFFFFF',
-  /** Dark base — placeholder behind the (raster) background photo. */
+  /** Dark base — letterbox behind the scaled canvas. */
   bgDeep: '#0A0D12',
+  /** Full-frame background photo placeholder (maquette « image 7 ») — neutral dark
+   *  reddish stand-in until the graphiste delivers the real raster (rule #3). */
+  bgPlaceholder: '#1B1113',
   /** Translucent field fill (maquette input #ffffff @19%). */
   fieldFill: 'rgba(255,255,255,0.19)',
   fieldBorder: 'rgba(255,255,255,0.85)',
+  /** Tutorial scrim — full-screen dim over the énigme behind the callouts (#000 @50%). */
+  scrim: 'rgba(0,0,0,0.5)',
+  /** Énigme content panel (maquette « Rectangle 9220 » #000 @30%). */
+  panelDim: 'rgba(0,0,0,0.3)',
+  /** Choix card panel (maquette « Rectangle 9220/9222 » #000 @20%). */
+  panelCard: 'rgba(0,0,0,0.2)',
+  /** Panel / card hairline border (maquette stroke #ffffff @50%). */
+  panelStroke: 'rgba(255,255,255,0.5)',
+  /** HUD bottom divider (maquette « Line 23 » #ffffff @30%). */
+  divider: 'rgba(255,255,255,0.3)',
+  /** HUD timer box fill (maquette « Rectangle 9226 » #ffffff @17%). */
+  timerBox: 'rgba(255,255,255,0.17)',
+  /** Score gauge track / fill (maquette « Jauge » — gradients approximated solid). */
+  jaugeTrack: '#FD6537',
+  jaugeFill: '#FFAC53',
+  /** Énigme card image placeholder (licensed raster not bundled — rule #3). */
+  imagePlaceholder: '#2A2A30',
 } as const
 
 export const typography = {
