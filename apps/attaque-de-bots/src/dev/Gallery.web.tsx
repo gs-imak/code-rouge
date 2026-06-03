@@ -1,7 +1,10 @@
 /// <reference lib="dom" />
 import type { JSX } from 'react'
 import { ScaledCanvas } from '../components/ScaledCanvas'
+import { AccueilScreen } from '../screens/AccueilScreen'
+import { CARDS_2, CARDS_3, ChoixScreen } from '../screens/ChoixScreen'
 import { ConnexionScreen } from '../screens/ConnexionScreen'
+import { TutoScreen } from '../screens/TutoScreen'
 
 // DEV-ONLY web gallery (react-native-web harness). `?screen=<name>` renders one
 // screen inside the ScaledCanvas so it can be screenshot + pixel-diffed against
@@ -9,6 +12,10 @@ import { ConnexionScreen } from '../screens/ConnexionScreen'
 // into the native app (Metro builds from index.js → App).
 const SCREENS: Record<string, () => JSX.Element> = {
   connexion: () => <ConnexionScreen />,
+  accueil: () => <AccueilScreen />,
+  tuto: () => <TutoScreen />,
+  choix: () => <ChoixScreen cards={CARDS_2} />,
+  choix3: () => <ChoixScreen cards={CARDS_3} />,
 }
 
 export function Gallery(): JSX.Element {
