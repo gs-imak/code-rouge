@@ -1,10 +1,11 @@
+/// <reference lib="dom" />
 import { AppRegistry } from 'react-native'
-import App from './App'
+import { Gallery } from './dev/Gallery.web'
 
-// Web-harness entry (react-native-web). Mounts the same <App> the native build
-// runs, so the screens render in a browser for screenshot + pixel-diff. The
-// native entry stays `index.js` → AppRegistry via Metro; this is the web twin.
-AppRegistry.registerComponent('attaque-de-bots', () => App)
+// Web-harness entry (react-native-web). Renders the DEV gallery (`?screen=<name>`)
+// for screenshot + pixel-diff verification. The native build is unchanged
+// (index.js → App via Metro); this is the web-only verification twin.
+AppRegistry.registerComponent('attaque-de-bots', () => Gallery)
 AppRegistry.runApplication('attaque-de-bots', {
   rootTag: document.getElementById('root'),
 })

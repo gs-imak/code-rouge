@@ -5,6 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>attaque-de-bots — web harness (RNW)</title>
     <style>
+      /* Roboto for the web harness so the pixel-diff is fair (matches the maquette
+         typeface). Native font bundling is a separate task. */
+      @font-face {
+        font-family: 'Roboto';
+        font-style: normal;
+        font-weight: 100 900;
+        font-display: block;
+        src: url('/src/assets/roboto-latin-wght-normal.woff2') format('woff2');
+      }
       html,
       body,
       #root {
