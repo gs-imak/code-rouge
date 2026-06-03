@@ -24,14 +24,15 @@
     ],
     "overrides": {
       "tar@<7.5.8": ">=7.5.8",
-      "fast-uri@<3.1.2": ">=3.1.2"
+      "fast-uri@<3.1.2": ">=3.1.2",
+      "tmp@<0.2.6": ">=0.2.6"
     }
   },
   "devDependencies": {
     "@types/node": "^22.19.17",
     "@typescript-eslint/eslint-plugin": "^8.59.1",
     "@typescript-eslint/parser": "^8.59.1",
-    "@vitest/coverage-v8": "^2.1.9",
+    "@vitest/coverage-v8": "^4.1.0",
     "eslint": "^8.57.1",
     "eslint-config-prettier": "^9.1.2",
     "eslint-plugin-react": "^7.37.5",
@@ -39,6 +40,6 @@
     "prettier": "^3.8.3",
     "turbo": "^2.3.3",
     "typescript": "^5.9.3",
-    "vitest": "^2.1.9"
+    "vitest": "^4.1.0"
   }
 }
