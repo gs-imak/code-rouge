@@ -13,6 +13,8 @@ import { MdpAccueilScreen } from '../screens/MdpAccueilScreen'
 import { MdpSaisieScreen } from '../screens/MdpSaisieScreen'
 import { ResAccueilScreen } from '../screens/ResAccueilScreen'
 import { ResSaisieScreen } from '../screens/ResSaisieScreen'
+import { DdAccueilScreen } from '../screens/DdAccueilScreen'
+import { DdScreen } from '../screens/DdScreen'
 import { ServeursScreen } from '../screens/ServeursScreen'
 import { SrvAccueilScreen } from '../screens/SrvAccueilScreen'
 import { TelAccueilScreen } from '../screens/TelAccueilScreen'
@@ -44,6 +46,10 @@ const SCREENS: Record<string, () => JSX.Element> = {
   'srv-saisie': () => <ServeursScreen state="saisie" />,
   'srv-success': () => <ServeursScreen state="success" />,
   'srv-error': () => <ServeursScreen state="error" />,
+  'dd-accueil': () => <DdAccueilScreen />,
+  'dd-saisie': () => <DdScreen state="saisie" />,
+  'dd-success': () => <DdScreen state="success" />,
+  'dd-error': () => <DdScreen state="error" />,
 }
 
 export function Gallery(): JSX.Element {
