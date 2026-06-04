@@ -3,6 +3,7 @@ import type { JSX } from 'react'
 import { ScaledCanvas } from '../components/ScaledCanvas'
 import { AccueilScreen } from '../screens/AccueilScreen'
 import { AdminScreen } from '../screens/AdminScreen'
+import { BddLoadingScreen } from '../screens/BddLoadingScreen'
 import { BoiteMailsScreen } from '../screens/BoiteMailsScreen'
 import { CARDS_2, CARDS_3, ChoixScreen } from '../screens/ChoixScreen'
 import { ConnexionScreen } from '../screens/ConnexionScreen'
@@ -63,6 +64,7 @@ const SCREENS: Record<string, () => JSX.Element> = {
   'dd2-success': () => <Dd2Screen state="success" />,
   'dd2-error': () => <Dd2Screen state="error" />,
   'bdd-accueil': () => <BddAccueilScreen />,
+  'bdd-loading': () => <BddLoadingScreen />,
   'bdd-saisie': () => <BddScreen state="saisie" />,
   'bdd-success': () => <BddScreen state="success" />,
   'bdd-error': () => <BddScreen state="error" />,
