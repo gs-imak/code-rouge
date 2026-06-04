@@ -2,8 +2,11 @@
 import type { JSX } from 'react'
 import { ScaledCanvas } from '../components/ScaledCanvas'
 import { AccueilScreen } from '../screens/AccueilScreen'
+import { BoiteMailsScreen } from '../screens/BoiteMailsScreen'
 import { CARDS_2, CARDS_3, ChoixScreen } from '../screens/ChoixScreen'
 import { ConnexionScreen } from '../screens/ConnexionScreen'
+import { FishingScreen } from '../screens/FishingScreen'
+import { MailsScreen } from '../screens/MailsScreen'
 import { TutoScreen } from '../screens/TutoScreen'
 
 // DEV-ONLY web gallery (react-native-web harness). `?screen=<name>` renders one
@@ -16,6 +19,9 @@ const SCREENS: Record<string, () => JSX.Element> = {
   tuto: () => <TutoScreen />,
   choix: () => <ChoixScreen cards={CARDS_2} />,
   choix3: () => <ChoixScreen cards={CARDS_3} />,
+  boitemails: () => <BoiteMailsScreen />,
+  mails: () => <MailsScreen />,
+  fishing: () => <FishingScreen />,
 }
 
 export function Gallery(): JSX.Element {
