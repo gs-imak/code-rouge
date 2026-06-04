@@ -34,10 +34,11 @@ export function PrimaryButton({
 
 const styles = StyleSheet.create({
   button: {
+    // backgroundColor comes from the `color` prop (defaults to colors.accent) so it
+    // is set inline, not here.
     position: 'absolute',
     height: 80,
     borderRadius: 20,
-    backgroundColor: colors.accent,
     alignItems: 'center',
     justifyContent: 'center',
   },

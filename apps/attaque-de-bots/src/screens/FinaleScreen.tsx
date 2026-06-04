@@ -12,6 +12,9 @@ import right from '../assets/fin-right.png'
 // final code — find the symbols (left panel) and key the code on the right panel
 // (3-box display + keypad). Both panels are static maquette art (shadow → placed at
 // natural size centred on their bbox). success / error tint the panel + add a message.
+// NOTE: the maquette finale result states (34:4720 / 34:4945) have NO CTA — unlike the
+// other énigmes — so there is no Continuer/Recommancer here (verified against the render);
+// navigation off the finale is handled externally.
 type FinaleState = 'saisie' | 'success' | 'error'
 
 const PANEL: Record<FinaleState, string | undefined> = { saisie: undefined, success: colors.panelSuccess, error: colors.panelError }
