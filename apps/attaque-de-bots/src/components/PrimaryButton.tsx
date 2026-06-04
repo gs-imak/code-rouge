@@ -13,6 +13,7 @@ export function PrimaryButton({
   top,
   left = 794,
   width = 337,
+  color = colors.accent,
   onPress,
 }: {
   readonly label: string
@@ -20,10 +21,12 @@ export function PrimaryButton({
   readonly left?: number
   /** Override the 337px maquette default for the narrower per-énigme CTAs. */
   readonly width?: number
+  /** Override the orange accent (e.g. the BDD red alert OK). */
+  readonly color?: string
   readonly onPress?: () => void
 }): JSX.Element {
   return (
-    <Pressable style={[styles.button, { top, left, width }]} onPress={onPress}>
+    <Pressable style={[styles.button, { top, left, width, backgroundColor: color }]} onPress={onPress}>
       <Text style={styles.label}>{label}</Text>
     </Pressable>
   )

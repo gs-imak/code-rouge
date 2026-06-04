@@ -13,6 +13,8 @@ import { MdpAccueilScreen } from '../screens/MdpAccueilScreen'
 import { MdpSaisieScreen } from '../screens/MdpSaisieScreen'
 import { ResAccueilScreen } from '../screens/ResAccueilScreen'
 import { ResSaisieScreen } from '../screens/ResSaisieScreen'
+import { BddAccueilScreen } from '../screens/BddAccueilScreen'
+import { BddScreen } from '../screens/BddScreen'
 import { Dd2AccueilScreen } from '../screens/Dd2AccueilScreen'
 import { Dd2Screen } from '../screens/Dd2Screen'
 import { DdAccueilScreen } from '../screens/DdAccueilScreen'
@@ -56,6 +58,10 @@ const SCREENS: Record<string, () => JSX.Element> = {
   'dd2-saisie': () => <Dd2Screen state="saisie" />,
   'dd2-success': () => <Dd2Screen state="success" />,
   'dd2-error': () => <Dd2Screen state="error" />,
+  'bdd-accueil': () => <BddAccueilScreen />,
+  'bdd-saisie': () => <BddScreen state="saisie" />,
+  'bdd-success': () => <BddScreen state="success" />,
+  'bdd-error': () => <BddScreen state="error" />,
 }
 
 export function Gallery(): JSX.Element {

@@ -61,6 +61,9 @@ export const colors = {
   dropdownFill: 'rgba(255,255,255,0.16)',
   /** Admin « Transmettre » dark button (maquette gradient #000→#4f4f4f, solid approx). */
   darkButton: '#3A3A3A',
+  /** BDD red alert modal (maquette gradient #a21616→#3c0808) + its red OK button. */
+  alertModal: '#7A1212',
+  alertButton: '#E80101',
 } as const
 
 export const typography = {
