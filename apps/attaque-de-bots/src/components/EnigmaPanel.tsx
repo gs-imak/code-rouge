@@ -4,10 +4,11 @@ import { colors } from '../theme/tokens'
 
 // The shared énigme content panel (maquette « Rectangle 9220 » [72,181 1777×948]
 // #000@30% stroke #ffffff@50% r21): the large translucent frame that holds every
-// énigme's widgets (and the dimmed backdrop on Tuto). Children are positioned over
-// it at maquette px by the screen.
-export function EnigmaPanel(): JSX.Element {
-  return <View style={styles.panel} />
+// énigme's widgets (and the dimmed backdrop on Tuto). `fill` overrides the tint for
+// the success / error states (maquette greens/reds the whole panel). Children are
+// positioned over it at maquette px by the screen.
+export function EnigmaPanel({ fill }: { readonly fill?: string } = {}): JSX.Element {
+  return <View style={[styles.panel, fill ? { backgroundColor: fill } : null]} />
 }
 
 const styles = StyleSheet.create({

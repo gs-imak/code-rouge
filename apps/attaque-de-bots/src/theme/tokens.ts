@@ -23,6 +23,9 @@ export const colors = {
   scrim: 'rgba(0,0,0,0.5)',
   /** Énigme content panel (maquette « Rectangle 9220 » #000 @30%). */
   panelDim: 'rgba(0,0,0,0.3)',
+  /** Énigme panel success / error tints (maquette #25d58d / #ff3f3f @30%). */
+  panelSuccess: 'rgba(37,213,141,0.3)',
+  panelError: 'rgba(255,63,63,0.3)',
   /** Choix card panel (maquette « Rectangle 9220/9222 » #000 @20%). */
   panelCard: 'rgba(0,0,0,0.2)',
   /** Panel / card hairline border (maquette stroke #ffffff @50%). */
