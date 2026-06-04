@@ -12,18 +12,23 @@ import close from '../assets/icon-close.png'
 export function MessageModal({
   body,
   title = 'Message de l’équipe de la section 13',
+  bodyTop = 512,
+  okTop = 757,
 }: {
   readonly body: string
   readonly title?: string
+  /** Body top + OK-button top shift with the briefing length (maquette varies it). */
+  readonly bodyTop?: number
+  readonly okTop?: number
 }): JSX.Element {
   return (
     <>
       <Image source={chrome} style={styles.chrome} resizeMode="contain" />
       <Text style={styles.title}>{title}</Text>
       <Image source={close} style={styles.close} resizeMode="contain" />
-      <Text style={styles.body}>{body}</Text>
-      <View style={styles.okBtn} />
-      <Text style={styles.okLabel}>OK</Text>
+      <Text style={[styles.body, { top: bodyTop }]}>{body}</Text>
+      <View style={[styles.okBtn, { top: okTop }]} />
+      <Text style={[styles.okLabel, { top: okTop + 18 }]}>OK</Text>
     </>
   )
 }
@@ -48,11 +53,10 @@ const styles = StyleSheet.create({
     lineHeight: 94,
   },
   close: { position: 'absolute', left: 1476, top: 293, width: 32, height: 32 },
-  // (maquette [527,512 850×229] 36px/500 centre).
+  // (maquette [527,~512 850] 36px/500 centre; top via the bodyTop prop).
   body: {
     position: 'absolute',
     left: 527,
-    top: 512,
     width: 850,
     textAlign: 'center',
     color: colors.white,
@@ -61,7 +65,8 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     lineHeight: 47,
   },
-  // OK button (maquette « Buttom » [836,757 250×75] orange, 37.8px/700).
-  okBtn: { position: 'absolute', left: 836, top: 757, width: 250, height: 75, backgroundColor: colors.accent, borderRadius: 20 },
-  okLabel: { position: 'absolute', left: 836, top: 775, width: 250, textAlign: 'center', color: colors.white, fontFamily: 'Roboto', fontSize: 38, fontWeight: '700' },
+  // OK button (maquette « Buttom » 250×75 orange, 37.8px/700, centred on the modal;
+  // top via the okTop prop).
+  okBtn: { position: 'absolute', left: 834, width: 250, height: 75, backgroundColor: colors.accent, borderRadius: 20 },
+  okLabel: { position: 'absolute', left: 834, width: 250, textAlign: 'center', color: colors.white, fontFamily: 'Roboto', fontSize: 38, fontWeight: '700' },
 })
