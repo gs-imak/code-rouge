@@ -2,9 +2,11 @@
 import type { JSX } from 'react'
 import { ScaledCanvas } from '../components/ScaledCanvas'
 import { AccueilScreen } from '../screens/AccueilScreen'
+import { AdminScreen } from '../screens/AdminScreen'
 import { BoiteMailsScreen } from '../screens/BoiteMailsScreen'
 import { CARDS_2, CARDS_3, ChoixScreen } from '../screens/ChoixScreen'
 import { ConnexionScreen } from '../screens/ConnexionScreen'
+import { FinScreen } from '../screens/FinScreen'
 import { FishingScreen } from '../screens/FishingScreen'
 import { MailsScreen } from '../screens/MailsScreen'
 import { TutoScreen } from '../screens/TutoScreen'
@@ -22,6 +24,8 @@ const SCREENS: Record<string, () => JSX.Element> = {
   boitemails: () => <BoiteMailsScreen />,
   mails: () => <MailsScreen />,
   fishing: () => <FishingScreen />,
+  fin: () => <FinScreen />,
+  admin: () => <AdminScreen />,
 }
 
 export function Gallery(): JSX.Element {

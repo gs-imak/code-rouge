@@ -47,6 +47,17 @@ export const colors = {
   mailHeading: '#64686C',
   mailCheck: '#333333',
   mailCheckMuted: '#BDBDBD',
+  /** Fin score box (maquette « Rectangle 9232 » #fd6537 @27% r40) + layered score. */
+  scoreBox: 'rgba(253,101,55,0.27)',
+  scoreShadow: '#FF7937',
+  /** Admin status dots (maquette « Ellipse 302-307 »): lit vs unlit. */
+  dotOn: '#FD6820',
+  dotOnStroke: '#FFF3EB',
+  dotOff: 'rgba(255,255,255,0.3)',
+  /** Admin dropdown field (maquette #ffffff @16% stroke #ffffff r15). */
+  dropdownFill: 'rgba(255,255,255,0.16)',
+  /** Admin « Transmettre » dark button (maquette gradient #000→#4f4f4f, solid approx). */
+  darkButton: '#3A3A3A',
 } as const
 
 export const typography = {
