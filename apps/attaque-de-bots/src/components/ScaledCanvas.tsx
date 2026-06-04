@@ -1,6 +1,7 @@
 import type { JSX, ReactNode } from 'react'
 import { StyleSheet, View, useWindowDimensions } from 'react-native'
 import { DESIGN, colors } from '../theme/tokens'
+import { isBgNoneHarness } from './harness'
 
 // Fixed design canvas — the RN analog of the Assaut rem stage. The maquettes are a
 // fixed 1920×1200; rather than reflow, the whole screen is one canvas scaled
@@ -10,8 +11,10 @@ import { DESIGN, colors } from '../theme/tokens'
 export function ScaledCanvas({ children }: { readonly children: ReactNode }): JSX.Element {
   const { width, height } = useWindowDimensions()
   const scale = Math.min(width / DESIGN.width, height / DESIGN.height)
+  // Transparent letterbox under the `?bg=none` harness flag (foreground-only shots).
+  const rootStyle = isBgNoneHarness() ? [styles.root, styles.rootTransparent] : styles.root
   return (
-    <View style={styles.root}>
+    <View style={rootStyle}>
       <View style={[styles.canvas, { transform: [{ scale }] }]}>{children}</View>
     </View>
   )
@@ -25,6 +28,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bgDeep,
     overflow: 'hidden',
   },
+  rootTransparent: { backgroundColor: 'transparent' },
   canvas: {
     width: DESIGN.width,
     height: DESIGN.height,

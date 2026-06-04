@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from 'react-native'
 import { colors } from '../theme/tokens'
 import { HudHeader } from '../components/HudHeader'
 import { PrimaryButton } from '../components/PrimaryButton'
+import { RasterPlaceholder } from '../components/RasterPlaceholder'
 import { ScreenBackground } from '../components/ScreenBackground'
 
 // « Choix » (maquette frames 1:345 = 2 cards, 61:23581 = 3 cards): the player picks
@@ -41,7 +42,7 @@ function Card({ panelLeft, title, titleLeft, titleWidth }: ChoixCard): JSX.Eleme
       {/* Panel (maquette « Rectangle 9220/9222 » 555×531 #000@20% 2px white@50% r20). */}
       <View style={[styles.cardPanel, { left: panelLeft }]} />
       {/* Image placeholder (maquette 513×351 raster — not bundled, rule #3). */}
-      <View style={[styles.cardImage, { left: panelLeft + 21 }]} />
+      <RasterPlaceholder style={[styles.cardImage, { left: panelLeft + 21 }]} />
       {/* Title (maquette 36px/700 centre, textCase UPPER). */}
       <Text style={[styles.cardTitle, { left: titleLeft, width: titleWidth }]}>{title}</Text>
     </>
@@ -92,7 +93,6 @@ const styles = StyleSheet.create({
     top: 443,
     width: 513,
     height: 351,
-    backgroundColor: colors.imagePlaceholder,
     borderRadius: 20,
   },
   cardTitle: {
