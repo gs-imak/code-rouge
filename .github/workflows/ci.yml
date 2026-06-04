@@ -68,7 +68,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
@@ -77,7 +77,7 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
-      - uses: android-actions/setup-android@v3
+      - uses: android-actions/setup-android@v4
         with:
           # SDK + build-tools versions match the chantier-04-followup
           # `android/build.gradle` (RN 0.85 default). NDK is intentionally
@@ -87,7 +87,7 @@ jobs:
       # Cache gradle's user-home and the per-app .gradle dir. Gradle
       # downloads ~300 MB of dependencies on a cold build; this cuts the
       # warm-build install step from ~3 min to ~30 s.
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with:
           path: |
             ~/.gradle/caches
@@ -103,7 +103,7 @@ jobs:
       # produced a valid .apk; if the artifact slot is full the binary
       # is still available from the next successful run (3-day
       # retention) or from the v* GitHub Release for tagged versions.
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         continue-on-error: true
         with:
           name: code-rouge-apks
@@ -128,7 +128,7 @@ jobs:
           cache: 'pnpm'
       # electron-builder caches its downloaded electron binary here. The
       # path differs on Windows from Linux's ~/.cache/electron.
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with:
           path: ${{ env.LOCALAPPDATA }}/electron/Cache
           key: electron-builder-${{ runner.os }}-${{ hashFiles('apps/assaut/package.json') }}
@@ -139,7 +139,7 @@ jobs:
       # Best-effort upload — see the analogous note on the build-android
       # job above. Released versions are available via the v* GitHub
       # Release, not just CI artifacts.
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         continue-on-error: true
         with:
           name: code-rouge-assaut-exe
