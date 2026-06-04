@@ -2,6 +2,7 @@ import type { JSX } from 'react'
 import { StyleSheet, Text, View } from 'react-native'
 import { colors } from '../theme/tokens'
 import { HudHeader } from '../components/HudHeader'
+import { EnigmaPanel } from '../components/EnigmaPanel'
 import { PrimaryButton } from '../components/PrimaryButton'
 import { ScreenBackground } from '../components/ScreenBackground'
 import { ScreenTitle } from '../components/ScreenTitle'
@@ -17,7 +18,7 @@ export function TutoScreen(): JSX.Element {
       <ScreenBackground />
       {/* Énigme behind, dimmed by the scrim below. */}
       <ScreenTitle>Attaque du système de téléphonie</ScreenTitle>
-      <View style={styles.enigmePanel} />
+      <EnigmaPanel />
       {/* Full-screen scrim (maquette « Rectangle 9231 » [0,-15 1944×1388] #000@50%). */}
       <View style={styles.scrim} />
       {/* HUD, highlighted above the scrim. */}
@@ -38,18 +39,6 @@ export function TutoScreen(): JSX.Element {
 }
 
 const styles = StyleSheet.create({
-  // Énigme content panel (maquette « Rectangle 9220 » [72,181 1777×948]).
-  enigmePanel: {
-    position: 'absolute',
-    left: 72,
-    top: 181,
-    width: 1777,
-    height: 948,
-    backgroundColor: colors.panelDim,
-    borderWidth: 1.33,
-    borderColor: colors.panelStroke,
-    borderRadius: 21,
-  },
   scrim: { position: 'absolute', left: 0, top: -15, width: 1944, height: 1388, backgroundColor: colors.scrim },
   callout: { position: 'absolute', width: 2, backgroundColor: colors.white },
   label: {
