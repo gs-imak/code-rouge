@@ -1,243 +1,79 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import {
-  BackHandler,
-  Pressable,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native'
+import { useEffect, useMemo } from 'react'
+import { BackHandler, Platform, StatusBar, StyleSheet, View } from 'react-native'
 import { isKioskAvailable, startScreenPinning } from './kiosk'
 import { useGameState } from './persistence'
 import { useServerSync } from './sync'
 import { SERVER_WS_URL } from './config'
+import { MAILBOX, PARCOURS } from './content'
+import { colors } from './theme/tokens'
+import { FlowRunner } from './navigation/FlowRunner'
+import { useFlow } from './navigation/useFlow'
+import type { RunnerCtx } from './navigation/screen-registry'
 
-const APP_NAME = 'attaque-de-bots'
-
-const NEXT_STEP: Record<string, string> = {
-  init: 'phishing',
-  phishing: 'mailbox',
-  mailbox: 'firewall',
-  firewall: 'final',
-  final: 'final',
-}
-
+// Attaque de Bots root. Replaces the M1 team-select skeleton: the data-driven
+// flow engine renders the real 41-screen sequence (connexion → accueil → tuto →
+// choix → énigme chain incl. mailbox/phishing → fin), restoring the exact screen
+// on boot (immutable rule #4) and syncing progress to the NUC.
 export default function App() {
   const { state, setState, getLatest, ready } = useGameState()
-  const { connection, pushState } = useServerSync({
-    url: SERVER_WS_URL,
-    state,
-    setState,
+  const { pushState, pushLog } = useServerSync({ url: SERVER_WS_URL, state, setState, ready })
+  const { view, ready: flowReady, dispatch, submitTeam } = useFlow({
+    config: PARCOURS,
     ready,
+    getGameState: getLatest,
+    setGameState: setState,
+    pushLog,
   })
-  const [pinError, setPinError] = useState<string | null>(null)
-  const [pinned, setPinned] = useState(false)
-  const [draft, setDraft] = useState('')
 
-  // KNOWN: see chantier 04 review fix — once React Navigation lands,
-  // condition this on `!navigationRef.current?.canGoBack()`.
+  // Kiosk back button: inside a mailbox, BACK closes the open mail; everywhere
+  // else it is swallowed so the player cannot leave the flow (immutable rule #1).
   useEffect(() => {
-    const sub = BackHandler.addEventListener('hardwareBackPress', () => true)
-    return () => sub.remove()
-  }, [])
-
-  useEffect(() => {
-    if (!isKioskAvailable) {
-      setPinError(
-        'Kiosk module not linked — run a debug build with the Java/Kotlin sources in android/app/src/main/java/.../',
-      )
-      return
-    }
-    startScreenPinning()
-      .then(() => setPinned(true))
-      .catch((err: unknown) => setPinError(err instanceof Error ? err.message : String(err)))
-  }, [])
-
-  // Both callbacks read the latest state via getLatest() rather than
-  // closing over `state`. Otherwise a double-tap on Valider or Étape
-  // suivante races: the second call captures the SAME pre-first-write
-  // `state` from the closure, both writes compute from the same base,
-  // and the second clobbers the first with stale derivations.
-  const onSubmitTeam = useCallback(async () => {
-    const parsed = Number.parseInt(draft, 10)
-    if (!Number.isInteger(parsed) || parsed < 0) return
-    const current = getLatest()
-    await setState({
-      ...current,
-      teamId: parsed,
-      currentStep: current.currentStep === 'init' ? 'phishing' : current.currentStep,
-      lastSync: Date.now(),
+    // BackHandler is native-only (the web harness has no hardware back).
+    if (Platform.OS === 'web') return undefined
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      dispatch({ type: 'BACK' })
+      return true
     })
-    setDraft('')
+    return () => sub.remove()
+  }, [dispatch])
+
+  // Screen Pinning. In production the device is provisioned device-owner (pinning
+  // is persistent); in dev without it the call is best-effort.
+  useEffect(() => {
+    if (!isKioskAvailable) return
+    startScreenPinning().catch(() => {})
+  }, [])
+
+  // Push a snapshot to the NUC whenever committed progress changes (runs after
+  // render so teamId/currentStep/score are fresh). One push per transition —
+  // low-volume, within the WS remit (immutable rule #5).
+  useEffect(() => {
+    if (!ready || state.teamId === null) return
     pushState()
-  }, [draft, setState, getLatest, pushState])
+  }, [ready, state.teamId, state.currentStep, state.score, pushState])
 
-  const onStepForward = useCallback(async () => {
-    const current = getLatest()
-    const nextStep = NEXT_STEP[current.currentStep] ?? current.currentStep
-    await setState({ ...current, currentStep: nextStep, lastSync: Date.now() })
-    pushState()
-  }, [setState, getLatest, pushState])
+  const ctx = useMemo<RunnerCtx>(
+    () => ({ dispatch, onSubmitTeam: submitTeam, mails: MAILBOX.mails }),
+    [dispatch, submitTeam],
+  )
 
-  const headline = useMemo(() => {
-    if (!ready) return ''
-    if (state.teamId === null) return 'Connexion équipe'
-    return `Équipe ${state.teamId}`
-  }, [ready, state.teamId])
-
-  if (!ready) {
+  if (!ready || !flowReady) {
     return (
-      <View style={styles.screen}>
+      <View style={styles.boot}>
         <StatusBar hidden />
       </View>
     )
   }
 
   return (
-    <View style={styles.screen}>
+    <View style={styles.root}>
       <StatusBar hidden />
-      <Text style={styles.title}>{headline}</Text>
-      <Text style={styles.placeholder}>
-        {APP_NAME} · étape : {state.currentStep} · score : {state.score}
-      </Text>
-
-      {state.teamId === null ? (
-        <View style={styles.teamSelect}>
-          <TextInput
-            style={styles.input}
-            keyboardType="number-pad"
-            value={draft}
-            onChangeText={setDraft}
-            placeholder="ID équipe"
-            placeholderTextColor="#5a6469"
-            accessibilityLabel="Identifiant d'équipe"
-          />
-          <Pressable
-            accessibilityRole="button"
-            onPress={onSubmitTeam}
-            disabled={draft.length === 0}
-            style={({ pressed }) => [
-              styles.button,
-              draft.length === 0 && styles.buttonDisabled,
-              pressed && styles.buttonPressed,
-            ]}
-          >
-            <Text style={styles.buttonText}>Valider</Text>
-          </Pressable>
-        </View>
-      ) : (
-        <Pressable
-          accessibilityRole="button"
-          onPress={onStepForward}
-          style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
-        >
-          <Text style={styles.buttonText}>Étape suivante</Text>
-        </Pressable>
-      )}
-
-      <View style={styles.diagnostic} accessibilityLiveRegion="polite">
-        <Text style={[styles.dot, connection === 'connected' && styles.dotOk]}>
-          {connection === 'connected' ? '●' : connection === 'connecting' ? '◐' : '○'}
-        </Text>
-        <Text style={styles.diagnosticLabel}>
-          {connection === 'connected'
-            ? 'NUC connecté'
-            : connection === 'connecting'
-              ? 'NUC connexion…'
-              : 'NUC hors-ligne'}
-        </Text>
-      </View>
-
-      {pinError !== null && <Text style={styles.error}>⚠ {pinError}</Text>}
-      {pinned && <Text style={styles.ok}>✓ kiosk mode active</Text>}
+      <FlowRunner view={view} ctx={ctx} />
     </View>
   )
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#0a0d12',
-    padding: 32,
-  },
-  title: {
-    color: '#e6d4ad',
-    fontSize: 36,
-    fontWeight: '700',
-    letterSpacing: 2.4,
-    textAlign: 'center',
-  },
-  placeholder: {
-    color: '#8a9499',
-    fontSize: 14,
-    marginTop: 16,
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
-  },
-  teamSelect: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 32,
-    alignItems: 'center',
-  },
-  input: {
-    minWidth: 160,
-    minHeight: 48,
-    borderWidth: 2,
-    borderColor: '#e6d4ad',
-    color: '#e6d4ad',
-    fontSize: 24,
-    paddingHorizontal: 16,
-    textAlign: 'center',
-    letterSpacing: 4,
-  },
-  button: {
-    minHeight: 48,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    backgroundColor: '#e6d4ad',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 24,
-  },
-  buttonDisabled: { opacity: 0.4 },
-  buttonPressed: { backgroundColor: '#cfbe96' },
-  buttonText: {
-    color: '#0a0d12',
-    fontSize: 16,
-    fontWeight: '700',
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
-  },
-  diagnostic: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginTop: 24,
-  },
-  dot: { color: '#ff9090', fontSize: 16 },
-  dotOk: { color: '#7ee2a8' },
-  diagnosticLabel: {
-    color: '#8a9499',
-    fontSize: 12,
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
-  },
-  error: {
-    color: '#ff9090',
-    fontSize: 14,
-    marginTop: 32,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  ok: {
-    color: '#7ee2a8',
-    fontSize: 14,
-    marginTop: 32,
-    letterSpacing: 1.5,
-    textTransform: 'uppercase',
-  },
+  root: { flex: 1, backgroundColor: colors.bgDeep },
+  boot: { flex: 1, backgroundColor: colors.bgDeep },
 })

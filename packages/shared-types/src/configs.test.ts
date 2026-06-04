@@ -51,8 +51,8 @@ describe('parseParcoursConfig — negative paths', () => {
       parseParcoursConfig({
         schemaVersion: 1,
         variants: [
-          { id: 'A', steps: [{ id: 's1', kind: 'phishing', estimatedDurationSec: 60 }] },
-          { id: 'A', steps: [{ id: 's1', kind: 'phishing', estimatedDurationSec: 60 }] },
+          { id: 'A', steps: [{ id: 's1', kind: 'mdp', estimatedDurationSec: 60 }] },
+          { id: 'A', steps: [{ id: 's1', kind: 'mdp', estimatedDurationSec: 60 }] },
         ],
       }),
     ).toThrowError(/duplicate parcours variant id/)
@@ -76,10 +76,68 @@ describe('parseParcoursConfig — negative paths', () => {
     const result = parseParcoursConfig({
       schemaVersion: 1,
       variants: [
-        { id: 'A', steps: [{ id: 's1', kind: 'phishing', estimatedDurationSec: 60 }] },
+        { id: 'A', steps: [{ id: 's1', kind: 'mdp', estimatedDurationSec: 60 }] },
       ],
     })
     expect(result.variants[0]!.steps[0]!.config).toEqual({})
+  })
+
+  it('rejects a stale Assaut-leftover kind (firewall/patrol/etc.)', () => {
+    // Guards the M3 enum rework: the old placeholder kinds must no longer parse.
+    expect(() =>
+      parseParcoursConfig({
+        schemaVersion: 1,
+        variants: [
+          { id: 'A', steps: [{ id: 's1', kind: 'firewall', estimatedDurationSec: 60 }] },
+        ],
+      }),
+    ).toThrowError(ParcoursConfigError)
+  })
+})
+
+describe('ParcoursStep — typed énigme fields (M3 wiring)', () => {
+  const base = { id: 's1', kind: 'mdp' as const, estimatedDurationSec: 120 }
+
+  it('defaults points to 0 when omitted', () => {
+    const result = parseParcoursConfig({
+      schemaVersion: 1,
+      variants: [{ id: 'A', steps: [base] }],
+    })
+    expect(result.variants[0]!.steps[0]!.points).toBe(0)
+  })
+
+  it('leaves solution + maxAttempts undefined when omitted', () => {
+    const result = parseParcoursConfig({
+      schemaVersion: 1,
+      variants: [{ id: 'A', steps: [base] }],
+    })
+    expect(result.variants[0]!.steps[0]!.solution).toBeUndefined()
+    expect(result.variants[0]!.steps[0]!.maxAttempts).toBeUndefined()
+  })
+
+  it('round-trips solution, points and maxAttempts', () => {
+    const result = parseParcoursConfig({
+      schemaVersion: 1,
+      variants: [
+        {
+          id: 'A',
+          steps: [{ ...base, solution: 'SECTION13', points: 200, maxAttempts: 3 }],
+        },
+      ],
+    })
+    const step = result.variants[0]!.steps[0]!
+    expect(step.solution).toBe('SECTION13')
+    expect(step.points).toBe(200)
+    expect(step.maxAttempts).toBe(3)
+  })
+
+  it('rejects a negative points value', () => {
+    expect(() =>
+      parseParcoursConfig({
+        schemaVersion: 1,
+        variants: [{ id: 'A', steps: [{ ...base, points: -5 }] }],
+      }),
+    ).toThrowError(ParcoursConfigError)
   })
 })
 

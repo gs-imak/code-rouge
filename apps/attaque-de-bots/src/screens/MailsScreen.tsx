@@ -3,19 +3,21 @@ import { Image, StyleSheet, Text, View } from 'react-native'
 import { colors } from '../theme/tokens'
 import { HudHeader } from '../components/HudHeader'
 import { MailCard } from '../components/MailCard'
+import { PrimaryButton } from '../components/PrimaryButton'
 import { ScreenBackground } from '../components/ScreenBackground'
 import { ScreenTitle } from '../components/ScreenTitle'
+import type { MailReadingProps } from '../navigation/types'
 import actions from '../assets/mail-actions.png'
 import avatar from '../assets/mail-avatar.png'
 import star from '../assets/mail-star.png'
 import reply from '../assets/mail-reply.png'
 import forward from '../assets/mail-forward.png'
 
-// « Mails » (maquette frame 1:1292): an opened email inside the shared MailCard. The
-// subject / sender / body are the maquette placeholders, wired to the selected mail
-// (mailbox.json) later. The action-icon row, avatar, star/more and Reply/Forward
-// buttons are static Gmail chrome PNGs. All px = maquette coords.
-export function MailsScreen(): JSX.Element {
+// « Mails » (maquette frame 1:1292): an opened email. With no `mail` (dev Gallery) it
+// shows the maquette placeholders; in the running app it shows the selected mail's
+// subject / sender / body, plus a Retour button (the hardware back also closes it).
+// The Gmail chrome (action icons, avatar, reply/forward) stays static art.
+export function MailsScreen({ mail, onBack }: MailReadingProps = {}): JSX.Element {
   return (
     <>
       <ScreenBackground />
@@ -26,17 +28,18 @@ export function MailsScreen(): JSX.Element {
         <View style={styles.content} />
         <Image source={actions} style={styles.actions} resizeMode="contain" />
         <Text style={styles.subject} numberOfLines={1}>
-          Titre de l’email
+          {mail?.subject ?? 'Titre de l’email'}
         </Text>
         <Image source={avatar} style={styles.avatar} resizeMode="contain" />
         <Text style={styles.sender} numberOfLines={1}>
-          Nom du destinataire <Text style={styles.senderMail}>{'<randomdesign@gmail.com>'}</Text>
+          {mail?.from ?? 'Nom du destinataire'} <Text style={styles.senderMail}>{'<randomdesign@gmail.com>'}</Text>
         </Text>
         <Text style={styles.tome}>to me</Text>
         <Image source={star} style={styles.star} resizeMode="contain" />
-        <Text style={styles.body}>Message de l’email ...</Text>
+        <Text style={styles.body}>{mail?.body ?? 'Message de l’email ...'}</Text>
         <Image source={reply} style={styles.reply} resizeMode="contain" />
         <Image source={forward} style={styles.forward} resizeMode="contain" />
+        {onBack ? <PrimaryButton label="Retour" top={1082} left={791} onPress={onBack} /> : null}
       </MailCard>
     </>
   )

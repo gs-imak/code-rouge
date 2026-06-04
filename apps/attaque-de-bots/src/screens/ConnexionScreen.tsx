@@ -1,22 +1,31 @@
-import type { JSX } from 'react'
+import { useState, type JSX } from 'react'
 import { Image, StyleSheet, Text, TextInput, View } from 'react-native'
 import { colors } from '../theme/tokens'
 import { PrimaryButton } from '../components/PrimaryButton'
 import { ScreenBackground } from '../components/ScreenBackground'
+import type { ConnexionScreenProps } from '../navigation/types'
 import logo from '../assets/section13-logo-orange.png'
 
 // « Connexion » (maquette frame 1:60). Children absolutely positioned at exact
 // maquette px inside the 1920×1200 ScaledCanvas. The background is a raster photo
 // in the maquette — placeholder until the graphiste delivers it (immutable rule #3).
-export function ConnexionScreen(): JSX.Element {
+export function ConnexionScreen({ onSubmit }: ConnexionScreenProps = {}): JSX.Element {
+  const [code, setCode] = useState('')
   return (
     <>
       <ScreenBackground />
       <View style={styles.halo} />
       <Image source={logo} style={styles.logo} resizeMode="contain" />
       <Text style={styles.label}>Saisissez votre code de connexion :</Text>
-      <TextInput style={styles.input} />
-      <PrimaryButton label="Valider" top={959} />
+      <TextInput
+        style={styles.input}
+        value={code}
+        onChangeText={setCode}
+        keyboardType="number-pad"
+        onSubmitEditing={() => onSubmit?.(code)}
+        accessibilityLabel="Code de connexion"
+      />
+      <PrimaryButton label="Valider" top={959} onPress={() => onSubmit?.(code)} />
     </>
   )
 }

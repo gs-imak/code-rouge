@@ -1,9 +1,11 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   reconcile,
   type AppName,
   type GameState,
   type HelloMessage,
+  type LogEvent,
+  type LogPushMessage,
   type StateUpdateMessage,
 } from '@code-rouge/shared-types'
 import {
@@ -37,6 +39,12 @@ export interface UseServerSyncOptions {
 export interface UseServerSyncResult {
   readonly connection: ConnectionState
   readonly pushState: () => void
+  /**
+   * Push the accumulated event log to the NUC. Called once at end of session
+   * (immutable rule #5: WS is for low-volume, end-of-session sync). No-op while
+   * disconnected or before a team is assigned.
+   */
+  readonly pushLog: (events: readonly LogEvent[]) => void
   /** Server time at the most recent welcome — useful for clock-drift display. */
   readonly serverTime: number | null
 }
@@ -88,7 +96,9 @@ export function useServerSync(options: UseServerSyncOptions): UseServerSyncResul
     }
   }, [options.ready, options.url])
 
-  const pushState = (): void => {
+  // Stable across renders (reads live values via refs) so callers can list it in
+  // effect deps without re-subscribing every render.
+  const pushState = useCallback((): void => {
     const local = stateRef.current
     const client = clientRef.current
     if (client === null || local.teamId === null) return
@@ -102,7 +112,22 @@ export function useServerSync(options: UseServerSyncOptions): UseServerSyncResul
       timestamp: Date.now(),
     }
     client.send(update)
-  }
+  }, [])
 
-  return { connection, pushState, serverTime }
+  const pushLog = useCallback((events: readonly LogEvent[]): void => {
+    const local = stateRef.current
+    const client = clientRef.current
+    if (client === null || local.teamId === null || events.length === 0) return
+    const message: LogPushMessage = {
+      type: 'log',
+      app: APP,
+      deviceId: local.deviceId,
+      teamId: local.teamId,
+      // Schema caps events at 1000; keep the most recent if somehow over.
+      events: events.slice(-1000),
+    }
+    client.send(message)
+  }, [])
+
+  return { connection, pushState, pushLog, serverTime }
 }
