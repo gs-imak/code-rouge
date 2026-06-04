@@ -1,0 +1,46 @@
+import type { JSX } from 'react'
+import { Pressable, StyleSheet, Text } from 'react-native'
+import { colors } from '../theme/tokens'
+
+// The shared « Buttom » CTA (maquette: 337×80 r20, orange gradient #ff740d→#fb5344,
+// 34px/700 white centred label). The gradient is approximated by a solid accent for
+// now — react-native-linear-gradient lands when polishing. Positioned by the caller
+// at exact maquette px (left defaults to the canvas-centred 794; pass `top`). The
+// 80px height clears the 48dp touch-target floor. `onPress` is optional so the dev
+// gallery renders statically; screens wire navigation through it during BUILD.
+export function PrimaryButton({
+  label,
+  top,
+  left = 794,
+  width = 337,
+  color = colors.accent,
+  onPress,
+}: {
+  readonly label: string
+  readonly top: number
+  readonly left?: number
+  /** Override the 337px maquette default for the narrower per-énigme CTAs. */
+  readonly width?: number
+  /** Override the orange accent (e.g. the BDD red alert OK). */
+  readonly color?: string
+  readonly onPress?: () => void
+}): JSX.Element {
+  return (
+    <Pressable style={[styles.button, { top, left, width, backgroundColor: color }]} onPress={onPress}>
+      <Text style={styles.label}>{label}</Text>
+    </Pressable>
+  )
+}
+
+const styles = StyleSheet.create({
+  button: {
+    // backgroundColor comes from the `color` prop (defaults to colors.accent) so it
+    // is set inline, not here.
+    position: 'absolute',
+    height: 80,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  label: { color: colors.white, fontFamily: 'Roboto', fontSize: 34, fontWeight: '700' },
+})

@@ -1,0 +1,85 @@
+/// <reference lib="dom" />
+import type { JSX } from 'react'
+import { ScaledCanvas } from '../components/ScaledCanvas'
+import { AccueilScreen } from '../screens/AccueilScreen'
+import { AdminScreen } from '../screens/AdminScreen'
+import { BddLoadingScreen } from '../screens/BddLoadingScreen'
+import { BoiteMailsScreen } from '../screens/BoiteMailsScreen'
+import { CARDS_2, CARDS_3, ChoixScreen } from '../screens/ChoixScreen'
+import { ConnexionScreen } from '../screens/ConnexionScreen'
+import { FinScreen } from '../screens/FinScreen'
+import { FishingScreen } from '../screens/FishingScreen'
+import { MailsScreen } from '../screens/MailsScreen'
+import { MdpAccueilScreen } from '../screens/MdpAccueilScreen'
+import { MdpSaisieScreen } from '../screens/MdpSaisieScreen'
+import { ResAccueilScreen } from '../screens/ResAccueilScreen'
+import { ResSaisieScreen } from '../screens/ResSaisieScreen'
+import { BddAccueilScreen } from '../screens/BddAccueilScreen'
+import { BddScreen } from '../screens/BddScreen'
+import { Dd2AccueilScreen } from '../screens/Dd2AccueilScreen'
+import { Dd2Screen } from '../screens/Dd2Screen'
+import { DdAccueilScreen } from '../screens/DdAccueilScreen'
+import { DdScreen } from '../screens/DdScreen'
+import { FinaleScreen } from '../screens/FinaleScreen'
+import { LecAccueilScreen } from '../screens/LecAccueilScreen'
+import { LecScreen } from '../screens/LecScreen'
+import { PiratageScreen } from '../screens/PiratageScreen'
+import { ServeursScreen } from '../screens/ServeursScreen'
+import { SrvAccueilScreen } from '../screens/SrvAccueilScreen'
+import { TelAccueilScreen } from '../screens/TelAccueilScreen'
+import { TelSaisieScreen } from '../screens/TelSaisieScreen'
+import { TutoScreen } from '../screens/TutoScreen'
+
+// DEV-ONLY web gallery (react-native-web harness). `?screen=<name>` renders one
+// screen inside the ScaledCanvas so it can be screenshot + pixel-diffed against
+// the Figma maquette — the Assaut `?screen=` loop, adapted for RN. Never bundled
+// into the native app (Metro builds from index.js → App).
+const SCREENS: Record<string, () => JSX.Element> = {
+  connexion: () => <ConnexionScreen />,
+  accueil: () => <AccueilScreen />,
+  tuto: () => <TutoScreen />,
+  choix: () => <ChoixScreen cards={CARDS_2} />,
+  choix3: () => <ChoixScreen cards={CARDS_3} />,
+  boitemails: () => <BoiteMailsScreen />,
+  mails: () => <MailsScreen />,
+  fishing: () => <FishingScreen />,
+  fin: () => <FinScreen />,
+  admin: () => <AdminScreen />,
+  'mdp-accueil': () => <MdpAccueilScreen />,
+  'mdp-saisie': () => <MdpSaisieScreen />,
+  'tel-accueil': () => <TelAccueilScreen />,
+  'tel-saisie': () => <TelSaisieScreen />,
+  'res-accueil': () => <ResAccueilScreen />,
+  'res-saisie': () => <ResSaisieScreen />,
+  'srv-accueil': () => <SrvAccueilScreen />,
+  'srv-saisie': () => <ServeursScreen state="saisie" />,
+  'srv-success': () => <ServeursScreen state="success" />,
+  'srv-error': () => <ServeursScreen state="error" />,
+  'dd-accueil': () => <DdAccueilScreen />,
+  'dd-saisie': () => <DdScreen state="saisie" />,
+  'dd-success': () => <DdScreen state="success" />,
+  'dd-error': () => <DdScreen state="error" />,
+  'dd2-accueil': () => <Dd2AccueilScreen />,
+  'dd2-saisie': () => <Dd2Screen state="saisie" />,
+  'dd2-success': () => <Dd2Screen state="success" />,
+  'dd2-error': () => <Dd2Screen state="error" />,
+  'bdd-accueil': () => <BddAccueilScreen />,
+  'bdd-loading': () => <BddLoadingScreen />,
+  'bdd-saisie': () => <BddScreen state="saisie" />,
+  'bdd-success': () => <BddScreen state="success" />,
+  'bdd-error': () => <BddScreen state="error" />,
+  'lec-accueil': () => <LecAccueilScreen />,
+  'lec-saisie': () => <LecScreen state="saisie" />,
+  'lec-success': () => <LecScreen state="success" />,
+  'lec-error': () => <LecScreen state="error" />,
+  'finale-saisie': () => <FinaleScreen state="saisie" />,
+  'finale-success': () => <FinaleScreen state="success" />,
+  'finale-error': () => <FinaleScreen state="error" />,
+  piratage: () => <PiratageScreen />,
+}
+
+export function Gallery(): JSX.Element {
+  const name = new URLSearchParams(window.location.search).get('screen') ?? 'connexion'
+  const render = SCREENS[name]
+  return <ScaledCanvas>{render ? render() : <ConnexionScreen />}</ScaledCanvas>
+}

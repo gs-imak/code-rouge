@@ -84,3 +84,6 @@ BOOTSTRAP.md
 
 # Figma reference renders (re-fetchable anytime via the REST API)
 .figma-ref/
+
+# Vite web-harness output
+apps/*/.vite-web/

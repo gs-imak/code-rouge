@@ -1,0 +1,71 @@
+import type { JSX } from 'react'
+import { Image, StyleSheet, Text, View } from 'react-native'
+import { colors } from '../theme/tokens'
+import logo from '../assets/section13-logo-header.png'
+import email from '../assets/icon-email.png'
+import stopwatch from '../assets/icon-stopwatch.png'
+
+// Shared HUD bar (maquette « Header » instance, 1920×87) sitting at the top of the
+// énigme / Choix / Tuto screens: SECTION13 logo + mail-notification icon (left),
+// the score gauge « 320pt » and stopwatch « 10:05 » timer (right), over a bottom
+// divider. Score + timer are props so the live game state can drive them; they
+// default to the maquette values so the static pixel-diff matches. Gauge gradients
+// are approximated solid (gradient lib is a polishing follow-up). Children are
+// absolutely positioned at exact maquette px inside the 1920×1200 canvas.
+export function HudHeader({
+  score = '320',
+  timer = '10:05',
+}: {
+  readonly score?: string
+  readonly timer?: string
+}): JSX.Element {
+  return (
+    <>
+      {/* Timer box fill (maquette « Rectangle 9226 » [1681,0 239×87] white@17%). */}
+      <View style={styles.timerBox} />
+      {/* Bottom divider (maquette « Line 23 » [34,87 1633] white@30% ~2.67px). */}
+      <View style={styles.divider} />
+      {/* SECTION13 logo lockup (maquette « logo » [27,15 242×58]). */}
+      <Image source={logo} style={styles.logo} resizeMode="contain" />
+      {/* Mail / notifications icon (maquette « Email 1 » [266,-10 100×100], white). */}
+      <Image source={email} style={styles.email} resizeMode="contain" />
+      {/* Score gauge track + fill (maquette « Jauge » [1258,29 264×27] / [1263,32 109×20]). */}
+      <View style={styles.jaugeTrack} />
+      <View style={styles.jaugeFill} />
+      {/* « 320pt » (maquette [1537,4] 53px/700, « pt » smaller). */}
+      <Text style={styles.score}>
+        {score}
+        <Text style={styles.scorePt}>pt</Text>
+      </Text>
+      {/* Stopwatch glyph over an orange dot (maquette « Ellipse 308 » + « stopwatch 1 »). */}
+      <View style={styles.timerDot} />
+      <Image source={stopwatch} style={styles.stopwatch} resizeMode="contain" />
+      {/* « 10:05 » (maquette « Timer » [1759,4 136×83] 45px/600 centre). */}
+      <Text style={styles.timer}>{timer}</Text>
+    </>
+  )
+}
+
+const styles = StyleSheet.create({
+  timerBox: { position: 'absolute', left: 1681, top: 0, width: 239, height: 87, backgroundColor: colors.timerBox },
+  divider: { position: 'absolute', left: 34, top: 86, width: 1633, height: 3, backgroundColor: colors.divider },
+  logo: { position: 'absolute', left: 27, top: 15, width: 242, height: 58 },
+  email: { position: 'absolute', left: 266, top: -10, width: 100, height: 100, tintColor: colors.white },
+  jaugeTrack: { position: 'absolute', left: 1258, top: 29, width: 264, height: 27, borderRadius: 13.5, backgroundColor: colors.jaugeTrack },
+  jaugeFill: { position: 'absolute', left: 1263, top: 32, width: 109, height: 20, borderRadius: 10, backgroundColor: colors.jaugeFill },
+  score: { position: 'absolute', left: 1537, top: 11, width: 160, color: colors.white, fontFamily: 'Roboto', fontSize: 53, fontWeight: '700' },
+  scorePt: { fontSize: 26, fontWeight: '700' },
+  timerDot: { position: 'absolute', left: 1714, top: 30, width: 35, height: 34, borderRadius: 17, backgroundColor: colors.accent },
+  stopwatch: { position: 'absolute', left: 1703, top: 14, width: 59, height: 59 },
+  timer: {
+    position: 'absolute',
+    left: 1759,
+    top: 18,
+    width: 136,
+    textAlign: 'center',
+    color: colors.white,
+    fontFamily: 'Roboto',
+    fontSize: 45,
+    fontWeight: '600',
+  },
+})

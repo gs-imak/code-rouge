@@ -1,0 +1,53 @@
+import type { JSX } from 'react'
+import { Image, StyleSheet, Text } from 'react-native'
+import { colors } from '../theme/tokens'
+import { EnigmaPanel } from '../components/EnigmaPanel'
+import { HudHeader } from '../components/HudHeader'
+import { PrimaryButton } from '../components/PrimaryButton'
+import { ScreenBackground } from '../components/ScreenBackground'
+import { ScreenTitle } from '../components/ScreenTitle'
+import row from '../assets/bdd-row.png'
+import rowOk from '../assets/bdd-row-ok.png'
+import rowErr from '../assets/bdd-row-err.png'
+import rowOk2 from '../assets/bdd-row-ok2.png'
+import rowErr2 from '../assets/bdd-row-err2.png'
+
+// « Saisie solution BDD » (maquette 1:1175 / success 41:6385 / error 41:6117): pick the
+// 4 servers holding the databases to share. The server grid is static maquette art per
+// state — one row on saisie, two rows on success / error (which also tint the panel +
+// add a message + Continuer / Recommancer).
+type BddState = 'saisie' | 'success' | 'error'
+
+const PANEL: Record<BddState, string | undefined> = { saisie: undefined, success: colors.panelSuccess, error: colors.panelError }
+const ROW: Record<BddState, number> = { saisie: row, success: rowOk, error: rowErr }
+const ROW2: Record<BddState, number | undefined> = { saisie: undefined, success: rowOk2, error: rowErr2 }
+
+export function BddScreen({ state = 'saisie' }: { readonly state?: BddState } = {}): JSX.Element {
+  const row2 = ROW2[state]
+  return (
+    <>
+      <ScreenBackground />
+      <HudHeader />
+      <ScreenTitle>Bases de données attaquées</ScreenTitle>
+      <EnigmaPanel fill={PANEL[state]} />
+      <Text style={styles.instruction}>Sélectionnez les 4 serveurs contenant les bases de données à partager</Text>
+      <Image source={ROW[state]} style={styles.row} resizeMode="contain" />
+      {row2 ? <Image source={row2} style={styles.row2} resizeMode="contain" /> : null}
+      {state === 'success' ? <Text style={styles.msg}>Félicitation, vous avez trouvé la bonne réponse !</Text> : null}
+      {state === 'error' ? <Text style={styles.msg}>Votre solution n’est pas correcte</Text> : null}
+      {state === 'saisie' ? <PrimaryButton label="Valider" top={989} /> : null}
+      {state === 'success' ? <PrimaryButton label="Continuer" top={1044} /> : null}
+      {state === 'error' ? <PrimaryButton label="Recommancer" top={1044} /> : null}
+    </>
+  )
+}
+
+const styles = StyleSheet.create({
+  // (maquette [514,234 893×79] 46px/700 centre).
+  instruction: { position: 'absolute', left: 514, top: 234, width: 893, textAlign: 'center', color: colors.white, fontFamily: 'Roboto', fontSize: 46, fontWeight: '700', lineHeight: 79 },
+  // Server rows (maquette « Frame 23440/23441 » [404,375] / [404,676], 1113×245).
+  row: { position: 'absolute', left: 404, top: 375, width: 1113, height: 245 },
+  row2: { position: 'absolute', left: 404, top: 676, width: 1113, height: 245 },
+  // Success / error message (maquette ~[.,933] 44px/700 centre, centred on 960).
+  msg: { position: 'absolute', left: 330, top: 933, width: 1261, textAlign: 'center', color: colors.white, fontFamily: 'Roboto', fontSize: 44, fontWeight: '700' },
+})

@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>attaque-de-bots — web harness (RNW)</title>
+    <style>
+      /* Roboto for the web harness so the pixel-diff is fair (matches the maquette
+         typeface). Native font bundling is a separate task. */
+      @font-face {
+        font-family: 'Roboto';
+        font-style: normal;
+        font-weight: 100 900;
+        font-display: block;
+        src: url('/src/assets/roboto-latin-wght-normal.woff2') format('woff2');
+      }
+      html,
+      body,
+      #root {
+        margin: 0;
+        height: 100%;
+        width: 100%;
+        background: #0a0d12;
+      }
+      #root {
+        display: flex;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.web.tsx"></script>
+  </body>
+</html>
