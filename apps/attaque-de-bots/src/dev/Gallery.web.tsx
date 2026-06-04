@@ -9,6 +9,8 @@ import { ConnexionScreen } from '../screens/ConnexionScreen'
 import { FinScreen } from '../screens/FinScreen'
 import { FishingScreen } from '../screens/FishingScreen'
 import { MailsScreen } from '../screens/MailsScreen'
+import { MdpAccueilScreen } from '../screens/MdpAccueilScreen'
+import { MdpSaisieScreen } from '../screens/MdpSaisieScreen'
 import { TutoScreen } from '../screens/TutoScreen'
 
 // DEV-ONLY web gallery (react-native-web harness). `?screen=<name>` renders one
@@ -26,6 +28,8 @@ const SCREENS: Record<string, () => JSX.Element> = {
   fishing: () => <FishingScreen />,
   fin: () => <FinScreen />,
   admin: () => <AdminScreen />,
+  'mdp-accueil': () => <MdpAccueilScreen />,
+  'mdp-saisie': () => <MdpSaisieScreen />,
 }
 
 export function Gallery(): JSX.Element {
