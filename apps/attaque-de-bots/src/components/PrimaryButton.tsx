@@ -12,15 +12,18 @@ export function PrimaryButton({
   label,
   top,
   left = 794,
+  width = 337,
   onPress,
 }: {
   readonly label: string
   readonly top: number
   readonly left?: number
+  /** Override the 337px maquette default for the narrower per-énigme CTAs. */
+  readonly width?: number
   readonly onPress?: () => void
 }): JSX.Element {
   return (
-    <Pressable style={[styles.button, { top, left }]} onPress={onPress}>
+    <Pressable style={[styles.button, { top, left, width }]} onPress={onPress}>
       <Text style={styles.label}>{label}</Text>
     </Pressable>
   )
@@ -29,7 +32,6 @@ export function PrimaryButton({
 const styles = StyleSheet.create({
   button: {
     position: 'absolute',
-    width: 337,
     height: 80,
     borderRadius: 20,
     backgroundColor: colors.accent,
