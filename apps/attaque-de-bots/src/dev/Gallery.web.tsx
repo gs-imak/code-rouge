@@ -22,6 +22,7 @@ import { DdScreen } from '../screens/DdScreen'
 import { FinaleScreen } from '../screens/FinaleScreen'
 import { LecAccueilScreen } from '../screens/LecAccueilScreen'
 import { LecScreen } from '../screens/LecScreen'
+import { PiratageScreen } from '../screens/PiratageScreen'
 import { ServeursScreen } from '../screens/ServeursScreen'
 import { SrvAccueilScreen } from '../screens/SrvAccueilScreen'
 import { TelAccueilScreen } from '../screens/TelAccueilScreen'
@@ -72,6 +73,7 @@ const SCREENS: Record<string, () => JSX.Element> = {
   'finale-saisie': () => <FinaleScreen state="saisie" />,
   'finale-success': () => <FinaleScreen state="success" />,
   'finale-error': () => <FinaleScreen state="error" />,
+  piratage: () => <PiratageScreen />,
 }
 
 export function Gallery(): JSX.Element {
