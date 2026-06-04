@@ -19,6 +19,7 @@ import { Dd2AccueilScreen } from '../screens/Dd2AccueilScreen'
 import { Dd2Screen } from '../screens/Dd2Screen'
 import { DdAccueilScreen } from '../screens/DdAccueilScreen'
 import { DdScreen } from '../screens/DdScreen'
+import { FinaleScreen } from '../screens/FinaleScreen'
 import { LecAccueilScreen } from '../screens/LecAccueilScreen'
 import { LecScreen } from '../screens/LecScreen'
 import { ServeursScreen } from '../screens/ServeursScreen'
@@ -68,6 +69,9 @@ const SCREENS: Record<string, () => JSX.Element> = {
   'lec-saisie': () => <LecScreen state="saisie" />,
   'lec-success': () => <LecScreen state="success" />,
   'lec-error': () => <LecScreen state="error" />,
+  'finale-saisie': () => <FinaleScreen state="saisie" />,
+  'finale-success': () => <FinaleScreen state="success" />,
+  'finale-error': () => <FinaleScreen state="error" />,
 }
 
 export function Gallery(): JSX.Element {
