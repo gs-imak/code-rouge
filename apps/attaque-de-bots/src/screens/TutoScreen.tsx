@@ -4,6 +4,7 @@ import { colors } from '../theme/tokens'
 import { HudHeader } from '../components/HudHeader'
 import { PrimaryButton } from '../components/PrimaryButton'
 import { ScreenBackground } from '../components/ScreenBackground'
+import { ScreenTitle } from '../components/ScreenTitle'
 
 // « Tuto » (maquette frame 1:222): a one-time overlay that explains the HUD before
 // the first énigme. The énigme behind (title + content panel) is dimmed by a
@@ -15,7 +16,7 @@ export function TutoScreen(): JSX.Element {
     <>
       <ScreenBackground />
       {/* Énigme behind, dimmed by the scrim below. */}
-      <Text style={styles.enigmeTitle}>Attaque du système de téléphonie</Text>
+      <ScreenTitle>Attaque du système de téléphonie</ScreenTitle>
       <View style={styles.enigmePanel} />
       {/* Full-screen scrim (maquette « Rectangle 9231 » [0,-15 1944×1388] #000@50%). */}
       <View style={styles.scrim} />
@@ -37,21 +38,6 @@ export function TutoScreen(): JSX.Element {
 }
 
 const styles = StyleSheet.create({
-  // Énigme title behind the scrim (maquette [663,87 594×94] 32px/700, textCase UPPER).
-  // lineHeight = box height so the glyph centres vertically in the 94px box like Figma.
-  enigmeTitle: {
-    position: 'absolute',
-    left: 663,
-    top: 87,
-    width: 594,
-    textAlign: 'center',
-    textTransform: 'uppercase',
-    color: colors.white,
-    fontFamily: 'Roboto',
-    fontSize: 32,
-    fontWeight: '700',
-    lineHeight: 94,
-  },
   // Énigme content panel (maquette « Rectangle 9220 » [72,181 1777×948]).
   enigmePanel: {
     position: 'absolute',

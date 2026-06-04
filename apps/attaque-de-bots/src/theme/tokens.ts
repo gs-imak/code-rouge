@@ -36,6 +36,17 @@ export const colors = {
   jaugeFill: '#FFAC53',
   /** Énigme card image placeholder (licensed raster not bundled — rule #3). */
   imagePlaceholder: '#2A2A30',
+  /** Gmail-mimic mailbox card (maquette « Boite Mails » / « Mails »). */
+  mailPanel: '#F7F8FC',
+  mailContent: '#FFFFFF',
+  mailRowUnread: '#F2F5FC',
+  mailText: '#333333',
+  mailTextMuted: '#6D6E70',
+  mailDate: '#414244',
+  mailDivider: '#E0E0E0',
+  mailHeading: '#64686C',
+  mailCheck: '#333333',
+  mailCheckMuted: '#BDBDBD',
 } as const
 
 export const typography = {
