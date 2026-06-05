@@ -5,8 +5,8 @@ import {
   type AssautSequenceConfig,
   type GameState,
 } from '@code-rouge/shared-types'
-import { advance, applyChoice, createSession } from './assaut-sequence'
-import { projectToGameState, restoreSession } from './session-bridge'
+import { advance, applyChoice, createSession, serializeSession } from './assaut-sequence'
+import { initialSession, projectToGameState, restoreSession } from './session-bridge'
 
 function buildConfig(): AssautSequenceConfig {
   return parseAssautSequenceConfig({
@@ -76,5 +76,52 @@ describe('projectToGameState', () => {
     s = advance(config, s) // epilogue → complete
     const gs = projectToGameState(s, DEFAULT_GAME_STATE)
     expect(gs.currentStep).toBe('epilogue')
+  })
+})
+
+describe('initialSession', () => {
+  it('restores the exact session (choices + visited) from a valid blob', () => {
+    const config = buildConfig()
+    const played = applyChoice(config, createSession(config), 'frontale') // choice recorded, → debut
+    const blob = serializeSession(played)
+    // GameState carries no progress — only the blob does.
+    expect(initialSession(config, blob, DEFAULT_GAME_STATE)).toEqual(played)
+    // The blob is the source of truth for choices/visited that GameState can't carry.
+    expect(initialSession(config, blob, DEFAULT_GAME_STATE).choices).toEqual({ approche: 'frontale' })
+  })
+
+  it('restores a completed session (currentStepId null) from a blob', () => {
+    const config = buildConfig()
+    let s = applyChoice(config, createSession(config), 'frontale')
+    s = advance(config, s) // debut → patrouille
+    s = advance(config, s) // patrouille → epilogue
+    s = advance(config, s) // epilogue → complete
+    expect(s.currentStepId).toBeNull()
+    expect(initialSession(config, serializeSession(s), DEFAULT_GAME_STATE)).toEqual(s)
+  })
+
+  it('falls back to the GameState reposition when the blob is null', () => {
+    const config = buildConfig()
+    const gs: GameState = { ...DEFAULT_GAME_STATE, currentStep: 'patrouille', score: 40 }
+    expect(initialSession(config, null, gs)).toEqual(restoreSession(config, gs))
+  })
+
+  it('falls back when the blob is corrupt', () => {
+    const config = buildConfig()
+    const gs: GameState = { ...DEFAULT_GAME_STATE, currentStep: 'debut', score: 20 }
+    expect(initialSession(config, '{ not json', gs)).toEqual(restoreSession(config, gs))
+  })
+
+  it('falls back when the blob references a step absent from the config', () => {
+    const config = buildConfig()
+    // A valid-shaped session whose step no longer exists (config edited between runs).
+    const orphan = serializeSession({
+      phase: 'assault',
+      currentStepId: 'ghost-step',
+      choices: {},
+      dataRecoveredPercent: 30,
+      visited: ['ghost-step'],
+    })
+    expect(initialSession(config, orphan, DEFAULT_GAME_STATE)).toEqual(createSession(config))
   })
 })

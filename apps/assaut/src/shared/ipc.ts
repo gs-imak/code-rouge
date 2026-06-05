@@ -20,6 +20,8 @@ export const IpcChannel = {
   GetGameState: 'app:get-game-state',
   SetGameState: 'app:set-game-state',
   GetSequenceConfig: 'app:get-sequence-config',
+  GetSession: 'app:get-session',
+  SetSession: 'app:set-session',
 } as const
 export type IpcChannel = (typeof IpcChannel)[keyof typeof IpcChannel]
 
@@ -46,6 +48,13 @@ export type SetGameStateResponse = z.infer<typeof SetGameStateResponse>
 // the renderer. The renderer re-validates with AssautSequenceConfig.parse.
 export { AssautSequenceConfig as GetSequenceConfigResponse }
 
+// Serialized AssautSession blob (engine choices + visit history) for exact resume.
+// `null` when no session has been committed yet (fresh install / post-reset).
+// Opaque string at the IPC boundary — the renderer's deserializeSession Zod-validates
+// the inner shape, so main need only check it's a string-or-null.
+export const SessionBlob = z.string().nullable()
+export type SessionBlob = z.infer<typeof SessionBlob>
+
 // ----- Bridge surface --------------------------------------------------------
 // Exact shape of `window.assaut` injected by the preload script. Keep narrow:
 // only what the renderer is allowed to call. Never leak `ipcRenderer` itself.
@@ -56,4 +65,8 @@ export interface AssautBridge {
   readonly setGameState: (next: GameState) => Promise<SetGameStateResponse>
   /** Load the data-driven Assaut sequence config (read from disk by main). */
   readonly getSequenceConfig: () => Promise<AssautSequenceConfig>
+  /** Read the persisted full-session blob (null if none committed yet). */
+  readonly getSession: () => Promise<SessionBlob>
+  /** Persist the full-session blob (or null to clear it). */
+  readonly setSession: (blob: SessionBlob) => Promise<SetGameStateResponse>
 }

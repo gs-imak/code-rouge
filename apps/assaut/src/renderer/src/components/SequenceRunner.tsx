@@ -32,6 +32,15 @@ export interface SequenceRunnerProps {
   /** Team label for the welcome screen (content; placeholder until real data). */
   readonly teamName?: string
   readonly nucConnection?: ConnectionState
+  /**
+   * Real game: submit the entry point to the GM over WS instead of advancing
+   * linearly — the engine then waits for `access-result` to drive the
+   * Validation/Refus screens. Absent in the dev gallery / DevFlow (no WS), where
+   * point-d'entrée advances linearly so the flow stays click-through testable.
+   */
+  readonly onSubmitAccessPoint?: (point: string) => void
+  /** GM-issued authorisation code that pre-fills the « attente code MG » screen. */
+  readonly mgCode?: string | null
 }
 
 const OVERLAY_STYLE: CSSProperties = {
@@ -56,6 +65,24 @@ function formatTimer(seconds: number | undefined): string {
   return `${m}:${String(s).padStart(2, '0')}`
 }
 
+// Live per-step countdown: ticks the step's `timerSec` down once a second,
+// resetting whenever the step changes and holding at 0 (timer-end → flow advance
+// is content/CDC, not invented here). Steps with no `timerSec` keep the maquette
+// default label. The timer is ephemeral UI state — a restore restarts it from the
+// step's nominal duration rather than resuming a remembered remainder.
+function useCountdown(totalSeconds: number | undefined, stepId: string): number | undefined {
+  const [remaining, setRemaining] = useState(totalSeconds)
+  useEffect(() => {
+    setRemaining(totalSeconds)
+    if (totalSeconds === undefined) return undefined
+    const id = setInterval(() => {
+      setRemaining((r) => (r === undefined || r <= 0 ? r : r - 1))
+    }, 1000)
+    return () => clearInterval(id)
+  }, [totalSeconds, stepId])
+  return remaining
+}
+
 function extractResponses(config: Record<string, unknown>): AssautResponse[] {
   const raw = config['responses']
   if (!Array.isArray(raw)) return []
@@ -73,6 +100,8 @@ export function SequenceRunner({
   onAuthCodeChange,
   teamName = 'Opérateurs',
   nucConnection,
+  onSubmitAccessPoint,
+  mgCode,
 }: SequenceRunnerProps): JSX.Element {
   // Transient per-step input + selection, reset whenever the step changes.
   const [panelInput, setPanelInput] = useState('')
@@ -82,7 +111,8 @@ export function SequenceRunner({
     setSelected(null)
   }, [step.id])
 
-  const timerLabel = formatTimer('timerSec' in step ? step.timerSec : undefined)
+  const remaining = useCountdown('timerSec' in step ? step.timerSec : undefined, step.id)
+  const timerLabel = formatTimer(remaining)
 
   switch (step.kind) {
     case 'saisie-acces':
@@ -121,7 +151,7 @@ export function SequenceRunner({
           text="Veuillez saisir le point d'entrée dans la planque que vous souhaitez soumettre à approbation."
           input={{ label: "Saisir le point d'entrée :", value: panelInput, onChange: setPanelInput }}
           buttonLabel="Valider"
-          onSubmit={() => onSubmit()}
+          onSubmit={() => (onSubmitAccessPoint ? onSubmitAccessPoint(panelInput) : onSubmit())}
         />
       )
 
@@ -166,7 +196,9 @@ export function SequenceRunner({
           text="Veuillez saisir le code d'autorisation pour lancer l'assaut sur la planque."
           input={{
             label: "Saisissez le code d'autorisation :",
-            value: panelInput,
+            // The GM transmits the code over WS (mg-code); show it once it arrives,
+            // else the team's own typing while they wait.
+            value: mgCode ?? panelInput,
             onChange: setPanelInput,
           }}
           buttonLabel="Valider"

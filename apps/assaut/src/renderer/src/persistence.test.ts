@@ -26,6 +26,8 @@ function makeBridge(setGameStateImpl: AssautBridge['setGameState']): AssautBridg
     setGameState: setGameStateImpl,
     getAppVersion: vi.fn(async () => ({ app: '0.0.0' })),
     getSequenceConfig: vi.fn(async () => parseAssautSequenceConfig(sequence)),
+    getSession: vi.fn(async () => null),
+    setSession: vi.fn(async () => OK),
   }
 }
 

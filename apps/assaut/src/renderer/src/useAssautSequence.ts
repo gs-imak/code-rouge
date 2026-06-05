@@ -1,21 +1,33 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import type { AssautSequenceConfig } from '@code-rouge/shared-types'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import type { AssautSequenceConfig, GameState } from '@code-rouge/shared-types'
 import {
   advance,
   applyChoice,
-  createSession,
   currentStep,
+  serializeSession,
   type AssautPhase,
   type AssautSession,
 } from './engine/assaut-sequence'
+import { initialSession } from './engine/session-bridge'
 
 // React glue over the pure Assaut engine (engine/assaut-sequence.ts is headless +
 // unit-tested; per Senior-Reviewer rule #3 the hook holds no business logic). The
-// flow config is loaded at runtime over the `GetSequenceConfig` IPC channel (main
-// reads assets/config/sequence.json via fs + Zod). Without the Electron bridge
-// (browser screenshot harness / dev gallery) the hook stays dormant and the host
-// renders the entry screen by default. Restoring a persisted session (choices +
-// visit history) is the follow-up slice; the baseline is a fresh session.
+// flow config loads over the `GetSequenceConfig` IPC channel. On boot the hook now
+// resumes the EXACT session (choices + visit history) from the persisted blob
+// (`getSession`), falling back to the GameState step+score reposition; every
+// transition re-persists the blob (`setSession`) and projects to GameState via
+// `onCommit` (for NUC sync + the cross-app restore). Without the Electron bridge
+// (browser harness / dev gallery) the hook stays dormant and the host renders the
+// entry screen.
+
+export interface UseAssautSequenceOptions {
+  /** Gate the boot until the persisted GameState is loaded (no restore-from-defaults race). */
+  readonly ready: boolean
+  /** Persisted GameState — the step+score fallback when no full-session blob exists. */
+  readonly initialGameState: GameState
+  /** Fires after every committed session change, for GameState projection + NUC push. */
+  readonly onCommit?: (session: AssautSession) => void
+}
 
 export interface UseAssautSequenceResult {
   readonly ready: boolean
@@ -26,46 +38,74 @@ export interface UseAssautSequenceResult {
   readonly choose: (choiceId: string) => void
 }
 
-export function useAssautSequence(): UseAssautSequenceResult {
+export function useAssautSequence(options: UseAssautSequenceOptions): UseAssautSequenceResult {
   const [config, setConfig] = useState<AssautSequenceConfig | null>(null)
   const [session, setSession] = useState<AssautSession | null>(null)
+  // Refs mirror the latest config/session so the action callbacks read fresh
+  // values without re-creating each transition, and so the persist/project side
+  // effects run OUTSIDE the setState updater (which must stay pure).
+  const configRef = useRef<AssautSequenceConfig | null>(null)
+  const sessionRef = useRef<AssautSession | null>(null)
+  const gameStateRef = useRef<GameState>(options.initialGameState)
+  gameStateRef.current = options.initialGameState
+  const onCommitRef = useRef(options.onCommit)
+  onCommitRef.current = options.onCommit
 
+  // Boot once, after the persisted GameState is ready. Loads the flow config + the
+  // full-session blob and resumes the exact session (initialSession).
   useEffect(() => {
+    if (!options.ready || configRef.current !== null) return undefined
     const bridge = window.assaut
     if (bridge === undefined) return undefined
     let cancelled = false
-    bridge
-      .getSequenceConfig()
-      .then((cfg) => {
+    Promise.all([bridge.getSequenceConfig(), bridge.getSession().catch(() => null)])
+      .then(([cfg, blob]) => {
         if (cancelled) return
+        const restored = initialSession(cfg, blob, gameStateRef.current)
+        configRef.current = cfg
+        sessionRef.current = restored
         setConfig(cfg)
-        setSession(createSession(cfg))
+        setSession(restored)
       })
       .catch((err: unknown) => {
         // eslint-disable-next-line no-console
-        console.error('[sequence] getSequenceConfig failed:', err)
+        console.error('[sequence] boot failed:', err)
       })
     return () => {
       cancelled = true
     }
+  }, [options.ready])
+
+  // Commit a transition: update state + ref, persist the full-session blob, and
+  // project to GameState via onCommit. One path for both advance and choose.
+  const commit = useCallback((next: AssautSession) => {
+    sessionRef.current = next
+    setSession(next)
+    window.assaut?.setSession(serializeSession(next)).catch((err: unknown) => {
+      // eslint-disable-next-line no-console
+      console.error('[sequence] setSession failed:', err)
+    })
+    onCommitRef.current?.(next)
   }, [])
 
-  // Functional updates so the callbacks don't close over `session` (no stale
-  // reads, no exhaustive-deps churn) — only `config` is a dependency.
   const submit = useCallback(
     (event?: string) => {
-      setSession((prev) => (config !== null && prev !== null ? advance(config, prev, event) : prev))
+      const cfg = configRef.current
+      const prev = sessionRef.current
+      if (cfg === null || prev === null) return
+      commit(advance(cfg, prev, event))
     },
-    [config],
+    [commit],
   )
 
   const choose = useCallback(
     (choiceId: string) => {
-      setSession((prev) =>
-        config !== null && prev !== null ? applyChoice(config, prev, choiceId) : prev,
-      )
+      const cfg = configRef.current
+      const prev = sessionRef.current
+      if (cfg === null || prev === null) return
+      commit(applyChoice(cfg, prev, choiceId))
     },
-    [config],
+    [commit],
   )
 
   const step = useMemo(

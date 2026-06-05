@@ -5,9 +5,10 @@ import {
   IpcChannel,
   AppVersionResponse,
   SetGameStateResponse,
+  SessionBlob,
 } from '../shared/ipc.js'
 import { GameState } from '@code-rouge/shared-types'
-import { readGameState, writeGameState } from './store.js'
+import { readGameState, writeGameState, readSession, writeSession } from './store.js'
 import { readSequenceConfig } from './sequence-config.js'
 
 // ----- Single-instance lock — must be acquired before whenReady() -----------
@@ -197,6 +198,22 @@ function registerIpcHandlers(): void {
       throw new Error(`SetGameState: invalid payload — ${result.error.message}`)
     }
     writeGameState(result.data)
+    return { ok: true as const }
+  })
+
+  ipcMain.handle(IpcChannel.GetSession, () => {
+    return readSession()
+  })
+
+  ipcMain.handle(IpcChannel.SetSession, (_event, raw: unknown): SetGameStateResponse => {
+    // Validate at the boundary (string | null). The renderer Zod-validates the
+    // inner session shape on deserialize; main only guards the wire type so a
+    // buggy renderer can't write a non-string blob that breaks the next read.
+    const result = SessionBlob.safeParse(raw)
+    if (!result.success) {
+      throw new Error(`SetSession: invalid payload — ${result.error.message}`)
+    }
+    writeSession(result.data)
     return { ok: true as const }
   })
 
