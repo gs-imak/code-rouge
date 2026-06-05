@@ -34,9 +34,9 @@ export const colors = {
   divider: 'rgba(255,255,255,0.3)',
   /** HUD timer box fill (maquette « Rectangle 9226 » #ffffff @17%). */
   timerBox: 'rgba(255,255,255,0.17)',
-  /** Score gauge track / fill (maquette « Jauge » — gradients approximated solid). */
-  jaugeTrack: '#FD6537',
-  jaugeFill: '#FFAC53',
+  /** Score gauge track stroke (maquette « Rectangle 9222 » #fe6c1b 2.67px). The track
+   *  and fill themselves are vertical-gradient textures (grad-gauge-track/-fill.png). */
+  jaugeStroke: '#FE6C1B',
   /** Énigme card image placeholder (licensed raster not bundled — rule #3). */
   imagePlaceholder: '#2A2A30',
   /** Gmail-mimic mailbox card (maquette « Boite Mails » / « Mails »). */

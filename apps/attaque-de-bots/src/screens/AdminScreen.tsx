@@ -6,6 +6,8 @@ import { ScreenBackground } from '../components/ScreenBackground'
 import refresh from '../assets/icon-refresh.png'
 import chevron from '../assets/icon-chevron.png'
 import cog from '../assets/icon-cog.png'
+import gradOrange from '../assets/grad-button-orange.png'
+import gradTransmettre from '../assets/grad-transmettre.png'
 
 // « Admin » (maquette frame 1:121): the game-master setup / diagnostics screen (no
 // HUD). Four translucent panels — network diagnostic, hardware state, session
@@ -62,8 +64,8 @@ export function AdminScreen(): JSX.Element {
       <View style={[styles.panel, { left: 190, top: 438, width: 626, height: 597 }]} />
       <Text style={[styles.panelTitle, { left: 190, top: 465, width: 626 }]}>Contrôle de session</Text>
       <Text style={[styles.body1, { left: 237, top: 580, width: 532 }]}>Réinitialiser la session de jeu :</Text>
-      {/* Reset button (maquette « Buttom » [342,643 328×75] orange + refresh icon). */}
-      <View style={styles.resetBtn} />
+      {/* Reset button (maquette « Buttom » [342,643 328×75] orange gradient + refresh icon). */}
+      <Image source={gradOrange} style={styles.resetBtn} resizeMode="stretch" />
       <Text style={styles.resetLabel}>Reset</Text>
       <Image source={refresh} style={styles.resetIcon} resizeMode="contain" />
       <Text style={[styles.body1, { left: 238, top: 802, width: 532 }]}>Sélectionnez votre étape de jeu :</Text>
@@ -82,7 +84,7 @@ export function AdminScreen(): JSX.Element {
       <Image source={cog} style={styles.persoIcon} resizeMode="contain" />
 
       {/* Bottom actions. */}
-      <View style={styles.transmettreBtn} />
+      <Image source={gradTransmettre} style={styles.transmettreBtn} resizeMode="stretch" />
       <Text style={styles.transmettreLabel}>Transmettre au serveur</Text>
       <PrimaryButton label="Sauvegarder" top={1077} left={1037} />
     </>
@@ -143,7 +145,7 @@ const styles = StyleSheet.create({
   dotOn: { backgroundColor: colors.dotOn, borderColor: colors.dotOnStroke },
   dotOff: { backgroundColor: colors.dotOff, borderColor: colors.white },
   // Reset button.
-  resetBtn: { position: 'absolute', left: 342, top: 643, width: 328, height: 75, backgroundColor: colors.accent, borderRadius: 19.5 },
+  resetBtn: { position: 'absolute', left: 342, top: 643, width: 328, height: 75, borderRadius: 19.5, overflow: 'hidden' },
   resetLabel: { position: 'absolute', left: 330, top: 664, width: 340, textAlign: 'center', color: colors.white, fontFamily: 'Roboto', fontSize: 28, fontWeight: '600' },
   resetIcon: { position: 'absolute', left: 607, top: 663, width: 37, height: 34 },
   // Dropdown field.
@@ -155,6 +157,6 @@ const styles = StyleSheet.create({
   persoLabel: { position: 'absolute', left: 1097, top: 924, width: 395, color: colors.white, fontFamily: 'Roboto', fontSize: 28, fontWeight: '600' },
   persoIcon: { position: 'absolute', left: 1490, top: 929, width: 35, height: 35 },
   // Transmettre (dark) button.
-  transmettreBtn: { position: 'absolute', left: 545, top: 1077, width: 459, height: 80, backgroundColor: colors.darkButton, borderRadius: 20 },
+  transmettreBtn: { position: 'absolute', left: 545, top: 1077, width: 459, height: 80, borderRadius: 20, overflow: 'hidden' },
   transmettreLabel: { position: 'absolute', left: 545, top: 1093, width: 459, textAlign: 'center', color: colors.white, fontFamily: 'Roboto', fontSize: 34, fontWeight: '500' },
 })
