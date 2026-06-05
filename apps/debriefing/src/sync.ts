@@ -1,23 +1,28 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
+  type AccessDecision,
+  type AccessDecisionMessage,
   type AppName,
   type GameState,
   type HelloMessage,
   type LogEvent,
   type LogRequestMessage,
+  type McodeSetMessage,
   type ServerToAppMessage,
   type TeamsRequestMessage,
 } from '@code-rouge/shared-types'
 import { createWsClient, type ConnectionState, type WsClient } from '@code-rouge/shared-utils'
 import { computeSessionStats, type SessionStats } from './stats/index.js'
 
-// Débriefing server hook: announces the GM device on connect AND drives the
-// end-of-session aggregation. On loadStats() it asks the NUC for the session's
-// teams (teams-request), then pulls each team's event log (log-request); once
-// every team has answered (or a timeout fires) it computes the session stats.
-// The NUC is the source of truth — player apps push their logs during/at end of
-// play, so a tablet that went offline afterwards doesn't lose its data
-// (docs/adr/0002). A team that never answers is reported as "logs missing".
+// Débriefing server hook. Two jobs:
+//  1. END-OF-SESSION AGGREGATION — on loadStats() ask the NUC for the session's
+//     teams (teams-request), pull each team's event log (log-request), and compute
+//     stats once all answer (or a timeout fires). The NUC is the source of truth
+//     (docs/adr/0002); a team that never answers shows as "logs missing".
+//  2. GM CONTROL of the Assaut point-d'accès / MG-code loop — the server forwards
+//     each team's `access-submit` here as `access-pending`; the GM rules on it
+//     (decideAccess → access-decision) and sets the MG code (setMgCode → mg-code-set).
+//     The server relays both to the target team's Assaut app.
 
 const APP: AppName = 'debriefing'
 // Generous: even 12 teams' logs return well under a second on the LAN. The
@@ -28,6 +33,12 @@ interface Pending {
   expected: Set<number>
   readonly logs: Map<number, readonly LogEvent[]>
   timer: ReturnType<typeof setTimeout> | undefined
+}
+
+/** A team's entry-point submission awaiting the GM's verdict. */
+export interface AccessSubmission {
+  readonly teamId: number
+  readonly point: string
 }
 
 export interface UseServerHandshakeOptions {
@@ -44,6 +55,12 @@ export interface UseServerHandshakeResult {
   readonly missingTeamIds: readonly number[]
   /** Pull every team's log from the NUC and compute the session stats. */
   readonly loadStats: () => void
+  /** Pending point-d'accès submissions awaiting a GM verdict (latest per team). */
+  readonly accessSubmissions: readonly AccessSubmission[]
+  /** Rule on a team's submission → relayed to its Assaut app as access-result. */
+  readonly decideAccess: (teamId: number, decision: AccessDecision, label?: string) => boolean
+  /** Set a team's MG authorisation code → relayed to its Assaut app as mg-code. */
+  readonly setMgCode: (teamId: number, code: string) => boolean
 }
 
 export function useServerHandshake(options: UseServerHandshakeOptions): UseServerHandshakeResult {
@@ -51,6 +68,7 @@ export function useServerHandshake(options: UseServerHandshakeOptions): UseServe
   const [stats, setStats] = useState<SessionStats | null>(null)
   const [loading, setLoading] = useState(false)
   const [missingTeamIds, setMissingTeamIds] = useState<readonly number[]>([])
+  const [accessSubmissions, setAccessSubmissions] = useState<readonly AccessSubmission[]>([])
 
   const stateRef = useRef<GameState>(options.state)
   stateRef.current = options.state
@@ -90,6 +108,15 @@ export function useServerHandshake(options: UseServerHandshakeOptions): UseServe
         client.send(hello)
       },
       onMessage: (msg: ServerToAppMessage) => {
+        // GM-control frame — handled regardless of an in-flight aggregation.
+        if (msg.type === 'access-pending') {
+          setAccessSubmissions((prev) => [
+            // Latest submission per team wins (a re-submit replaces the old one).
+            ...prev.filter((s) => s.teamId !== msg.teamId),
+            { teamId: msg.teamId, point: msg.point },
+          ])
+          return
+        }
         const pending = pendingRef.current
         if (pending === null) return
         if (msg.type === 'teams') {
@@ -150,5 +177,47 @@ export function useServerHandshake(options: UseServerHandshakeOptions): UseServe
     }
   }, [finalize])
 
-  return { connection, stats, loading, missingTeamIds, loadStats }
+  const decideAccess = useCallback(
+    (teamId: number, decision: AccessDecision, label?: string): boolean => {
+      const client = clientRef.current
+      if (client === null) return false
+      const msg: AccessDecisionMessage = {
+        type: 'access-decision',
+        app: APP,
+        deviceId: stateRef.current.deviceId,
+        targetTeamId: teamId,
+        decision,
+        ...(label !== undefined ? { label } : {}),
+      }
+      const ok = client.send(msg)
+      // Clear the pending submission once ruled so the GM list doesn't pile up.
+      if (ok) setAccessSubmissions((prev) => prev.filter((s) => s.teamId !== teamId))
+      return ok
+    },
+    [],
+  )
+
+  const setMgCode = useCallback((teamId: number, code: string): boolean => {
+    const client = clientRef.current
+    if (client === null) return false
+    const msg: McodeSetMessage = {
+      type: 'mg-code-set',
+      app: APP,
+      deviceId: stateRef.current.deviceId,
+      targetTeamId: teamId,
+      code,
+    }
+    return client.send(msg)
+  }, [])
+
+  return {
+    connection,
+    stats,
+    loading,
+    missingTeamIds,
+    loadStats,
+    accessSubmissions,
+    decideAccess,
+    setMgCode,
+  }
 }

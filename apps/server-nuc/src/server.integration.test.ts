@@ -331,6 +331,41 @@ describe('server integration — GM access-point + MG-code relay', () => {
     teamB.off('message', onOther)
     expect(otherSaw).toBe(false)
   })
+
+  it('forwards a team access-submit to the GM as access-pending', async () => {
+    const got = recordFrames(gm, (m) => m.type === 'access-pending')
+    send(teamA, {
+      type: 'access-submit',
+      app: 'assaut',
+      deviceId: 'relay-assaut-9',
+      teamId: 9,
+      point: 'trappe-toits',
+    })
+    const frames = await got
+    expect(frames.find((m) => m.type === 'access-pending')).toMatchObject({
+      type: 'access-pending',
+      teamId: 9,
+      point: 'trappe-toits',
+    })
+  })
+
+  it('drops an access-submit with no team assigned (nothing for the GM to rule on)', async () => {
+    let gmSaw = false
+    const onGm = (raw: Buffer): void => {
+      if ((JSON.parse(raw.toString()) as Frame).type === 'access-pending') gmSaw = true
+    }
+    gm.on('message', onGm)
+    send(teamA, {
+      type: 'access-submit',
+      app: 'assaut',
+      deviceId: 'relay-assaut-9',
+      teamId: null,
+      point: 'unassigned',
+    })
+    await new Promise((r) => setTimeout(r, 200))
+    gm.off('message', onGm)
+    expect(gmSaw).toBe(false)
+  })
 })
 
 describe('server integration — débriefing aggregation', () => {

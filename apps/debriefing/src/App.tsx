@@ -33,7 +33,16 @@ type ResetStatus =
 export default function App() {
   const { state, setState, getLatest, ready } = useGameState()
   const wsUrl = useMemo(() => buildWsUrl(state.serverIp), [state.serverIp])
-  const { connection, stats, loading, missingTeamIds, loadStats } = useServerHandshake({
+  const {
+    connection,
+    stats,
+    loading,
+    missingTeamIds,
+    loadStats,
+    accessSubmissions,
+    decideAccess,
+    setMgCode,
+  } = useServerHandshake({
     url: wsUrl,
     state,
     ready,
@@ -42,6 +51,15 @@ export default function App() {
   const [pinned, setPinned] = useState(false)
   const [resetCodeDraft, setResetCodeDraft] = useState('')
   const [resetStatus, setResetStatus] = useState<ResetStatus>({ kind: 'idle' })
+  const [mgTeamDraft, setMgTeamDraft] = useState('')
+  const [mgCodeDraft, setMgCodeDraft] = useState('')
+
+  const onSendMgCode = useCallback(() => {
+    const teamId = Number(mgTeamDraft.trim())
+    const code = mgCodeDraft.trim()
+    if (!Number.isInteger(teamId) || teamId < 0 || code.length === 0) return
+    if (setMgCode(teamId, code)) setMgCodeDraft('')
+  }, [mgTeamDraft, mgCodeDraft, setMgCode])
 
   useEffect(() => {
     const sub = BackHandler.addEventListener('hardwareBackPress', () => true)
@@ -136,6 +154,75 @@ export default function App() {
           {dotGlyph(connection)}
         </Text>
         <Text style={styles.diagnosticLabel}>{dotLabel(connection)}</Text>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Contrôle GM</Text>
+        {accessSubmissions.length === 0 ? (
+          <Text style={styles.hint}>Aucune demande de point d’accès en attente.</Text>
+        ) : (
+          accessSubmissions.map((s) => (
+            <View key={s.teamId} style={styles.submission}>
+              <Text style={styles.stateLine}>
+                Équipe {s.teamId} — point « {s.point} »
+              </Text>
+              <View style={styles.buttonRow}>
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => decideAccess(s.teamId, 'approved')}
+                  style={({ pressed }) => [styles.smallButton, styles.approve, pressed && styles.buttonPressed]}
+                >
+                  <Text style={styles.smallButtonText}>Valider</Text>
+                </Pressable>
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => decideAccess(s.teamId, 'refused')}
+                  style={({ pressed }) => [styles.smallButton, styles.refuse, pressed && styles.buttonPressed]}
+                >
+                  <Text style={styles.smallButtonText}>Refuser</Text>
+                </Pressable>
+              </View>
+            </View>
+          ))
+        )}
+
+        <Text style={[styles.label, styles.labelMargin]}>Code MG (équipe + code)</Text>
+        <View style={styles.buttonRow}>
+          <TextInput
+            style={[styles.input, styles.inputTeam]}
+            value={mgTeamDraft}
+            onChangeText={setMgTeamDraft}
+            keyboardType="number-pad"
+            placeholder="éq."
+            placeholderTextColor="#5a6469"
+            accessibilityLabel="Équipe pour le code MG"
+          />
+          <TextInput
+            style={[styles.input, styles.inputFlex]}
+            value={mgCodeDraft}
+            onChangeText={setMgCodeDraft}
+            autoCapitalize="characters"
+            autoCorrect={false}
+            placeholder="code d’autorisation"
+            placeholderTextColor="#5a6469"
+            accessibilityLabel="Code MG"
+          />
+        </View>
+        <Pressable
+          accessibilityRole="button"
+          onPress={onSendMgCode}
+          disabled={
+            mgTeamDraft.trim() === '' || mgCodeDraft.trim() === '' || connection !== 'connected'
+          }
+          style={({ pressed }) => [
+            styles.button,
+            (mgTeamDraft.trim() === '' || mgCodeDraft.trim() === '' || connection !== 'connected') &&
+              styles.buttonDisabled,
+            pressed && styles.buttonPressed,
+          ]}
+        >
+          <Text style={styles.buttonText}>Envoyer le code</Text>
+        </Pressable>
       </View>
 
       <View style={styles.section}>
@@ -364,6 +451,26 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: { opacity: 0.4 },
   buttonPressed: { backgroundColor: '#cfbe96' },
+  submission: { gap: 6, marginBottom: 8 },
+  buttonRow: { flexDirection: 'row', gap: 8, marginTop: 8 },
+  smallButton: {
+    flex: 1,
+    minHeight: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+  },
+  approve: { backgroundColor: '#2f8f5b' },
+  refuse: { backgroundColor: '#a33b3b' },
+  smallButtonText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+  },
+  inputTeam: { width: 72, marginTop: 0 },
+  inputFlex: { flex: 1, marginTop: 0 },
   buttonText: {
     color: '#0a0d12',
     fontSize: 13,
