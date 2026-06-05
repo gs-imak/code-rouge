@@ -87,3 +87,6 @@ BOOTSTRAP.md
 
 # Vite web-harness output
 apps/*/.vite-web/
+
+# Assaut renderer screenshot harness (dev-only, mirrors electron.vite renderer)
+apps/assaut/vite.harness.config.ts

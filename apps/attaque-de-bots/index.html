@@ -5,15 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>attaque-de-bots — web harness (RNW)</title>
     <style>
-      /* Roboto for the web harness so the pixel-diff is fair (matches the maquette
-         typeface). Native font bundling is a separate task. */
-      @font-face {
-        font-family: 'Roboto';
-        font-style: normal;
-        font-weight: 100 900;
-        font-display: block;
-        src: url('/src/assets/roboto-latin-wght-normal.woff2') format('woff2');
-      }
+      /* Static Roboto weights for the web harness so the pixel-diff matches the
+         maquette typeface exactly. Figma renders STATIC Roboto; the variable cut has
+         slightly different glyph metrics, which made centred titles ghost in the diff.
+         Per-weight static faces (400/500/600/700 — the weights the screens use) remove
+         that artifact. Native (Android) text uses the system Roboto and is unaffected. */
+      @font-face { font-family: 'Roboto'; font-style: normal; font-weight: 400; font-display: block; src: url('/src/assets/fonts/roboto-latin-400-normal.woff2') format('woff2'); }
+      @font-face { font-family: 'Roboto'; font-style: normal; font-weight: 500; font-display: block; src: url('/src/assets/fonts/roboto-latin-500-normal.woff2') format('woff2'); }
+      @font-face { font-family: 'Roboto'; font-style: normal; font-weight: 600; font-display: block; src: url('/src/assets/fonts/roboto-latin-600-normal.woff2') format('woff2'); }
+      @font-face { font-family: 'Roboto'; font-style: normal; font-weight: 700; font-display: block; src: url('/src/assets/fonts/roboto-latin-700-normal.woff2') format('woff2'); }
       html,
       body,
       #root {
