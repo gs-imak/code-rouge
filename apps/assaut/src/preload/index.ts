@@ -4,6 +4,7 @@ import {
   IpcChannel,
   AppVersionResponse,
   SetGameStateResponse,
+  SessionBlob,
   type AssautBridge,
 } from '../shared/ipc.js'
 
@@ -28,6 +29,14 @@ const bridge: AssautBridge = {
   async getSequenceConfig() {
     const raw = await ipcRenderer.invoke(IpcChannel.GetSequenceConfig)
     return AssautSequenceConfig.parse(raw)
+  },
+  async getSession() {
+    const raw = await ipcRenderer.invoke(IpcChannel.GetSession)
+    return SessionBlob.parse(raw)
+  },
+  async setSession(blob) {
+    const raw = await ipcRenderer.invoke(IpcChannel.SetSession, blob)
+    return SetGameStateResponse.parse(raw)
   },
 }
 
