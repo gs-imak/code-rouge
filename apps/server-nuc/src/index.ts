@@ -12,6 +12,7 @@ import {
   type WelcomeMessage,
   type AccessResultMessage,
   type McodeMessage,
+  type AccessPendingMessage,
   type TeamsResultMessage,
   type LogResultMessage,
 } from '@code-rouge/shared-types'
@@ -281,6 +282,26 @@ function relayToTeam(
   return sent
 }
 
+// Broadcast a Server → App payload to EVERY open connection of `targetApp` (not
+// team-scoped) — used to fan a team's access submission out to all GM (Débriefing)
+// devices. Returns the recipient count.
+function broadcastToApp(
+  peers: Iterable<WebSocket>,
+  targetApp: string,
+  payload: ServerToAppMessage,
+): number {
+  const data = JSON.stringify(payload)
+  let sent = 0
+  for (const peer of peers) {
+    const meta = wsMeta.get(peer)
+    if (meta?.app === targetApp && peer.readyState === WebSocket.OPEN) {
+      peer.send(data)
+      sent += 1
+    }
+  }
+  return sent
+}
+
 function handleAppMessage(
   msg: AppToServerMessage,
   ws: WebSocket,
@@ -356,13 +377,26 @@ function handleAppMessage(
       return
     }
     case 'access-submit': {
-      // A team submits an entry point for GM approval. Recorded here; the GM
-      // (Débriefing) app surfaces pending submissions + rules on them. The
-      // verdict comes back as an 'access-decision' (below).
+      // A team submits an entry point for GM approval. Forward it to the GM
+      // (Débriefing) app(s) so the GM sees the pending submission and rules on it;
+      // the verdict comes back as an 'access-decision' (below). A submission from an
+      // app with no team assigned has nothing to rule on → drop (just log).
       ctx.logger.info(
         { app: msg.app, teamId: msg.teamId, point: msg.point },
         'WS access-submit',
       )
+      if (msg.teamId !== null) {
+        const pending: AccessPendingMessage = {
+          type: 'access-pending',
+          teamId: msg.teamId,
+          point: msg.point,
+        }
+        const sent = broadcastToApp(peers(), 'debriefing', pending)
+        ctx.logger.info(
+          { teamId: msg.teamId, recipients: sent },
+          'WS access-submit forwarded to GM',
+        )
+      }
       return
     }
     case 'access-decision': {

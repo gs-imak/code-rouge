@@ -213,6 +213,18 @@ export const McodeMessage = z.object({
 })
 export type McodeMessage = z.infer<typeof McodeMessage>
 
+// Server → Débriefing (GM): a team submitted an entry point and awaits a verdict.
+// The server forwards every AccessSubmitMessage to the GM app so it can surface
+// the pending submission and rule on it (→ access-decision). `teamId` is concrete —
+// submissions from an app with no team assigned are dropped server-side (nothing to
+// rule on). Broadcast to all débriefing clients (there may be a backup GM device).
+export const AccessPendingMessage = z.object({
+  type: z.literal('access-pending'),
+  teamId: z.number().int().nonnegative(),
+  point: z.string().min(1).max(128),
+})
+export type AccessPendingMessage = z.infer<typeof AccessPendingMessage>
+
 // Server → Débriefing: the teams known this session (those with state and/or a
 // log). `apps` is which apps reported for the team (attaque-de-bots / assaut).
 export const TeamSummary = z.object({
@@ -241,6 +253,7 @@ export const ServerToAppMessage = z.discriminatedUnion('type', [
   ServerCommandMessage,
   AccessResultMessage,
   McodeMessage,
+  AccessPendingMessage,
   TeamsResultMessage,
   LogResultMessage,
 ])
