@@ -1,4 +1,4 @@
-import type { JSX } from 'react'
+import { useState, type JSX } from 'react'
 import { Image, StyleSheet, Text } from 'react-native'
 import { colors } from '../theme/tokens'
 import { EnigmaPanel } from '../components/EnigmaPanel'
@@ -6,23 +6,34 @@ import { HudHeader } from '../components/HudHeader'
 import { PrimaryButton } from '../components/PrimaryButton'
 import { ScreenBackground } from '../components/ScreenBackground'
 import { ScreenTitle } from '../components/ScreenTitle'
+import { ToggleGrid } from '../components/ToggleGrid'
+import type { SaisieScreenProps } from '../navigation/types'
 import row from '../assets/bdd-row.png'
 import rowOk from '../assets/bdd-row-ok.png'
 import rowErr from '../assets/bdd-row-err.png'
 import rowOk2 from '../assets/bdd-row-ok2.png'
 import rowErr2 from '../assets/bdd-row-err2.png'
 
-// « Saisie solution BDD » (maquette 1:1175 / success 41:6385 / error 41:6117): pick the
-// 4 servers holding the databases to share. The server grid is static maquette art per
-// state — one row on saisie, two rows on success / error (which also tint the panel +
-// add a message + Continuer / Recommancer).
-type BddState = 'saisie' | 'success' | 'error'
+// « Saisie solution BDD » (maquette 1:1175 / 41:6385 / 41:6117): pick the servers
+// holding the databases to share. The server grid is static maquette art per state
+// (one row on saisie, two on success / error); a ToggleGrid over the saisie row makes
+// the servers selectable (bit-string, e.g. "1111"). success / error tint the panel +
+// add a message + Continuer / Recommancer.
+type SaisieState = NonNullable<SaisieScreenProps['state']>
 
-const PANEL: Record<BddState, string | undefined> = { saisie: undefined, success: colors.panelSuccess, error: colors.panelError }
-const ROW: Record<BddState, number> = { saisie: row, success: rowOk, error: rowErr }
-const ROW2: Record<BddState, number | undefined> = { saisie: undefined, success: rowOk2, error: rowErr2 }
+const PANEL: Record<SaisieState, string | undefined> = { saisie: undefined, success: colors.panelSuccess, error: colors.panelError }
+const ROW: Record<SaisieState, number> = { saisie: row, success: rowOk, error: rowErr }
+const ROW2: Record<SaisieState, number | undefined> = { saisie: undefined, success: rowOk2, error: rowErr2 }
 
-export function BddScreen({ state = 'saisie' }: { readonly state?: BddState } = {}): JSX.Element {
+export function BddScreen({
+  state = 'saisie',
+  attempts = 0,
+  canRetry = true,
+  onValidate,
+  onContinue,
+  onRetry,
+}: SaisieScreenProps = {}): JSX.Element {
+  const [value, setValue] = useState('')
   const row2 = ROW2[state]
   return (
     <>
@@ -33,11 +44,16 @@ export function BddScreen({ state = 'saisie' }: { readonly state?: BddState } = 
       <Text style={styles.instruction}>Sélectionnez les 4 serveurs contenant les bases de données à partager</Text>
       <Image source={ROW[state]} style={styles.row} resizeMode="contain" />
       {row2 ? <Image source={row2} style={styles.row2} resizeMode="contain" /> : null}
+      {state === 'saisie' ? (
+        <ToggleGrid key={attempts} left={404} top={375} width={1113} height={245} count={4} onChange={setValue} />
+      ) : null}
       {state === 'success' ? <Text style={styles.msg}>Félicitation, vous avez trouvé la bonne réponse !</Text> : null}
       {state === 'error' ? <Text style={styles.msg}>Votre solution n’est pas correcte</Text> : null}
-      {state === 'saisie' ? <PrimaryButton label="Valider" top={989} /> : null}
-      {state === 'success' ? <PrimaryButton label="Continuer" top={1044} /> : null}
-      {state === 'error' ? <PrimaryButton label="Recommancer" top={1044} /> : null}
+      {state === 'saisie' ? <PrimaryButton label="Valider" top={989} onPress={() => onValidate?.(value)} /> : null}
+      {state === 'success' ? <PrimaryButton label="Continuer" top={1044} onPress={onContinue} /> : null}
+      {state === 'error' ? (
+        <PrimaryButton label={canRetry ? 'Recommancer' : 'Continuer'} top={1044} onPress={canRetry ? onRetry : onContinue} />
+      ) : null}
     </>
   )
 }

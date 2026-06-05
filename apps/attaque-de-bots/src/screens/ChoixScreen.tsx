@@ -49,7 +49,13 @@ function Card({ panelLeft, title, titleLeft, titleWidth }: ChoixCard): JSX.Eleme
   )
 }
 
-export function ChoixScreen({ cards }: { readonly cards: readonly ChoixCard[] }): JSX.Element {
+export function ChoixScreen({
+  cards = CARDS_2,
+  onContinue,
+}: {
+  readonly cards?: readonly ChoixCard[]
+  readonly onContinue?: () => void
+} = {}): JSX.Element {
   return (
     <>
       <ScreenBackground />
@@ -58,7 +64,7 @@ export function ChoixScreen({ cards }: { readonly cards: readonly ChoixCard[] })
       {cards.map((c) => (
         <Card key={c.id} {...c} />
       ))}
-      <PrimaryButton label="C’est partie !" top={1047} />
+      <PrimaryButton label="C’est partie !" top={1047} onPress={onContinue} />
     </>
   )
 }

@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "_comment": "SHIPPED mailbox content (bundled). Exactly one mail must be phishing:true (the piégé item — clicking it logs a phishing-clicked event for scoring). Nathanael edits the FR bodies/subjects; the schema enforces the single-trap invariant. Mail bodies are player-facing French; ids stay ASCII for log searchability.",
+  "mails": [
+    {
+      "id": "welcome-team",
+      "from": "central@code-rouge.local",
+      "subject": "Bienvenue, opérateur",
+      "body": "Vous êtes connecté à la console de Section 13. Consultez les courriels en attente avant de poursuivre.",
+      "receivedAt": "2026-04-29T08:00:00+02:00",
+      "phishing": false
+    },
+    {
+      "id": "phishing-update-creds",
+      "from": "secur1ty-update@central.example",
+      "subject": "Mise à jour de vos identifiants — action requise",
+      "body": "Cliquez ici pour confirmer votre identifiant avant la fermeture de votre session.",
+      "receivedAt": "2026-04-29T08:05:00+02:00",
+      "phishing": true
+    },
+    {
+      "id": "ops-checklist",
+      "from": "ops@code-rouge.local",
+      "subject": "Checklist du jour",
+      "body": "Liste des paramètres à vérifier avant 18h00. Tout est nominal.",
+      "receivedAt": "2026-04-29T08:10:00+02:00",
+      "phishing": false
+    }
+  ]
+}

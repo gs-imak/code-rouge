@@ -2,6 +2,7 @@ import type { JSX } from 'react'
 import { Image, StyleSheet, Text, View } from 'react-native'
 import { colors } from '../theme/tokens'
 import { ScreenBackground } from '../components/ScreenBackground'
+import type { FinScreenProps } from '../navigation/types'
 import trophy from '../assets/trophy.png'
 
 // « Fin » (maquette frame 1:87): the end-of-game score screen. Trophy emblem, the
@@ -9,7 +10,13 @@ import trophy from '../assets/trophy.png'
 // layered score in a translucent orange box, and the wait-for-the-agent footer. The
 // score « 13 456 » is the maquette placeholder; the real total comes from game state
 // at wiring time. All px = maquette coords.
-export function FinScreen(): JSX.Element {
+function formatScore(n: number): string {
+  // Group thousands with a space, matching the maquette « 13 456 ».
+  return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
+}
+
+export function FinScreen({ score }: FinScreenProps = {}): JSX.Element {
+  const display = score === undefined ? '13 456' : formatScore(score)
   return (
     <>
       <ScreenBackground />
@@ -20,8 +27,8 @@ export function FinScreen(): JSX.Element {
       {/* Score box (maquette « Rectangle 9232 » [545,593 831×257] #fd6537@27% r40). */}
       <View style={styles.scoreBox} />
       {/* Layered score: orange drop-shadow behind the white digits. */}
-      <Text style={[styles.score, styles.scoreShadow]}>13 456</Text>
-      <Text style={[styles.score, styles.scoreWhite]}>13 456</Text>
+      <Text style={[styles.score, styles.scoreShadow]}>{display}</Text>
+      <Text style={[styles.score, styles.scoreWhite]}>{display}</Text>
       <Text style={styles.pts}>pts</Text>
       <Text style={styles.footer}>
         Veuillez attendre les instructions de l’Agent de la Section 13 sur place.

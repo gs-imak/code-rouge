@@ -5,13 +5,14 @@ import { EnigmaPanel } from '../components/EnigmaPanel'
 import { HudHeader } from '../components/HudHeader'
 import { PrimaryButton } from '../components/PrimaryButton'
 import { ScreenBackground } from '../components/ScreenBackground'
+import type { ContinueProps } from '../navigation/types'
 import picto from '../assets/bdd-picto.png'
 
 // « Accueil BDD » (maquette frame 1:475): a RED alert modal (not the shared dark
 // MessageModal) — a red box (maquette gradient #a21616→#3c0808, approximated solid)
 // with a warning picto, a single large alert block and a red OK. The « ... AP1 ... »
 // codes are the maquette placeholder content. All px = maquette coords.
-export function BddAccueilScreen(): JSX.Element {
+export function BddAccueilScreen({ onContinue }: ContinueProps = {}): JSX.Element {
   return (
     <>
       <ScreenBackground />
@@ -23,7 +24,7 @@ export function BddAccueilScreen(): JSX.Element {
         Alerte !{'\n'}Tentatives de corruption des bases de données par les bots.{'\n\n'}Bots détectés dans les serveurs
         {'\n'}... AP1 ... cz ... IP ... HJ ...
       </Text>
-      <PrimaryButton label="OK" top={755} color={colors.alertButton} />
+      <PrimaryButton label="OK" top={755} color={colors.alertButton} onPress={onContinue} />
     </>
   )
 }

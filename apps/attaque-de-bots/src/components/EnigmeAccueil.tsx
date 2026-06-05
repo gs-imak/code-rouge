@@ -13,18 +13,21 @@ export function EnigmeAccueil({
   body,
   bodyTop,
   okTop,
+  onContinue,
 }: {
   readonly title?: string
   readonly body: string
   readonly bodyTop?: number
   readonly okTop?: number
+  /** Dismiss the briefing → the énigme's saisie phase. Absent in the dev Gallery. */
+  readonly onContinue?: () => void
 }): JSX.Element {
   return (
     <>
       <ScreenBackground />
       <HudHeader />
       <EnigmaPanel />
-      <MessageModal title={title} body={body} bodyTop={bodyTop} okTop={okTop} />
+      <MessageModal title={title} body={body} bodyTop={bodyTop} okTop={okTop} onOk={onContinue} />
     </>
   )
 }

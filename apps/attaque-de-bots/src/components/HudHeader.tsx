@@ -1,6 +1,7 @@
 import type { JSX } from 'react'
 import { Image, StyleSheet, Text, View } from 'react-native'
 import { colors } from '../theme/tokens'
+import { useHud } from '../navigation/HudContext'
 import logo from '../assets/section13-logo-header.png'
 import email from '../assets/icon-email.png'
 import stopwatch from '../assets/icon-stopwatch.png'
@@ -13,12 +14,18 @@ import stopwatch from '../assets/icon-stopwatch.png'
 // are approximated solid (gradient lib is a polishing follow-up). Children are
 // absolutely positioned at exact maquette px inside the 1920×1200 canvas.
 export function HudHeader({
-  score = '320',
-  timer = '10:05',
+  score,
+  timer,
 }: {
   readonly score?: string
   readonly timer?: string
-}): JSX.Element {
+} = {}): JSX.Element {
+  // Live values come from the FlowRunner via context; an explicit prop still wins,
+  // and the maquette defaults apply in the dev Gallery (no provider) so the static
+  // pixel-diff is unchanged.
+  const hud = useHud()
+  const scoreValue = score ?? hud.score ?? '320'
+  const timerValue = timer ?? hud.timer ?? '10:05'
   return (
     <>
       {/* Timer box fill (maquette « Rectangle 9226 » [1681,0 239×87] white@17%). */}
@@ -34,14 +41,14 @@ export function HudHeader({
       <View style={styles.jaugeFill} />
       {/* « 320pt » (maquette [1537,4] 53px/700, « pt » smaller). */}
       <Text style={styles.score}>
-        {score}
+        {scoreValue}
         <Text style={styles.scorePt}>pt</Text>
       </Text>
       {/* Stopwatch glyph over an orange dot (maquette « Ellipse 308 » + « stopwatch 1 »). */}
       <View style={styles.timerDot} />
       <Image source={stopwatch} style={styles.stopwatch} resizeMode="contain" />
       {/* « 10:05 » (maquette « Timer » [1759,4 136×83] 45px/600 centre). */}
-      <Text style={styles.timer}>{timer}</Text>
+      <Text style={styles.timer}>{timerValue}</Text>
     </>
   )
 }

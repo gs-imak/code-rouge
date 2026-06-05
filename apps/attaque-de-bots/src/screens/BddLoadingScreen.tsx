@@ -1,15 +1,22 @@
-import type { JSX } from 'react'
+import { useEffect, type JSX } from 'react'
 import { Image, StyleSheet, Text } from 'react-native'
 import { colors } from '../theme/tokens'
 import { HudHeader } from '../components/HudHeader'
 import { ScreenBackground } from '../components/ScreenBackground'
+import type { TimedProps } from '../navigation/types'
 import spinner from '../assets/bdd-spinner.png'
 
 // « Loading bases de données » (maquette frame 1:530, in the 2.9 section but its copy
 // is the BDD load): the wait screen between the BDD briefing and the saisie — just the
 // HUD, a centred message (uppercase per the maquette) and a spinner. All px = maquette
 // coords.
-export function BddLoadingScreen(): JSX.Element {
+export function BddLoadingScreen({ onDone }: TimedProps = {}): JSX.Element {
+  // Auto-advance to the saisie after the load beat (inert in the dev Gallery).
+  useEffect(() => {
+    if (!onDone) return undefined
+    const timer = setTimeout(onDone, 2200)
+    return () => clearTimeout(timer)
+  }, [onDone])
   return (
     <>
       <ScreenBackground />

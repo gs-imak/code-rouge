@@ -16,18 +16,26 @@ import { AppName } from './messages.js'
 //
 // Attaque de Bots routes each team through one of four variants (A/B/C/D)
 // per the cahier des charges. Each variant is an ordered list of énigme
-// steps. The `kind` enum is intentionally narrow today and grows additively
-// — new énigmes land as new kind values + step components.
+// steps. The `kind` enum names the real énigmes the M3 maquette set ships
+// (one screen family per kind: accueil → saisie → success/error). It grows
+// additively — a new énigme lands as a new kind value + its screen template.
+//
+// `mailbox` is the fake-inbox + phishing trap (its own inbox → reading →
+// phishing mini-flow); `piratage` is the single-screen pattern-unlock
+// sequence. The remaining nine are input énigmes validated against `solution`.
 
 export const ParcoursStepKind = z.enum([
-  'phishing',
-  'mailbox',
-  'firewall',
-  'patrol',
-  'mcgyver',
-  'rdv-indic',
-  'couper-fil',
-  'epilogue',
+  'mailbox', // fake inbox + phishing trap (inbox → reading → phishing)
+  'mdp', // mot de passe admin — 3×3 pattern grid
+  'telephone', // cadran téléphone — keypad
+  'reseau', // carte réseau — node clicks
+  'serveurs', // grille serveurs — toggles
+  'disques-durs', // disques durs — platters
+  'disques-durs-2', // disques durs 2 — platters variant
+  'bdd', // base de données — loading + grid
+  'lecteur-carte', // lecteur de carte — keypad
+  'finale', // énigme finale
+  'piratage', // séquence de piratage (single-screen unlock)
 ])
 export type ParcoursStepKind = z.infer<typeof ParcoursStepKind>
 
@@ -36,7 +44,22 @@ export const ParcoursStep = z.object({
   kind: ParcoursStepKind,
   /** Best-guess duration. Used for the GM-facing progress display, not enforced. */
   estimatedDurationSec: z.number().int().positive().max(60 * 60),
-  /** Step-specific bag — e.g. mailbox.id for a 'mailbox' step. */
+  /**
+   * Expected answer for the énigme's « saisie » phase. The flow engine
+   * compares the player's normalised input against this (case-insensitive,
+   * trimmed). Content (Nathanaël) — absent on non-input kinds (mailbox,
+   * piratage) and on placeholder steps that haven't received a real answer.
+   */
+  solution: z.string().min(1).max(128).optional(),
+  /** Score awarded on a correct solve. Exact weights are content (CDC v1.x). */
+  points: z.number().int().min(0).max(10_000).default(0),
+  /**
+   * Optional cap on « saisie » attempts. Absent = unlimited retries. The
+   * engine counts attempts and, once reached, the error screen offers
+   * Continuer instead of Recommencer (GM-overridable later).
+   */
+  maxAttempts: z.number().int().positive().max(99).optional(),
+  /** Step-specific bag — e.g. `{ mailboxId: '...' }` linking a mailbox step. */
   config: z.record(z.unknown()).default({}),
 })
 export type ParcoursStep = z.infer<typeof ParcoursStep>

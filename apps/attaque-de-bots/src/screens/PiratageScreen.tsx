@@ -1,8 +1,9 @@
-import type { JSX } from 'react'
-import { Image, StyleSheet, Text, View } from 'react-native'
+import { useEffect, type JSX } from 'react'
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native'
 import { colors } from '../theme/tokens'
 import { HudHeader } from '../components/HudHeader'
 import { ScreenBackground } from '../components/ScreenBackground'
+import type { TimedProps } from '../navigation/types'
 import logo from '../assets/pir-logo.png'
 import dots from '../assets/pir-dots-4.png'
 
@@ -11,7 +12,14 @@ import dots from '../assets/pir-dots-4.png'
 // The full-frame code-rain is the licensed iStock scene → neutral placeholder (rule
 // #3, same raster as Fishing). LE RÉSEAU logo + dot grid are static art; texts render
 // uppercase per the maquette. All px = maquette coords.
-export function PiratageScreen(): JSX.Element {
+export function PiratageScreen({ onDone }: TimedProps = {}): JSX.Element {
+  // The unlock auto-resolves after the dramatic beat; a tap on the pattern box
+  // skips it. Inert in the dev Gallery (no onDone).
+  useEffect(() => {
+    if (!onDone) return undefined
+    const timer = setTimeout(onDone, 5000)
+    return () => clearTimeout(timer)
+  }, [onDone])
   return (
     <>
       <ScreenBackground />
@@ -21,6 +29,14 @@ export function PiratageScreen(): JSX.Element {
       <Text style={styles.prompt}>Dessinez un schéma de déverrouillage :</Text>
       <View style={styles.box} />
       <Image source={dots} style={styles.dots} resizeMode="contain" />
+      {onDone ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Déverrouiller"
+          onPress={onDone}
+          style={styles.box}
+        />
+      ) : null}
     </>
   )
 }

@@ -1,5 +1,5 @@
 import type { JSX } from 'react'
-import { Image, StyleSheet, Text, View } from 'react-native'
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native'
 import { colors } from '../theme/tokens'
 import chrome from '../assets/modal-chrome.png'
 import close from '../assets/icon-close.png'
@@ -14,12 +14,15 @@ export function MessageModal({
   title = 'Message de l’équipe de la section 13',
   bodyTop = 512,
   okTop = 757,
+  onOk,
 }: {
   readonly body: string
   readonly title?: string
   /** Body top + OK-button top shift with the briefing length (maquette varies it). */
   readonly bodyTop?: number
   readonly okTop?: number
+  /** Dismiss the briefing (énigme accueil → saisie). Absent in the dev Gallery. */
+  readonly onOk?: () => void
 }): JSX.Element {
   return (
     <>
@@ -29,6 +32,16 @@ export function MessageModal({
       <Text style={[styles.body, { top: bodyTop }]}>{body}</Text>
       <View style={[styles.okBtn, { top: okTop }]} />
       <Text style={[styles.okLabel, { top: okTop + 18 }]}>OK</Text>
+      {/* Transparent tap target over the OK button — keeps the maquette pixels exact
+          while making the briefing dismissable in the running app. */}
+      {onOk ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="OK"
+          onPress={onOk}
+          style={[styles.okHit, { top: okTop }]}
+        />
+      ) : null}
     </>
   )
 }
@@ -69,4 +82,5 @@ const styles = StyleSheet.create({
   // top via the okTop prop).
   okBtn: { position: 'absolute', left: 834, width: 250, height: 75, backgroundColor: colors.accent, borderRadius: 20 },
   okLabel: { position: 'absolute', left: 834, width: 250, textAlign: 'center', color: colors.white, fontFamily: 'Roboto', fontSize: 38, fontWeight: '700' },
+  okHit: { position: 'absolute', left: 834, width: 250, height: 75, borderRadius: 20 },
 })

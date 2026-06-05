@@ -1,7 +1,6 @@
 {
-  "$schema": "../src/configs.ts:ParcoursConfig",
   "schemaVersion": 1,
-  "_comment": "Placeholder content for the M3 wiring pass. The kinds, ordering and answers are representative, NOT final — Nathanael's real énigme matrix (per-team A/B/C/D order, scoring weights, real solutions) lands as a JSON edit with no code change. Solutions here are dev placeholders aligned to each widget's output encoding (see flow-templates.ts). The structural shape — array of steps with id/kind/estimatedDurationSec/solution?/points/maxAttempts?/config — must not change without bumping schemaVersion.",
+  "_comment": "SHIPPED Attaque-de-Bots parcours content (bundled into the APK). This is the file Nathanael edits to set the real per-team A/B/C/D énigme order, scoring (points) and answers (solution) — a JSON edit, no recompile (immutable rule #2). Kinds/order/answers below are M3 wiring placeholders: solutions match each widget's output encoding (see flow-templates.ts). Validated at boot by parseParcoursConfig; an invalid edit fails fast rather than playing malformed content.",
   "variants": [
     {
       "id": "A",
@@ -9,9 +8,9 @@
         { "id": "a-mailbox", "kind": "mailbox", "estimatedDurationSec": 240, "config": { "mailboxId": "default" } },
         { "id": "a-mdp", "kind": "mdp", "estimatedDurationSec": 180, "solution": "0-1-2", "points": 100 },
         { "id": "a-telephone", "kind": "telephone", "estimatedDurationSec": 180, "solution": "2580", "points": 100 },
-        { "id": "a-reseau", "kind": "reseau", "estimatedDurationSec": 240, "solution": "n1-n4-n7", "points": 100 },
+        { "id": "a-reseau", "kind": "reseau", "estimatedDurationSec": 240, "solution": "n1-n5", "points": 100 },
         { "id": "a-serveurs", "kind": "serveurs", "estimatedDurationSec": 240, "solution": "1010", "points": 100 },
-        { "id": "a-bdd", "kind": "bdd", "estimatedDurationSec": 240, "solution": "SELECT", "points": 100 },
+        { "id": "a-bdd", "kind": "bdd", "estimatedDurationSec": 240, "solution": "1111", "points": 100 },
         { "id": "a-lecteur", "kind": "lecteur-carte", "estimatedDurationSec": 180, "solution": "4242", "points": 100 },
         { "id": "a-finale", "kind": "finale", "estimatedDurationSec": 300, "solution": "SECTION13", "points": 200, "maxAttempts": 3 },
         { "id": "a-piratage", "kind": "piratage", "estimatedDurationSec": 60 }
@@ -23,9 +22,9 @@
         { "id": "b-mailbox", "kind": "mailbox", "estimatedDurationSec": 240, "config": { "mailboxId": "default" } },
         { "id": "b-telephone", "kind": "telephone", "estimatedDurationSec": 180, "solution": "2580", "points": 100 },
         { "id": "b-mdp", "kind": "mdp", "estimatedDurationSec": 180, "solution": "0-1-2", "points": 100 },
-        { "id": "b-disques", "kind": "disques-durs", "estimatedDurationSec": 240, "solution": "3", "points": 100 },
+        { "id": "b-disques", "kind": "disques-durs", "estimatedDurationSec": 240, "solution": "0110", "points": 100 },
         { "id": "b-serveurs", "kind": "serveurs", "estimatedDurationSec": 240, "solution": "1010", "points": 100 },
-        { "id": "b-bdd", "kind": "bdd", "estimatedDurationSec": 240, "solution": "SELECT", "points": 100 },
+        { "id": "b-bdd", "kind": "bdd", "estimatedDurationSec": 240, "solution": "1111", "points": 100 },
         { "id": "b-finale", "kind": "finale", "estimatedDurationSec": 300, "solution": "SECTION13", "points": 200, "maxAttempts": 3 },
         { "id": "b-piratage", "kind": "piratage", "estimatedDurationSec": 60 }
       ]
@@ -35,8 +34,8 @@
       "steps": [
         { "id": "c-mdp", "kind": "mdp", "estimatedDurationSec": 180, "solution": "0-1-2", "points": 100 },
         { "id": "c-mailbox", "kind": "mailbox", "estimatedDurationSec": 240, "config": { "mailboxId": "default" } },
-        { "id": "c-reseau", "kind": "reseau", "estimatedDurationSec": 240, "solution": "n1-n4-n7", "points": 100 },
-        { "id": "c-disques2", "kind": "disques-durs-2", "estimatedDurationSec": 240, "solution": "5", "points": 100 },
+        { "id": "c-reseau", "kind": "reseau", "estimatedDurationSec": 240, "solution": "n1-n5", "points": 100 },
+        { "id": "c-disques2", "kind": "disques-durs-2", "estimatedDurationSec": 240, "solution": "010010", "points": 100 },
         { "id": "c-lecteur", "kind": "lecteur-carte", "estimatedDurationSec": 180, "solution": "4242", "points": 100 },
         { "id": "c-finale", "kind": "finale", "estimatedDurationSec": 300, "solution": "SECTION13", "points": 200, "maxAttempts": 3 },
         { "id": "c-piratage", "kind": "piratage", "estimatedDurationSec": 60 }
@@ -46,11 +45,11 @@
       "id": "D",
       "steps": [
         { "id": "d-telephone", "kind": "telephone", "estimatedDurationSec": 180, "solution": "2580", "points": 100 },
-        { "id": "d-reseau", "kind": "reseau", "estimatedDurationSec": 240, "solution": "n1-n4-n7", "points": 100 },
+        { "id": "d-reseau", "kind": "reseau", "estimatedDurationSec": 240, "solution": "n1-n5", "points": 100 },
         { "id": "d-mailbox", "kind": "mailbox", "estimatedDurationSec": 240, "config": { "mailboxId": "default" } },
         { "id": "d-serveurs", "kind": "serveurs", "estimatedDurationSec": 240, "solution": "1010", "points": 100 },
-        { "id": "d-disques", "kind": "disques-durs", "estimatedDurationSec": 240, "solution": "3", "points": 100 },
-        { "id": "d-bdd", "kind": "bdd", "estimatedDurationSec": 240, "solution": "SELECT", "points": 100 },
+        { "id": "d-disques", "kind": "disques-durs", "estimatedDurationSec": 240, "solution": "0110", "points": 100 },
+        { "id": "d-bdd", "kind": "bdd", "estimatedDurationSec": 240, "solution": "1111", "points": 100 },
         { "id": "d-finale", "kind": "finale", "estimatedDurationSec": 300, "solution": "SECTION13", "points": 200, "maxAttempts": 3 },
         { "id": "d-piratage", "kind": "piratage", "estimatedDurationSec": 60 }
       ]

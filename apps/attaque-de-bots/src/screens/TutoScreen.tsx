@@ -6,13 +6,14 @@ import { EnigmaPanel } from '../components/EnigmaPanel'
 import { PrimaryButton } from '../components/PrimaryButton'
 import { ScreenBackground } from '../components/ScreenBackground'
 import { ScreenTitle } from '../components/ScreenTitle'
+import type { ContinueProps } from '../navigation/types'
 
 // « Tuto » (maquette frame 1:222): a one-time overlay that explains the HUD before
 // the first énigme. The énigme behind (title + content panel) is dimmed by a
 // full-screen scrim; the HUD bar is drawn on top, bright, with four callout lines
 // pointing to its parts and a label under each, then a « J'ai compris » CTA.
 // Children are absolutely positioned at exact maquette px (z-order = JSX order).
-export function TutoScreen(): JSX.Element {
+export function TutoScreen({ onContinue }: ContinueProps = {}): JSX.Element {
   return (
     <>
       <ScreenBackground />
@@ -33,7 +34,7 @@ export function TutoScreen(): JSX.Element {
       <Text style={[styles.label, { left: 694, top: 214, width: 532 }]}>Nom de l’énigme en cours</Text>
       <Text style={[styles.label, { left: 1241, top: 214, width: 371 }]}>Jauge de score</Text>
       <Text style={[styles.label, { left: 1691, top: 214, width: 136 }]}>Timer</Text>
-      <PrimaryButton label="J’ai compris" top={560} />
+      <PrimaryButton label="J’ai compris" top={560} onPress={onContinue} />
     </>
   )
 }
