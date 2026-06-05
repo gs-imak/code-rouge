@@ -128,6 +128,32 @@ export const McodeSetMessage = z.object({
 })
 export type McodeSetMessage = z.infer<typeof McodeSetMessage>
 
+// ---- Débriefing aggregation (GM ↔ server) ---------------------------------
+//
+// At end of session the Débriefing (GM) app pulls every team's event log from
+// the server to compute stats + slides. The server is the source of truth: each
+// player app pushes its log (LogPushMessage) during/at end of play, so the data
+// survives a tablet going offline afterwards (see docs/adr/0002). These requests
+// are GM-only — the server rejects them from non-débriefing apps so a player
+// cannot read another team's log.
+
+// App → Server: list the teams known this session.
+export const TeamsRequestMessage = z.object({
+  type: z.literal('teams-request'),
+  app: AppName,
+  deviceId: DeviceId,
+})
+export type TeamsRequestMessage = z.infer<typeof TeamsRequestMessage>
+
+// App → Server: pull one team's full event log.
+export const LogRequestMessage = z.object({
+  type: z.literal('log-request'),
+  app: AppName,
+  deviceId: DeviceId,
+  targetTeamId: z.number().int().nonnegative(),
+})
+export type LogRequestMessage = z.infer<typeof LogRequestMessage>
+
 export const AppToServerMessage = z.discriminatedUnion('type', [
   HelloMessage,
   StateUpdateMessage,
@@ -136,6 +162,8 @@ export const AppToServerMessage = z.discriminatedUnion('type', [
   AccessSubmitMessage,
   AccessDecisionMessage,
   McodeSetMessage,
+  TeamsRequestMessage,
+  LogRequestMessage,
 ])
 export type AppToServerMessage = z.infer<typeof AppToServerMessage>
 
@@ -185,12 +213,36 @@ export const McodeMessage = z.object({
 })
 export type McodeMessage = z.infer<typeof McodeMessage>
 
+// Server → Débriefing: the teams known this session (those with state and/or a
+// log). `apps` is which apps reported for the team (attaque-de-bots / assaut).
+export const TeamSummary = z.object({
+  teamId: z.number().int().nonnegative(),
+  apps: z.array(AppName),
+})
+export type TeamSummary = z.infer<typeof TeamSummary>
+
+export const TeamsResultMessage = z.object({
+  type: z.literal('teams'),
+  teams: z.array(TeamSummary).max(64),
+})
+export type TeamsResultMessage = z.infer<typeof TeamsResultMessage>
+
+// Server → Débriefing: a team's full event log, read from the server store.
+export const LogResultMessage = z.object({
+  type: z.literal('log-result'),
+  teamId: z.number().int().nonnegative(),
+  events: z.array(LogEvent).max(5000),
+})
+export type LogResultMessage = z.infer<typeof LogResultMessage>
+
 export const ServerToAppMessage = z.discriminatedUnion('type', [
   WelcomeMessage,
   RestoreMessage,
   ServerCommandMessage,
   AccessResultMessage,
   McodeMessage,
+  TeamsResultMessage,
+  LogResultMessage,
 ])
 export type ServerToAppMessage = z.infer<typeof ServerToAppMessage>
 

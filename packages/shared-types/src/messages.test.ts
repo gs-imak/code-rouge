@@ -16,6 +16,10 @@ import {
   type McodeSetMessage,
   type AccessResultMessage,
   type McodeMessage,
+  type TeamsRequestMessage,
+  type LogRequestMessage,
+  type TeamsResultMessage,
+  type LogResultMessage,
 } from './messages.js'
 
 describe('parseAppToServerMessage — round-trip', () => {
@@ -246,6 +250,61 @@ describe('access-point + MG-code messages', () => {
 
   it('rejects an mg-code with an empty code', () => {
     const bogus = JSON.stringify({ type: 'mg-code', code: '' })
+    expect(() => parseServerToAppMessage(bogus)).toThrowError(MessageParseError)
+  })
+})
+
+describe('débriefing aggregation messages', () => {
+  it('parses a teams-request (App → Server)', () => {
+    const msg: TeamsRequestMessage = { type: 'teams-request', app: 'debriefing', deviceId: 'phone-gm-1' }
+    expect(parseAppToServerMessage(JSON.stringify(msg))).toEqual(msg)
+  })
+
+  it('parses a log-request (App → Server)', () => {
+    const msg: LogRequestMessage = {
+      type: 'log-request',
+      app: 'debriefing',
+      deviceId: 'phone-gm-1',
+      targetTeamId: 7,
+    }
+    expect(parseAppToServerMessage(JSON.stringify(msg))).toEqual(msg)
+  })
+
+  it('rejects a log-request with a negative targetTeamId', () => {
+    const bogus = JSON.stringify({
+      type: 'log-request',
+      app: 'debriefing',
+      deviceId: 'd1',
+      targetTeamId: -1,
+    })
+    expect(() => parseAppToServerMessage(bogus)).toThrowError(MessageParseError)
+  })
+
+  it('parses a teams result (Server → App)', () => {
+    const msg: TeamsResultMessage = {
+      type: 'teams',
+      teams: [
+        { teamId: 3, apps: ['attaque-de-bots'] },
+        { teamId: 7, apps: ['attaque-de-bots', 'assaut'] },
+      ],
+    }
+    expect(parseServerToAppMessage(JSON.stringify(msg))).toEqual(msg)
+  })
+
+  it('parses a log-result (Server → App)', () => {
+    const msg: LogResultMessage = {
+      type: 'log-result',
+      teamId: 7,
+      events: [
+        { at: 1, kind: 'enigme-solved', data: { step: 'a-mdp', attempts: 1 } },
+        { at: 2, kind: 'session-complete', data: { score: 350 } },
+      ],
+    }
+    expect(parseServerToAppMessage(JSON.stringify(msg))).toEqual(msg)
+  })
+
+  it('rejects a teams result with an unknown app in a summary', () => {
+    const bogus = JSON.stringify({ type: 'teams', teams: [{ teamId: 1, apps: ['rogue'] }] })
     expect(() => parseServerToAppMessage(bogus)).toThrowError(MessageParseError)
   })
 })

@@ -3,9 +3,11 @@ import { readFileSync, readdirSync, mkdirSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { Logger } from 'pino'
-import type {
-  LogPushMessage,
-  StateUpdateMessage,
+import {
+  AppName,
+  LogEvent,
+  type LogPushMessage,
+  type StateUpdateMessage,
 } from '@code-rouge/shared-types'
 import type { ServerConfig } from './config.js'
 
@@ -45,6 +47,20 @@ export interface DbHandle {
     deviceId: string,
     app: string,
   ) => TeamStateRow | undefined
+  /**
+   * The teams known this session (from team_state and/or event_log), each with
+   * the apps that reported for it. Used by the Débriefing app to discover teams
+   * before pulling their logs. Apps that don't validate as AppName are dropped.
+   */
+  readonly getTeamSummaries: (
+    sessionId: string,
+  ) => ReadonlyArray<{ readonly teamId: number; readonly apps: readonly AppName[] }>
+  /**
+   * A team's full event log for the session, ordered oldest-first. The stored
+   * `data` JSON is parsed + re-validated through LogEvent; rows that don't
+   * validate are skipped rather than corrupting the response.
+   */
+  readonly getEventLog: (sessionId: string, teamId: number) => LogEvent[]
   readonly ensureSession: (sessionId: string, resetCode: string) => void
   /**
    * Wipe all team_state + event_log rows for a session — used by
@@ -166,6 +182,24 @@ export function openDb(config: ServerConfig, logger: Logger): DbHandle {
     LIMIT 1
   `)
 
+  // Débriefing aggregation: distinct (team, app) across state + log, and a
+  // team's full ordered event log. UNION dedupes a team that appears in both.
+  const getTeamRowsStmt = db.prepare<{ sessionId: string }, { team_id: number; app: string }>(`
+    SELECT team_id, app FROM team_state WHERE session_id = @sessionId
+    UNION
+    SELECT team_id, app FROM event_log WHERE session_id = @sessionId
+    ORDER BY team_id ASC, app ASC
+  `)
+
+  const getEventLogStmt = db.prepare<
+    { sessionId: string; teamId: number },
+    { at: number; kind: string; data: string | null }
+  >(`
+    SELECT at, kind, data FROM event_log
+    WHERE session_id = @sessionId AND team_id = @teamId
+    ORDER BY at ASC, rowid ASC
+  `)
+
   const ensureSessionStmt = db.prepare(`
     INSERT OR IGNORE INTO sessions (id, started_at, reset_code)
     VALUES (?, ?, ?)
@@ -209,6 +243,39 @@ export function openDb(config: ServerConfig, logger: Logger): DbHandle {
     },
     getTeamStateByDevice(sessionId, deviceId, app) {
       return getTeamStateByDeviceStmt.get({ sessionId, deviceId, app })
+    },
+    getTeamSummaries(sessionId) {
+      const byTeam = new Map<number, Set<AppName>>()
+      for (const row of getTeamRowsStmt.all({ sessionId })) {
+        const app = AppName.safeParse(row.app)
+        if (!app.success) continue
+        const set = byTeam.get(row.team_id) ?? new Set<AppName>()
+        set.add(app.data)
+        byTeam.set(row.team_id, set)
+      }
+      return [...byTeam.entries()]
+        .sort((a, b) => a[0] - b[0])
+        .map(([teamId, apps]) => ({ teamId, apps: [...apps] }))
+    },
+    getEventLog(sessionId, teamId) {
+      const events: LogEvent[] = []
+      for (const row of getEventLogStmt.all({ sessionId, teamId })) {
+        let dataField: unknown
+        if (row.data !== null) {
+          try {
+            dataField = JSON.parse(row.data)
+          } catch {
+            dataField = undefined
+          }
+        }
+        const candidate =
+          dataField === undefined
+            ? { at: row.at, kind: row.kind }
+            : { at: row.at, kind: row.kind, data: dataField }
+        const parsed = LogEvent.safeParse(candidate)
+        if (parsed.success) events.push(parsed.data)
+      }
+      return events
     },
     ensureSession(sessionId, resetCode) {
       ensureSessionStmt.run(sessionId, Date.now(), resetCode)
