@@ -33,7 +33,7 @@ type ResetStatus =
 export default function App() {
   const { state, setState, getLatest, ready } = useGameState()
   const wsUrl = useMemo(() => buildWsUrl(state.serverIp), [state.serverIp])
-  const { connection } = useServerHandshake({
+  const { connection, stats, loading, missingTeamIds, loadStats } = useServerHandshake({
     url: wsUrl,
     state,
     ready,
@@ -144,6 +144,54 @@ export default function App() {
           {state.teamId === null
             ? 'aucune session active'
             : `équipe ${state.teamId} · étape ${state.currentStep} · score ${state.score}`}
+        </Text>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Statistiques de session</Text>
+        <Pressable
+          accessibilityRole="button"
+          onPress={loadStats}
+          disabled={loading || connection !== 'connected'}
+          style={({ pressed }) => [
+            styles.button,
+            (loading || connection !== 'connected') && styles.buttonDisabled,
+            pressed && styles.buttonPressed,
+          ]}
+        >
+          <Text style={styles.buttonText}>
+            {loading ? 'Chargement…' : 'Charger les statistiques'}
+          </Text>
+        </Pressable>
+
+        {stats !== null && (
+          <>
+            <Text style={styles.stateLine}>
+              {stats.global.teamCount} équipes · score moyen {stats.global.averageScore} ·{' '}
+              {stats.global.completedCount} terminées · phishing {stats.global.totalPhishingClicks}
+            </Text>
+            {stats.global.hardestEnigme !== null && (
+              <Text style={styles.stateLine}>
+                Énigme la plus difficile : {stats.global.hardestEnigme.step} (
+                {stats.global.hardestEnigme.errors} erreurs)
+              </Text>
+            )}
+            {stats.teams.map((t) => (
+              <Text key={t.teamId} style={styles.stateLine}>
+                Équipe {t.teamId} : {t.score} pts · {t.solvedCount} résolues · {t.errorCount}{' '}
+                erreurs · {t.phishingClicks} phishing{t.completed ? '' : ' · ⚠ inachevée'}
+              </Text>
+            ))}
+            {missingTeamIds.length > 0 && (
+              <Text style={styles.feedbackErr}>
+                ⚠ logs manquants : équipe{missingTeamIds.length > 1 ? 's' : ''}{' '}
+                {missingTeamIds.join(', ')}
+              </Text>
+            )}
+          </>
+        )}
+        <Text style={styles.hint}>
+          Slides projetées (vidéoprojecteur) : chantier ultérieur — maquettes GM à venir.
         </Text>
       </View>
 

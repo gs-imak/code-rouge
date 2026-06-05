@@ -12,6 +12,8 @@ import {
   type WelcomeMessage,
   type AccessResultMessage,
   type McodeMessage,
+  type TeamsResultMessage,
+  type LogResultMessage,
 } from '@code-rouge/shared-types'
 import { loadConfig, type ServerConfig } from './config.js'
 import { createLogger } from './logger.js'
@@ -382,6 +384,40 @@ function handleAppMessage(
       ctx.logger.info(
         { targetTeamId: msg.targetTeamId, recipients: sent },
         'WS mg-code-set relayed',
+      )
+      return
+    }
+    case 'teams-request': {
+      // GM-only: a player app must not enumerate teams (immutable rule — log data
+      // is GM-scoped). Reject anything that isn't the Débriefing app.
+      if (msg.app !== 'debriefing') {
+        ctx.logger.warn({ app: msg.app }, 'WS teams-request denied (non-débriefing)')
+        return
+      }
+      const teams = ctx.db.getTeamSummaries(ctx.sessionId)
+      const result: TeamsResultMessage = {
+        type: 'teams',
+        teams: teams.map((t) => ({ teamId: t.teamId, apps: [...t.apps] })),
+      }
+      ws.send(JSON.stringify(result))
+      ctx.logger.info({ teamCount: teams.length }, 'WS teams-request served')
+      return
+    }
+    case 'log-request': {
+      // GM-only: a player app must not read another team's event log.
+      if (msg.app !== 'debriefing') {
+        ctx.logger.warn(
+          { app: msg.app, targetTeamId: msg.targetTeamId },
+          'WS log-request denied (non-débriefing)',
+        )
+        return
+      }
+      const events = ctx.db.getEventLog(ctx.sessionId, msg.targetTeamId)
+      const result: LogResultMessage = { type: 'log-result', teamId: msg.targetTeamId, events }
+      ws.send(JSON.stringify(result))
+      ctx.logger.info(
+        { targetTeamId: msg.targetTeamId, eventCount: events.length },
+        'WS log-request served',
       )
       return
     }

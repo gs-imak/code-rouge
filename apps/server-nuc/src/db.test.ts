@@ -123,7 +123,7 @@ describe('appendLogEvents', () => {
     expect(inserted).toBe(3)
   })
 
-  it('handles undefined `data` by storing NULL', () => {
+  it('handles undefined `data` by storing NULL (read back as {at, kind})', () => {
     db.appendLogEvents('sess-test', {
       type: 'log',
       app: 'attaque-de-bots',
@@ -131,9 +131,54 @@ describe('appendLogEvents', () => {
       teamId: 7,
       events: [{ at: 1000, kind: 'click.email' }],
     })
-    // No public read API for events; we only verify the call didn't
-    // throw on an undefined-data payload (the JSON.stringify path).
-    expect(true).toBe(true)
+    expect(db.getEventLog('sess-test', 7)).toEqual([{ at: 1000, kind: 'click.email' }])
+  })
+})
+
+describe('getTeamSummaries', () => {
+  it('returns distinct teams with their reporting apps, sorted by teamId', () => {
+    db.upsertTeamState('sess-test', { type: 'state', app: 'attaque-de-bots', deviceId: 't7', teamId: 7, step: 'a-mdp', score: 100, timestamp: 1000 })
+    db.upsertTeamState('sess-test', { type: 'state', app: 'assaut', deviceId: 'pc7', teamId: 7, step: 'debut', score: 0, timestamp: 1000 })
+    db.upsertTeamState('sess-test', { type: 'state', app: 'attaque-de-bots', deviceId: 't3', teamId: 3, step: 'a-mailbox', score: 0, timestamp: 1000 })
+    const summaries = db.getTeamSummaries('sess-test')
+    expect(summaries.map((s) => s.teamId)).toEqual([3, 7])
+    expect([...(summaries.find((s) => s.teamId === 7)?.apps ?? [])].sort()).toEqual(['assaut', 'attaque-de-bots'])
+    expect(summaries.find((s) => s.teamId === 3)?.apps).toEqual(['attaque-de-bots'])
+  })
+
+  it('includes a team that only has a log (no state row)', () => {
+    db.appendLogEvents('sess-test', { type: 'log', app: 'attaque-de-bots', deviceId: 't9', teamId: 9, events: [{ at: 1, kind: 'session-complete', data: { score: 50 } }] })
+    expect(db.getTeamSummaries('sess-test').map((s) => s.teamId)).toContain(9)
+  })
+
+  it('is scoped to the session', () => {
+    db.ensureSession('sess-other', 'rc')
+    db.upsertTeamState('sess-other', { type: 'state', app: 'attaque-de-bots', deviceId: 't1', teamId: 1, step: 'x', score: 0, timestamp: 1 })
+    expect(db.getTeamSummaries('sess-test')).toEqual([])
+  })
+})
+
+describe('getEventLog', () => {
+  it("returns a team's events oldest-first, round-tripping data", () => {
+    db.appendLogEvents('sess-test', {
+      type: 'log',
+      app: 'attaque-de-bots',
+      deviceId: 't7',
+      teamId: 7,
+      events: [
+        { at: 2000, kind: 'enigme-solved', data: { step: 'a-mdp', attempts: 2 } },
+        { at: 1000, kind: 'phishing-clicked', data: { mail: 'phishing-update-creds' } },
+        { at: 3000, kind: 'session-complete', data: { score: 350 } },
+      ],
+    })
+    const log = db.getEventLog('sess-test', 7)
+    expect(log.map((e) => e.at)).toEqual([1000, 2000, 3000])
+    expect(log[0]).toEqual({ at: 1000, kind: 'phishing-clicked', data: { mail: 'phishing-update-creds' } })
+    expect(log[1]?.data).toEqual({ step: 'a-mdp', attempts: 2 })
+  })
+
+  it('returns [] for a team with no events', () => {
+    expect(db.getEventLog('sess-test', 42)).toEqual([])
   })
 })
 

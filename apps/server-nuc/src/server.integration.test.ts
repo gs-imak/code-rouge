@@ -332,3 +332,89 @@ describe('server integration — GM access-point + MG-code relay', () => {
     expect(otherSaw).toBe(false)
   })
 })
+
+describe('server integration — débriefing aggregation', () => {
+  // A bots team pushes its state + end-of-session log; the GM (Débriefing) then
+  // discovers teams and pulls the log from the server. Two connections only to
+  // stay under the per-IP WS connection rate limit shared across this file.
+  let bots: WS
+  let gm: WS
+
+  async function hello(ws: WS, app: string, deviceId: string, teamId: number | null): Promise<void> {
+    const welcomed = recordFrames(ws, (m) => m.type === 'welcome')
+    send(ws, { type: 'hello', app, deviceId, teamId })
+    await welcomed
+  }
+
+  beforeAll(async () => {
+    bots = new WebSocket(`ws://127.0.0.1:${port}/ws`)
+    gm = new WebSocket(`ws://127.0.0.1:${port}/ws`)
+    await Promise.all([once(bots, 'open'), once(gm, 'open')])
+    await hello(bots, 'attaque-de-bots', 'agg-bots-5', 5)
+    await hello(gm, 'debriefing', 'agg-gm', null)
+    send(bots, {
+      type: 'state',
+      app: 'attaque-de-bots',
+      deviceId: 'agg-bots-5',
+      teamId: 5,
+      step: 'fin',
+      score: 350,
+      timestamp: Date.now(),
+    })
+    send(bots, {
+      type: 'log',
+      app: 'attaque-de-bots',
+      deviceId: 'agg-bots-5',
+      teamId: 5,
+      events: [
+        { at: 1, kind: 'enigme-solved', data: { step: 'a-mdp', attempts: 1 } },
+        { at: 2, kind: 'phishing-clicked', data: { mail: 'phishing-update-creds' } },
+        { at: 3, kind: 'session-complete', data: { score: 350 } },
+      ],
+    })
+    // Let the upsert + log batch commit before the GM queries.
+    await new Promise((r) => setTimeout(r, 80))
+  }, 10_000)
+
+  afterAll(async () => {
+    for (const ws of [bots, gm]) ws.close(1000)
+  })
+
+  it('serves the session teams to the GM', async () => {
+    const got = recordFrames(gm, (m) => m.type === 'teams')
+    send(gm, { type: 'teams-request', app: 'debriefing', deviceId: 'agg-gm' })
+    const frames = await got
+    const teams = frames.find((m) => m.type === 'teams') as unknown as {
+      readonly teams: ReadonlyArray<{ teamId: number; apps: string[] }>
+    }
+    expect(teams.teams.some((t) => t.teamId === 5 && t.apps.includes('attaque-de-bots'))).toBe(true)
+  })
+
+  it('serves a team event log to the GM in order', async () => {
+    const got = recordFrames(gm, (m) => m.type === 'log-result')
+    send(gm, { type: 'log-request', app: 'debriefing', deviceId: 'agg-gm', targetTeamId: 5 })
+    const frames = await got
+    const result = frames.find((m) => m.type === 'log-result') as unknown as {
+      readonly teamId: number
+      readonly events: ReadonlyArray<{ kind: string }>
+    }
+    expect(result.teamId).toBe(5)
+    expect(result.events.map((e) => e.kind)).toEqual([
+      'enigme-solved',
+      'phishing-clicked',
+      'session-complete',
+    ])
+  })
+
+  it('denies a teams-request from a non-débriefing app', async () => {
+    let saw = false
+    const onMsg = (raw: Buffer): void => {
+      if ((JSON.parse(raw.toString()) as Frame).type === 'teams') saw = true
+    }
+    bots.on('message', onMsg)
+    send(bots, { type: 'teams-request', app: 'attaque-de-bots', deviceId: 'agg-bots-5' })
+    await new Promise((r) => setTimeout(r, 250))
+    bots.off('message', onMsg)
+    expect(saw).toBe(false)
+  })
+})
