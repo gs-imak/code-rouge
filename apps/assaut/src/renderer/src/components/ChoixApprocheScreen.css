@@ -81,13 +81,14 @@
   border-radius: 0.4rem;
 }
 
-/* Placeholder card imagery (real frontale/furtive photos are graphiste assets). */
+/* Card imagery (maquette « Rectangle 9239/9240 » fills, exported from Figma).
+   REVIEW-BUILD NOTE: confirm these are licensed/owned before a shipped build. */
 .choix__card-img--frontale {
-  background: linear-gradient(135deg, #3a4a63 0%, #18202f 100%);
+  background: center / cover no-repeat url("../assets/choix-card-1.png");
 }
 
 .choix__card-img--furtive {
-  background: linear-gradient(135deg, #2a3550 0%, #11161f 100%);
+  background: center / cover no-repeat url("../assets/choix-card-2.png");
 }
 
 /* Selected card — maquette « Rectangle 9240 » selected: #67c4f0@40% fill, 4px

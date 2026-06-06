@@ -1,4 +1,5 @@
 import { AssautStepScreen } from '../components/AssautStepScreen'
+import { ConnexionScreen } from '../ConnexionScreen'
 import { AccueilScreen } from '../components/AccueilScreen'
 import { PreparationScreen } from '../components/PreparationScreen'
 import { ChoixApprocheScreen } from '../components/ChoixApprocheScreen'
@@ -6,15 +7,14 @@ import { PanelScreen } from '../components/PanelScreen'
 import { AdminScreen } from '../components/AdminScreen'
 import { TutoScreen } from '../components/TutoScreen'
 import { DevFlow } from './DevFlow'
+import rooftopPhoto from '../assets/scene-rooftop.png'
+import mcgyverPhoto from '../assets/scene-mcgyver.png'
 
 // DEV-ONLY screen gallery. Reachable at `?screen=<name>` in the renderer dev
 // server so each screen can be screenshot-verified against its maquette without
 // driving the whole engine flow. Tree-shaken from the kiosk build (see main.tsx).
 
 const noop = (): void => undefined
-
-const PHOTO_PLACEHOLDER =
-  "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='480' height='320'><rect width='100%25' height='100%25' fill='%23172238'/><text x='50%25' y='50%25' fill='%236aa' font-family='sans-serif' font-size='18' text-anchor='middle'>toits</text></svg>"
 
 const LOREM =
   'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.'
@@ -85,7 +85,7 @@ export function ScreenGallery({ name }: { readonly name: string }): JSX.Element 
           dataRecoveredPercent={27}
           timerLabel="10:05"
           subtitle=""
-          photo={{ src: PHOTO_PLACEHOLDER, onClose: noop }}
+          photo={{ src: mcgyverPhoto, onClose: noop }}
         />
       )
 
@@ -116,7 +116,7 @@ export function ScreenGallery({ name }: { readonly name: string }): JSX.Element 
           icon="check"
           title="Félicitations opérateurs !"
           text={'Option de sélection "Toits" validée et disponible pour la suite.'}
-          photoSrc={PHOTO_PLACEHOLDER}
+          photoSrc={rooftopPhoto}
           buttonLabel="Continuer"
           onSubmit={noop}
         />
@@ -153,6 +153,8 @@ export function ScreenGallery({ name }: { readonly name: string }): JSX.Element 
         />
       )
 
+    case 'connexion':
+      return <ConnexionScreen code="" onCodeChange={noop} onValidate={noop} nucConnection="connected" />
     case 'tuto':
       return <TutoScreen />
     case 'admin':

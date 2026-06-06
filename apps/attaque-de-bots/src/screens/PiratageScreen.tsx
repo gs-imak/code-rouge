@@ -2,16 +2,19 @@ import { useEffect, type JSX } from 'react'
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native'
 import { colors } from '../theme/tokens'
 import { HudHeader } from '../components/HudHeader'
+import { RasterImage } from '../components/RasterImage'
 import { ScreenBackground } from '../components/ScreenBackground'
 import type { TimedProps } from '../navigation/types'
 import logo from '../assets/pir-logo.png'
 import dots from '../assets/pir-dots-4.png'
+import codeRain from '../assets/bg-fishing.jpg'
 
 // « Accueil Piratage » (maquette frames 25:1547/1695/1843 — three identical-layout
 // animation frames): the dramatic "you've been hacked by LE RÉSEAU" pattern-unlock.
-// The full-frame code-rain is the licensed iStock scene → neutral placeholder (rule
-// #3, same raster as Fishing). LE RÉSEAU logo + dot grid are static art; texts render
-// uppercase per the maquette. All px = maquette coords.
+// The full-frame code-rain is the maquette's « iStock-1048265360 » fill (same raster
+// as Fishing), exported from Figma (rule #3). REVIEW-BUILD NOTE: licensed iStock comp
+// — swap before any shipped build. LE RÉSEAU logo + dot grid are static art; texts
+// render uppercase per the maquette. All px = maquette coords.
 export function PiratageScreen({ onDone }: TimedProps = {}): JSX.Element {
   // The unlock auto-resolves after the dramatic beat; a tap on the pattern box
   // skips it. Inert in the dev Gallery (no onDone).
@@ -23,6 +26,7 @@ export function PiratageScreen({ onDone }: TimedProps = {}): JSX.Element {
   return (
     <>
       <ScreenBackground />
+      <RasterImage source={codeRain} style={styles.scene} />
       <HudHeader />
       <Image source={logo} style={styles.logo} resizeMode="contain" />
       <Text style={styles.alert}>Vous avez été piratés par Le réseau !{'\n'}Hahahah ! Nous voyons tout !</Text>
@@ -42,6 +46,8 @@ export function PiratageScreen({ onDone }: TimedProps = {}): JSX.Element {
 }
 
 const styles = StyleSheet.create({
+  // Full-frame code-rain scene (maquette « iStock-1048265360 » fill).
+  scene: { position: 'absolute', left: 0, top: 0, width: 1920, height: 1200 },
   // (maquette « Calque_6 » [802,56 316×311]).
   logo: { position: 'absolute', left: 802, top: 56, width: 316, height: 311 },
   // (maquette [460,403 999×94] 46px/700 centre, textCase UPPER).
