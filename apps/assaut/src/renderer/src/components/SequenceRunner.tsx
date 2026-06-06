@@ -234,7 +234,7 @@ export function SequenceRunner({
           <AssautStepScreen
             dataRecoveredPercent={dataRecoveredPercent}
             timerLabel={timerLabel}
-            subtitle="Sous-titre …"
+            subtitle=""
             responses={interactive ? responses : undefined}
             onRespond={(id) => onSubmit(id)}
           />
