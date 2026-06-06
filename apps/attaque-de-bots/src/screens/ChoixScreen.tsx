@@ -33,7 +33,9 @@ export const CARDS_2: readonly ChoixCard[] = [
 export const CARDS_3: readonly ChoixCard[] = [
   { id: 'telephonie', panelLeft: 87, title: 'Attaque du système de téléphonie', titleLeft: 139, titleWidth: 452 },
   { id: 'reseau', panelLeft: 682, title: 'Déconnexion du réseau', titleLeft: 682, titleWidth: 555 },
-  { id: 'placeholder', panelLeft: 1277, title: 'Lorem ipsum', titleLeft: 1278, titleWidth: 555 },
+  // 3rd card is a placeholder slot for the 3-énigme parcours variant; its real
+  // title is content (the énigme name from parcours.json). Blank until then.
+  { id: 'placeholder', panelLeft: 1277, title: '', titleLeft: 1278, titleWidth: 555 },
 ]
 
 function Card({ panelLeft, title, titleLeft, titleWidth }: ChoixCard): JSX.Element {
