@@ -75,8 +75,9 @@ export function LecScreen({
 const styles = StyleSheet.create({
   // Keypad (maquette « cadran_chiffres » bbox [335,335 480×640]; natural 548×708 centred).
   keypad: { position: 'absolute', left: 301, top: 301, width: 548, height: 708 },
-  // (maquette « Frame 23438 » [1005,484 625×79] 36px/700 centre).
-  prompt: { position: 'absolute', left: 1005, top: 484, width: 625, textAlign: 'center', color: colors.white, fontFamily: 'Roboto', fontSize: 36, fontWeight: '700', lineHeight: 79 },
+  // (maquette « Frame 23438 » [1005,484 625×79] 36px/700 centre, textCase UPPER —
+  // single line, lineHeight = box height centres it like Figma vCenter).
+  prompt: { position: 'absolute', left: 1005, top: 484, width: 625, textAlign: 'center', textTransform: 'uppercase', color: colors.white, fontFamily: 'Roboto', fontSize: 36, fontWeight: '700', lineHeight: 79 },
   field: { position: 'absolute', left: 1021, top: 582, width: 610, height: 108, backgroundColor: colors.fieldFill, borderWidth: 2, borderColor: colors.fieldBorder, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
   fieldText: { width: '100%', textAlign: 'center', color: colors.white, fontFamily: 'Roboto', fontSize: 40, fontWeight: '700' },
   // Success / error message (maquette [906,345 827×88] 44px/700 centre, right column).

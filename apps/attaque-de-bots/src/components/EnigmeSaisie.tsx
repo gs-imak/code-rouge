@@ -103,13 +103,15 @@ export function EnigmeSaisie({
 }
 
 const styles = StyleSheet.create({
-  // (maquette [1005,484 625×79] 36px/700 centre).
+  // (maquette [1005,484 625×79] 36px/700 centre vCenter, textCase UPPER — single line,
+  // so lineHeight = box height centres the glyph like Figma's vertical-centre).
   prompt: {
     position: 'absolute',
     left: 1005,
     top: 484,
     width: 625,
     textAlign: 'center',
+    textTransform: 'uppercase',
     color: colors.white,
     fontFamily: 'Roboto',
     fontSize: 36,

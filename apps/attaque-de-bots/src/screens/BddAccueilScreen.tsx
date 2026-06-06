@@ -25,7 +25,7 @@ export function BddAccueilScreen({ onContinue }: ContinueProps = {}): JSX.Elemen
         Alerte !{'\n'}Tentatives de corruption des bases de données par les bots.{'\n\n'}Bots détectés dans les serveurs
         {'\n'}... AP1 ... cz ... IP ... HJ ...
       </Text>
-      <PrimaryButton label="OK" top={755} tone="red" onPress={onContinue} />
+      <PrimaryButton label="J’ai tout retenu" top={755} tone="red" onPress={onContinue} />
     </>
   )
 }
@@ -35,6 +35,6 @@ const styles = StyleSheet.create({
   modal: { position: 'absolute', left: 380, top: 111, width: 1161, height: 803, borderWidth: 2, borderColor: colors.panelStroke, borderRadius: 20 },
   // Warning picto (maquette « picto » [901,148 120×120]).
   picto: { position: 'absolute', left: 901, top: 148, width: 120, height: 120 },
-  // (maquette [461,287 999×508] 46px/700 centre, multi-line).
-  text: { position: 'absolute', left: 461, top: 287, width: 999, textAlign: 'center', color: colors.white, fontFamily: 'Roboto', fontSize: 46, fontWeight: '700', lineHeight: 64 },
+  // (maquette [461,287 999×508] 46px/700 lh60 centre, multi-line, textCase UPPER).
+  text: { position: 'absolute', left: 461, top: 287, width: 999, textAlign: 'center', textTransform: 'uppercase', color: colors.white, fontFamily: 'Roboto', fontSize: 46, fontWeight: '700', lineHeight: 60 },
 })

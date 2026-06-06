@@ -53,8 +53,9 @@ export function Dd2Screen({
 }
 
 const styles = StyleSheet.create({
-  // (maquette [453,234 1015×79] 46px/700 centre).
-  instruction: { position: 'absolute', left: 453, top: 234, width: 1015, textAlign: 'center', color: colors.white, fontFamily: 'Roboto', fontSize: 46, fontWeight: '700', lineHeight: 79 },
+  // (maquette [453,234 1015×79] 46px/700 lh48 centre vCenter, textCase UPPER → 2 lines).
+  // Was lineHeight 79 + no uppercase → sentence-case + double leading, ghosted in diff.
+  instruction: { position: 'absolute', left: 453, top: 226, width: 1015, textAlign: 'center', textTransform: 'uppercase', color: colors.white, fontFamily: 'Roboto', fontSize: 46, fontWeight: '700', lineHeight: 48 },
   // Platter (maquette « disque_dure » bbox [744,366 432×552]; natural 470×590 centred).
   disk: { position: 'absolute', left: 725, top: 347, width: 470, height: 590 },
   // Success / error message (maquette ~[.,931] 44px/700 centre, centred on 960).
