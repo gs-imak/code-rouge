@@ -72,11 +72,14 @@ export function ChoixScreen({
 }
 
 const styles = StyleSheet.create({
-  // Title (maquette [243,212 1434×133] 70px/700 centre, textCase UPPER, 2 lines).
+  // Title (maquette [243,212 1434×133] 70px/700 lh83 centre vCenter, textCase UPPER,
+  // 2 lines). Figma vertical-centres the 2×83=166px text block in the 133px box →
+  // block top = 212 + (133-166)/2 ≈ 196; match lineHeight 83 so line 2 sits where the
+  // maquette puts it (was lineHeight 80/top 205 → 6-9px low + doubled in the diff).
   title: {
     position: 'absolute',
     left: 243,
-    top: 205,
+    top: 196,
     width: 1434,
     textAlign: 'center',
     textTransform: 'uppercase',
@@ -84,7 +87,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Roboto',
     fontSize: 70,
     fontWeight: '700',
-    lineHeight: 80,
+    lineHeight: 83,
   },
   cardPanel: {
     position: 'absolute',

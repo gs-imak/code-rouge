@@ -59,8 +59,10 @@ export function BddScreen({
 }
 
 const styles = StyleSheet.create({
-  // (maquette [514,234 893×79] 46px/700 centre).
-  instruction: { position: 'absolute', left: 514, top: 234, width: 893, textAlign: 'center', color: colors.white, fontFamily: 'Roboto', fontSize: 46, fontWeight: '700', lineHeight: 79 },
+  // (maquette [514,234 893×79] 46px/700 lh48 centre vCenter, textCase UPPER → 2 lines).
+  // Was lineHeight 79 (the box height) + no uppercase → sentence-case, double leading,
+  // ghosted in the diff. lh48 = Figma per-line; vCentre the 2×48 block in the 79 box.
+  instruction: { position: 'absolute', left: 514, top: 226, width: 893, textAlign: 'center', textTransform: 'uppercase', color: colors.white, fontFamily: 'Roboto', fontSize: 46, fontWeight: '700', lineHeight: 48 },
   // Server rows (maquette « Frame 23440/23441 » [404,375] / [404,676], 1113×245).
   row: { position: 'absolute', left: 404, top: 375, width: 1113, height: 245 },
   row2: { position: 'absolute', left: 404, top: 676, width: 1113, height: 245 },

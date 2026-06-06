@@ -102,6 +102,7 @@
 .admin-hw__label {
   font-size: 2.5rem; /* maquette 25px/700 */
   font-weight: var(--cr-weight-bold, 700);
+  text-transform: uppercase; /* maquette « Batterie » / « Wifi » render textCase UPPER */
   color: var(--cr-color-white, #fff);
 }
 
