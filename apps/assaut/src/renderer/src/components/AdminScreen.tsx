@@ -78,7 +78,7 @@ export function AdminScreen({
             defaultValue=""
             aria-label="Sélectionnez votre étape de jeu"
           >
-            <option value="">1 - Nom de l’étape</option>
+            <option value="">Sélectionner une étape</option>
           </select>
         </section>
 
@@ -92,7 +92,7 @@ export function AdminScreen({
             defaultValue=""
             aria-label="Sélectionnez le parcours de jeu"
           >
-            <option value="">Nom du parcours</option>
+            <option value="">Sélectionner un parcours</option>
           </select>
           <p className="admin-cfg__team-label">Sélectionnez l’équipe&nbsp;:</p>
           <select
@@ -100,7 +100,7 @@ export function AdminScreen({
             defaultValue=""
             aria-label="Sélectionnez l’équipe"
           >
-            <option value="">1 - Nom de l’équipe</option>
+            <option value="">Sélectionner une équipe</option>
           </select>
           <button type="button" className="admin-custom">
             <span>Personnaliser votre session</span>

@@ -7,11 +7,11 @@ import type { ContinueProps } from '../navigation/types'
 
 // « Accueil » (maquette frame 1:109): welcome / briefing screen shown after
 // Connexion. Title (rendered uppercase per the maquette textCase) + briefing body
-// + « Commencer » CTA, all at exact maquette px in the 1920×1200 canvas. The body
-// is the maquette's lorem placeholder; the real briefing text arrives as config
-// content (see the énigme-content follow-up).
-const BODY =
-  'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n\nSed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.'
+// + « Commencer » CTA, all at exact maquette px in the 1920×1200 canvas. The
+// briefing body is content (Nathanaël) — blank until it lands rather than shipping
+// the maquette's lorem placeholder. « Alpha » is a sample team; the real name is
+// runtime data.
+const BODY = ''
 
 export function AccueilScreen({ onContinue }: ContinueProps = {}): JSX.Element {
   return (

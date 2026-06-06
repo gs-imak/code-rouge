@@ -69,15 +69,15 @@ export function AdminScreen(): JSX.Element {
       <Text style={styles.resetLabel}>Reset</Text>
       <Image source={refresh} style={styles.resetIcon} resizeMode="contain" />
       <Text style={[styles.body1, { left: 238, top: 802, width: 532 }]}>Sélectionnez votre étape de jeu :</Text>
-      <Dropdown left={262} top={854} value="1 - Nom de l’étape" />
+      <Dropdown left={262} top={854} value="Sélectionner une étape" />
 
       {/* Panel 4 — Paramétrage de session [850,438 910×597]. */}
       <View style={[styles.panel, { left: 850, top: 438, width: 910, height: 597 }]} />
       <Text style={[styles.panelTitle, { left: 850, top: 465, width: 910 }]}>Paramétrage de session</Text>
       <Text style={[styles.body1, { left: 1041, top: 568, width: 532 }]}>Sélectionnez le parcours de jeu :</Text>
-      <Dropdown left={1065} top={620} value="Nom du parcours" />
+      <Dropdown left={1065} top={620} value="Sélectionner un parcours" />
       <Text style={[styles.body1, { left: 1041, top: 740, width: 532 }]}>Sélectionnez l’équipe :</Text>
-      <Dropdown left={1065} top={792} value="1 - Nom de l’équipe" />
+      <Dropdown left={1065} top={792} value="Sélectionner une équipe" />
       {/* Personnaliser button (maquette [1065,908 483×75] white outline + cog). */}
       <View style={styles.persoBtn} />
       <Text style={styles.persoLabel}>Personnaliser votre session</Text>
