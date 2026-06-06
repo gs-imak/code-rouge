@@ -9,6 +9,8 @@ import { ChoixApprocheScreen, type ApprocheOption } from './ChoixApprocheScreen'
 import { PanelScreen } from './PanelScreen'
 import { AssautStepScreen, type AssautResponse } from './AssautStepScreen'
 import { TutoScreen } from './TutoScreen'
+import rooftopPhoto from '../assets/scene-rooftop.png'
+import mcgyverPhoto from '../assets/scene-mcgyver.png'
 
 // Maps the engine's current step (by `kind`) to its screen and wires the screen's
 // actions back to the engine (advance / applyChoice). This is the only place that
@@ -162,6 +164,7 @@ export function SequenceRunner({
           icon="check"
           title="Félicitations opérateurs !"
           text="Point d'accès validé et disponible pour la suite."
+          photoSrc={rooftopPhoto}
           buttonLabel="Continuer"
           onSubmit={() => onSubmit()}
         />
@@ -229,6 +232,9 @@ export function SequenceRunner({
     default: {
       const responses = extractResponses(step.config)
       const interactive = responses.length > 0
+      // « Mc Gyver Photo » overlays a received photo (maquette « 3.9.2 » fill);
+      // closing it advances. Other passive steps advance via the transparent overlay.
+      const isMcgyverPhoto = step.kind === 'mcgyver-photo'
       return (
         <>
           <AssautStepScreen
@@ -237,8 +243,9 @@ export function SequenceRunner({
             subtitle=""
             responses={interactive ? responses : undefined}
             onRespond={(id) => onSubmit(id)}
+            photo={isMcgyverPhoto ? { src: mcgyverPhoto, onClose: () => onSubmit() } : undefined}
           />
-          {!interactive && <AdvanceOverlay onAdvance={() => onSubmit()} />}
+          {!interactive && !isMcgyverPhoto && <AdvanceOverlay onAdvance={() => onSubmit()} />}
         </>
       )
     }

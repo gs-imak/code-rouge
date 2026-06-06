@@ -1,19 +1,19 @@
 import type { JSX } from 'react'
-import { StyleSheet, View } from 'react-native'
-import { colors } from '../theme/tokens'
+import { Image, StyleSheet } from 'react-native'
 import { isBgNoneHarness } from './harness'
+import bgScreen from '../assets/bg-screen.png'
 
-// Full-frame background (maquette « image 7 », a blurred photo on every screen).
-// Neutral dark placeholder until the graphiste delivers the real raster — the
-// licensed photo is not bundled (immutable rule #3). Single swap point: when the
-// asset lands, replace this View with an <Image> here only.
+// Full-frame background (maquette « image 7 », a blurred photo on every screen),
+// exported from the Figma fill and bundled locally — no runtime fetch (rule #3).
+// REVIEW-BUILD NOTE: the maquette fill is licensed stock; swap for a licensed/owned
+// raster before any shipped build. Single swap point: replace bg-screen.png here.
 // Renders nothing under the `?bg=none` harness flag so the foreground-diff tool can
 // composite the foreground over the real Figma background (see ./harness).
 export function ScreenBackground(): JSX.Element | null {
   if (isBgNoneHarness()) return null
-  return <View style={styles.bg} />
+  return <Image source={bgScreen} style={styles.bg} resizeMode="cover" />
 }
 
 const styles = StyleSheet.create({
-  bg: { position: 'absolute', left: 0, top: 0, width: 1920, height: 1200, backgroundColor: colors.bgPlaceholder },
+  bg: { position: 'absolute', left: 0, top: 0, width: 1920, height: 1200 },
 })

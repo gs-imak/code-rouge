@@ -1,10 +1,13 @@
 import type { JSX } from 'react'
-import { StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, Text, View, type ImageSourcePropType } from 'react-native'
 import { colors } from '../theme/tokens'
 import { HudHeader } from '../components/HudHeader'
 import { PrimaryButton } from '../components/PrimaryButton'
-import { RasterPlaceholder } from '../components/RasterPlaceholder'
+import { RasterImage } from '../components/RasterImage'
 import { ScreenBackground } from '../components/ScreenBackground'
+import choixCard1 from '../assets/choix-card-1.png'
+import choixCard2 from '../assets/choix-card-2.jpg'
+import choixCard3 from '../assets/choix-card-3.jpg'
 
 // « Choix » (maquette frames 1:345 = 2 cards, 61:23581 = 3 cards): the player picks
 // which bot attack to counter. The card count and their order come from the parcours
@@ -17,6 +20,8 @@ export type ChoixCard = {
   readonly id: string
   /** Card panel left edge in maquette px (image = +21, both 555 / 513 wide). */
   readonly panelLeft: number
+  /** Card photo (maquette « 2.3 Choix Enigme » fill, exported from Figma). */
+  readonly image: ImageSourcePropType
   readonly title: string
   /** Title text box (maquette sizes the box to the text, centred on the card). */
   readonly titleLeft: number
@@ -25,26 +30,27 @@ export type ChoixCard = {
 
 // Maquette 1:345 — two cards centred (panel 555, gap 60).
 export const CARDS_2: readonly ChoixCard[] = [
-  { id: 'telephonie', panelLeft: 375, title: 'Attaque du système de téléphonie', titleLeft: 427, titleWidth: 452 },
-  { id: 'reseau', panelLeft: 990, title: 'Déconnexion du réseau', titleLeft: 990, titleWidth: 555 },
+  { id: 'telephonie', panelLeft: 375, image: choixCard1, title: 'Attaque du système de téléphonie', titleLeft: 427, titleWidth: 452 },
+  { id: 'reseau', panelLeft: 990, image: choixCard2, title: 'Déconnexion du réseau', titleLeft: 990, titleWidth: 555 },
 ]
 
 // Maquette 61:23581 — three cards (panel 555, gap 40).
 export const CARDS_3: readonly ChoixCard[] = [
-  { id: 'telephonie', panelLeft: 87, title: 'Attaque du système de téléphonie', titleLeft: 139, titleWidth: 452 },
-  { id: 'reseau', panelLeft: 682, title: 'Déconnexion du réseau', titleLeft: 682, titleWidth: 555 },
+  { id: 'telephonie', panelLeft: 87, image: choixCard1, title: 'Attaque du système de téléphonie', titleLeft: 139, titleWidth: 452 },
+  { id: 'reseau', panelLeft: 682, image: choixCard2, title: 'Déconnexion du réseau', titleLeft: 682, titleWidth: 555 },
   // 3rd card is a placeholder slot for the 3-énigme parcours variant; its real
   // title is content (the énigme name from parcours.json). Blank until then.
-  { id: 'placeholder', panelLeft: 1277, title: '', titleLeft: 1278, titleWidth: 555 },
+  { id: 'placeholder', panelLeft: 1277, image: choixCard3, title: '', titleLeft: 1278, titleWidth: 555 },
 ]
 
-function Card({ panelLeft, title, titleLeft, titleWidth }: ChoixCard): JSX.Element {
+function Card({ panelLeft, image, title, titleLeft, titleWidth }: ChoixCard): JSX.Element {
   return (
     <>
       {/* Panel (maquette « Rectangle 9220/9222 » 555×531 #000@20% 2px white@50% r20). */}
       <View style={[styles.cardPanel, { left: panelLeft }]} />
-      {/* Image placeholder (maquette 513×351 raster — not bundled, rule #3). */}
-      <RasterPlaceholder style={[styles.cardImage, { left: panelLeft + 21 }]} />
+      {/* Card photo (maquette 513×351 « 2.3 Choix Enigme » fill, exported from Figma;
+          transparent under ?bg=none so the foreground diff isn't photo-noise). */}
+      <RasterImage source={image} style={[styles.cardImage, { left: panelLeft + 21 }]} />
       {/* Title (maquette 36px/700 centre, textCase UPPER). */}
       <Text style={[styles.cardTitle, { left: titleLeft, width: titleWidth }]}>{title}</Text>
     </>
