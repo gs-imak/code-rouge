@@ -34,30 +34,24 @@ export function TutoScreen({
       }
     >
       <div className="tuto">
-        <p className="tuto__note tuto__note--image">
-          Si le chef d’escouade doit vous envoyer une image, elle sera ici
-        </p>
-        <p className="tuto__note tuto__note--score">
-          Pourcentage des données récupérées qui varie selon vos décisions
-        </p>
-        <p className="tuto__note tuto__note--timer">
-          Temps restant pour répondre au chef d’escouade
-        </p>
-        <p className="tuto__note tuto__note--responses">
-          Boutons interactifs pour communiquer avec le chef d’escouade
-        </p>
+        {/* Short element labels (player-facing), matching the bots tuto pattern.
+            The maquette carried long SPEC descriptions here — those were designer
+            direction, not live copy; final wording is content (Nathanaël). */}
+        <p className="tuto__note tuto__note--image">Caméra embarquée</p>
+        <p className="tuto__note tuto__note--score">Données récupérées</p>
+        <p className="tuto__note tuto__note--timer">Temps restant</p>
+        <p className="tuto__note tuto__note--responses">Vos réponses</p>
 
         <div className="tuto__stage">
           <div className="tuto__media">
             <HudBrackets />
+            {/* Camera/video area — placeholder waveform until the real feed (rule #3).
+                No self-describing caption: the box IS the camera, it doesn't label itself. */}
             <div className="tuto__waveform" aria-hidden="true">
               {WAVEFORM.map((h, i) => (
                 <span key={`bar-${i}`} style={{ height: `${h}%` }} />
               ))}
             </div>
-            <p className="tuto__media-caption">
-              Affichage de la caméra embarquée du chef de l’escouade d’intervention
-            </p>
           </div>
 
           <div className="tuto__responses">

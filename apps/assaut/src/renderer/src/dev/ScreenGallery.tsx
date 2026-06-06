@@ -69,13 +69,13 @@ export function ScreenGallery({ name }: { readonly name: string }): JSX.Element 
       return <Index />
     // --- Assault-phase steps -------------------------------------------------
     case 'debut':
-      return <AssautStepScreen dataRecoveredPercent={27} timerLabel="10:05" subtitle="Sous-titre …" />
+      return <AssautStepScreen dataRecoveredPercent={27} timerLabel="10:05" subtitle="" />
     case 'interaction':
       return (
         <AssautStepScreen
           dataRecoveredPercent={27}
           timerLabel="10:05"
-          subtitle="Dernière phrase figée pour les joueurs"
+          subtitle=""
           responses={FOUR_RESPONSES}
         />
       )
@@ -84,7 +84,7 @@ export function ScreenGallery({ name }: { readonly name: string }): JSX.Element 
         <AssautStepScreen
           dataRecoveredPercent={27}
           timerLabel="10:05"
-          subtitle="Sous-titre …"
+          subtitle=""
           photo={{ src: PHOTO_PLACEHOLDER, onClose: noop }}
         />
       )
