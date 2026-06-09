@@ -120,12 +120,22 @@ export default function App() {
         signal: controller.signal,
       })
       if (res.status === 200) {
-        const body = (await res.json()) as {
-          teamStateDeleted: number
-          eventLogDeleted: number
+        const body: unknown = await res.json()
+        if (
+          typeof body === 'object' &&
+          body !== null &&
+          typeof (body as Record<string, unknown>).teamStateDeleted === 'number' &&
+          typeof (body as Record<string, unknown>).eventLogDeleted === 'number'
+        ) {
+          const { teamStateDeleted, eventLogDeleted } = body as {
+            teamStateDeleted: number
+            eventLogDeleted: number
+          }
+          setResetStatus({ kind: 'success', teamStateDeleted, eventLogDeleted })
+          setResetCodeDraft('')
+        } else {
+          setResetStatus({ kind: 'error', message: 'Réponse serveur invalide.' })
         }
-        setResetStatus({ kind: 'success', ...body })
-        setResetCodeDraft('')
       } else if (res.status === 401) {
         setResetStatus({ kind: 'error', message: 'Code incorrect.' })
       } else {
@@ -343,8 +353,8 @@ export default function App() {
             {deck.slides.map((slide) => (
               <View key={slide.id} style={styles.slide}>
                 <Text style={styles.slideTitle}>{slide.title}</Text>
-                {slide.lines.map((line, i) => (
-                  <Text key={`${slide.id}-${i}`} style={styles.slideLine}>
+                {slide.lines.map((line) => (
+                  <Text key={line} style={styles.slideLine}>
                     {line}
                   </Text>
                 ))}
