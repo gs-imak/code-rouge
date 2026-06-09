@@ -67,11 +67,16 @@ retention). The latest stable build is also attached to the
 
 ## Sequence linéaire
 
-The game runs through 7 ordered steps (Début → Perdus → Patrouille → Perdus 2
-→ McGyver → RDV Indic → Couper le fil → Épilogue) defined in
-`assets/config/sequence.json`. Branchements are JSON-described conditional
-jumps, **never hardcoded `if` statements**. Sequence loading lands chantier
-05+ along with the persistence resume flow.
+The flow is defined in `assets/config/sequence.json` (the canonical source):
+an 8-step **préparation** phase (saisie-accès → accueil → préparation →
+point-d'entrée → choix-approche → attente-code-MG → accueil-assaut → tuto)
+followed by the **assault** steps (currently 11: Début → Général → Interaction
+→ Perdus → Patrouille → Perdus 2 → Mc Gyver → Mc Gyver Photo → RDV Indic →
+Couper le fil → Épilogue). Branchements are JSON-described conditional jumps,
+**never hardcoded `if` statements** — e.g. the GM point-d'accès verdict routes
+to the `point-acces-valide` / `point-acces-refus` screens via `approved` /
+`refused` transitions. Sequence loading + the data-driven engine landed in M2
+(PR #24 / #29) along with the persistence resume flow.
 
 ## Media
 
