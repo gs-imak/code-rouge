@@ -14,7 +14,7 @@ import { useGameState } from './persistence'
 import { useServerHandshake } from './sync'
 import { useSuspects } from './suspects'
 import { buildDebriefDeck } from './slides/build-slides'
-import { DEFAULT_SERVER_WS_URL } from './config'
+import { DEFAULT_SERVER_WS_URL, GM_UNLOCK_CODE } from './config'
 
 // Débriefing — Game Master companion app. M1 squelette covers:
 //   - Kiosk lock (Screen Pinning, BackHandler swallow)
@@ -57,11 +57,25 @@ export default function App() {
   const [mgCodeDraft, setMgCodeDraft] = useState('')
   const { suspects, addSuspect, removeSuspect } = useSuspects()
   const [suspectDraft, setSuspectDraft] = useState('')
+  // GM unlock gate — session-ephemeral (re-enter after a cold boot).
+  const [unlocked, setUnlocked] = useState(false)
+  const [unlockDraft, setUnlockDraft] = useState('')
+  const [unlockError, setUnlockError] = useState(false)
   // Deck rebuilds from the latest stats + suspects; null until stats are loaded.
   const deck = useMemo(
     () => (stats !== null ? buildDebriefDeck(stats, suspects) : null),
     [stats, suspects],
   )
+
+  const onUnlock = useCallback(() => {
+    if (unlockDraft.trim() === GM_UNLOCK_CODE) {
+      setUnlocked(true)
+      setUnlockDraft('')
+      setUnlockError(false)
+    } else {
+      setUnlockError(true)
+    }
+  }, [unlockDraft])
 
   const onAddSuspect = useCallback(() => {
     const name = suspectDraft.trim()
@@ -158,6 +172,45 @@ export default function App() {
     return (
       <View style={styles.screen}>
         <StatusBar hidden />
+      </View>
+    )
+  }
+
+  if (!unlocked) {
+    return (
+      <View style={styles.lockScreen}>
+        <StatusBar hidden />
+        <Text style={styles.title}>Débriefing</Text>
+        <Text style={styles.subtitle}>Game Master — accès réservé</Text>
+        <Text style={[styles.label, styles.labelMargin]}>Code d’accès GM</Text>
+        <TextInput
+          style={styles.input}
+          value={unlockDraft}
+          onChangeText={(next) => {
+            setUnlockDraft(next)
+            setUnlockError(false)
+          }}
+          autoCapitalize="none"
+          autoCorrect={false}
+          secureTextEntry
+          placeholder="code"
+          placeholderTextColor="#5a6469"
+          accessibilityLabel="Code d’accès Game Master"
+          onSubmitEditing={onUnlock}
+        />
+        <Pressable
+          accessibilityRole="button"
+          onPress={onUnlock}
+          disabled={unlockDraft.trim() === ''}
+          style={({ pressed }) => [
+            styles.button,
+            unlockDraft.trim() === '' && styles.buttonDisabled,
+            pressed && styles.buttonPressed,
+          ]}
+        >
+          <Text style={styles.buttonText}>Déverrouiller</Text>
+        </Pressable>
+        {unlockError && <Text style={styles.feedbackErr}>⚠ Code incorrect.</Text>}
       </View>
     )
   }
@@ -449,6 +502,13 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: '#0a0d12',
+  },
+  lockScreen: {
+    flex: 1,
+    backgroundColor: '#0a0d12',
+    paddingHorizontal: 24,
+    justifyContent: 'center',
+    gap: 8,
   },
   scroll: {
     paddingHorizontal: 24,
