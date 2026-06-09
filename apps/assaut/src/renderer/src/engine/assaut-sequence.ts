@@ -141,6 +141,9 @@ export function advance(
   // Transitions live on prep steps (e.g. the GM point-d'accès verdict routing
   // point-entree → point-acces-valide/refus) AND on assault steps. First match
   // on the dispatched event wins; otherwise the flow moves linearly.
+  // (prep.transitions is always [] — never undefined — on a parsed step, so the
+  // `??` only falls through to findStep when id names an assault step; prep and
+  // assault ids are disjoint, so this is correct either way.)
   const transitions = prep?.transitions ?? findStep(config, id)?.transitions ?? []
   if (event !== undefined) {
     const transition = transitions.find((t) => t.when === event)

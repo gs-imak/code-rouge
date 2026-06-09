@@ -15,6 +15,9 @@ export const DEFAULT_SERVER_WS_URL =
 // via the `CODE_ROUGE_GM_CODE` env override (M2 decision: static GM PIN in
 // local config). This is NOT the kiosk device-owner unlock nor the per-session
 // NUC reset code; it is a separate app-level gate.
-export const GM_UNLOCK_CODE =
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ((globalThis as any).process?.env?.['CODE_ROUGE_GM_CODE'] as string | undefined) ?? '1313'
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const rawGmCode = ((globalThis as any).process?.env?.['CODE_ROUGE_GM_CODE'] as string | undefined)?.trim()
+// Non-empty guard: an empty/whitespace env override must NOT collapse the gate
+// to "any blank input unlocks" (a misconfiguration auth-bypass). Fall back to
+// the placeholder instead.
+export const GM_UNLOCK_CODE = rawGmCode !== undefined && rawGmCode.length > 0 ? rawGmCode : '1313'

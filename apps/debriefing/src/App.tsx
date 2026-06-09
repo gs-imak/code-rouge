@@ -68,7 +68,11 @@ export default function App() {
   )
 
   const onUnlock = useCallback(() => {
-    if (unlockDraft.trim() === GM_UNLOCK_CODE) {
+    const entered = unlockDraft.trim()
+    // Guard the empty submit: onSubmitEditing fires regardless of the button's
+    // disabled state, so a blank code must never satisfy the gate.
+    if (entered.length === 0) return
+    if (entered === GM_UNLOCK_CODE) {
       setUnlocked(true)
       setUnlockDraft('')
       setUnlockError(false)
