@@ -48,17 +48,22 @@ and uses it to exit between sessions.
 
 `hardwareBackPress` is intercepted at the root.
 
-## Connection retries
+## Log collection (ADR-0002)
 
-If a player app is offline at debrief time, retry 3× with 2s backoff, then
-mark "logs missing" in the slide and move on. **Don't block the GM.**
-Implementation lands with the M2 debrief flow.
+The GM pulls every team's `event_log` **from the NUC** (the source of truth),
+not app-to-app — a tablet powered off at debrief time still has its log on the
+server. A single aggregation timeout (6 s) bounds the wait; any team that never
+pushed comes back empty and is surfaced as "logs manquants : équipe N". The GM
+re-pulls at will via the "Charger les statistiques" button. This **supersedes**
+the earlier app-to-app "retry 3×/2s backoff" plan — rationale in
+[`docs/adr/0002`](../../docs/adr/0002-debriefing-pulls-from-server.md).
+**Don't block the GM.**
 
 ## Stats logic
 
-`src/stats/` will hold pure functions, fully unit-tested — this is the
-highest-leverage area for unit tests in the project. Implementation lands
-with the M2 debrief flow.
+`src/stats/` holds pure functions, fully unit-tested (10 tests) — the
+highest-leverage area for unit tests in the project. Nathanael demos these
+figures to clients.
 
 ## No real-time concerns
 

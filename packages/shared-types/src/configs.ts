@@ -196,6 +196,17 @@ export const AssautChoice = z.object({
 })
 export type AssautChoice = z.infer<typeof AssautChoice>
 
+// Event-driven branch: the first transition whose `when` matches the dispatched
+// event wins. Used by both prep steps (e.g. the GM point-d'accès verdict) and
+// assault steps. `when` values are content (the apps dispatch them by name).
+export const AssautTransition = z.object({
+  when: z.string().min(1).max(64),
+  goto: z.string().min(1).max(64),
+  /** Score contribution when this branch is taken. */
+  dataRecoveredDelta: z.number().int().min(-100).max(100).default(0),
+})
+export type AssautTransition = z.infer<typeof AssautTransition>
+
 export const AssautPrepStep = z.object({
   id: z.string().min(1).max(64),
   kind: AssautPrepStepKind,
@@ -203,6 +214,13 @@ export const AssautPrepStep = z.object({
   timerSec: z.number().int().positive().max(60 * 60).optional(),
   /** Branching choices; empty for plain input/wait steps. */
   choices: z.array(AssautChoice).max(8).default([]),
+  /**
+   * Event-driven transitions (first match wins) — e.g. the GM point-d'accès
+   * verdict routes `point-entree` to `point-acces-valide` / `point-acces-refus`,
+   * and those screens route onward on their button event. Distinct from
+   * `choices` (player-selected); empty for plain linear steps.
+   */
+  transitions: z.array(AssautTransition).default([]),
   /** Step-specific bag — e.g. `{ codeExpected: '4242' }`. */
   config: z.record(z.unknown()).default({}),
 })
@@ -224,13 +242,6 @@ export const AssautStepKind = z.enum([
   'epilogue',
 ])
 export type AssautStepKind = z.infer<typeof AssautStepKind>
-
-export const AssautTransition = z.object({
-  when: z.string().min(1).max(64), // event/condition name; chantier 06 names them
-  goto: z.string().min(1).max(64),
-  /** Score contribution when this branch is taken. */
-  dataRecoveredDelta: z.number().int().min(-100).max(100).default(0),
-})
 
 export const AssautStep = z.object({
   id: z.string().min(1).max(64),
@@ -302,12 +313,19 @@ export function parseAssautSequenceConfig(raw: unknown): AssautSequenceConfig {
       }
     }
   }
-  // Every prep choice.goto (when present) must resolve too.
+  // Every prep choice.goto (when present) and prep transition.goto must resolve.
   for (const p of data.prep) {
     for (const c of p.choices) {
       if (c.goto !== undefined && !ids.has(c.goto)) {
         throw new AssautSequenceError(
           `assaut prep "${p.id}" choice.goto "${c.goto}" does not resolve`,
+        )
+      }
+    }
+    for (const t of p.transitions) {
+      if (!ids.has(t.goto)) {
+        throw new AssautSequenceError(
+          `assaut prep "${p.id}" transition.goto "${t.goto}" does not resolve`,
         )
       }
     }

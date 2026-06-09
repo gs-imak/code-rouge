@@ -69,4 +69,5 @@ Tout ce qu'il faut pour valider M1 sur votre matériel, en 3 liens :
 ## Status
 
 **M1 — Socle technique** : validé en visio le **7 mai 2026**. Release [`v0.1.0`](https://github.com/gs-imak/code-rouge/releases/tag/v0.1.0) publiée.
-M2 démarrera dès la livraison des maquettes Laura et de la première salve de contenus côté client.
+
+**M2 — Applications joueurs + Débriefing** : en cours. Les trois apps sont intégrées 1-to-1 depuis les maquettes Figma et pilotées par des moteurs data-driven ; le flux de débriefing (agrégation des logs, statistiques, contrôle GM) est en place. Restent côté client : le contenu réel des énigmes (Nathanaël) et les médias définitifs (graphiste). Périmètre et critères d'acceptation dans [`docs/m2-plan.md`](./docs/m2-plan.md).

@@ -87,10 +87,11 @@ Reanimated 3 once added (chantier 05+).
 
 ## Configuration
 
-`assets/config/parcours.json` (matrix A/B/C/D, lands chantier 05+),
-`assets/config/mailbox.json` (phishing mailbox, also chantier 05+). Schemas
-will live in `@code-rouge/shared-types`. **Never hardcode game content** —
-data-driven from JSON validated at boot.
+`assets/config/parcours.json` (the A/B/C/D parcours matrix) and
+`assets/config/mailbox.json` (the phishing mailbox — exactly one trap mail)
+drive the flow engine (ADR-0001), validated at boot against the schemas in
+`@code-rouge/shared-types`. Énigme order, answers (`solution`), and scoring
+(`points`) are JSON edits, no recompile. **Never hardcode game content.**
 
 ## Network
 
