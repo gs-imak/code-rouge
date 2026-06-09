@@ -17,7 +17,9 @@ acceptance criteria: `docs/m2-plan.md`.
   data-driven sequence engine with a clamped 0–100 « % données récupérées »
   score; live per-step countdown; full-session persistence via a versioned JSON
   store in `userData`; WebSocket consumer for the GM-driven point-d'accès /
-  MG-code loop (PR #29).
+  MG-code loop (PR #29); the point-d'accès loop is now wired **end-to-end** via
+  additive prep-step `transitions` (point-entree → approved/refused →
+  valide/refus → continue/retry; exact deltas + refusal policy remain content).
 - **Attaque de Bots (React Native)** — 41 maquette screens pixel-1:1 (PR #25);
   pure FSM flow engine (ADR-0001) driving the A/B/C/D parcours matrix from
   `parcours.json`; interactive énigme widgets; mailbox with the single phishing
@@ -25,9 +27,10 @@ acceptance criteria: `docs/m2-plan.md`.
   fills (PR #34).
 - **Débriefing (React Native)** — end-of-session aggregator: pulls every team's
   event log from the NUC (ADR-0002), pure stats engine (PR #27); GM control of
-  the Assaut access loop (PR #30); **manual Espace-1 suspect entry** (persisted);
-  **debrief slide builder + in-app preview** (pure deck/HTML model over the
-  stats + suspects, unit-tested — projector export awaits the GM maquettes).
+  the Assaut access loop (PR #30); **GM unlock sign-in** gate (static local PIN,
+  placeholder default); **manual Espace-1 suspect entry** (persisted); **debrief
+  slide builder + in-app preview** (pure deck/HTML model over the stats +
+  suspects, unit-tested — projector export awaits the GM maquettes).
 - **Server NUC** — GM-only log read-path (`teams-request` / `log-request`) and
   relay of the GM access verdict + MG code to the target team (PR #27).
 - **Design system** — « Section 13 » tokens (blue Assaut + orange Bots) from the
@@ -35,14 +38,6 @@ acceptance criteria: `docs/m2-plan.md`.
 - CI: GitHub Actions group bump (PR #22).
 - Docs: `docs/m2-plan.md` (M2 scope + acceptance); milestone status, READMEs,
   and per-app rules realigned to M2; ADR-0001 + ADR-0002.
-
-### Deferred (decisions pending) — see `docs/m2-plan.md`
-
-- Assaut point-d'accès `approved`/`refused` branch transitions — needs an
-  additive `transitions` field on prep steps (data-driven config schema, a
-  load-bearing change requiring sign-off).
-- Débriefing GM unlock sign-in — needs the unlock-code mechanism confirmed
-  (per-session NUC code vs. static GM PIN vs. device-owner code).
 
 ### Pending (client-side, not code)
 
