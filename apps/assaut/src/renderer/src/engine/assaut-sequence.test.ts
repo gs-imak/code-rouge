@@ -234,3 +234,73 @@ describe('serialize / deserialize', () => {
     )
   })
 })
+
+// The GM point-d'accès loop: prep steps now carry event-driven transitions
+// (mirrors assault steps). point-entree --approved/refused--> valide/refus;
+// valide --continue--> choix-approche; refus --retry--> point-entree.
+function buildAccessConfig(): AssautSequenceConfig {
+  return parseAssautSequenceConfig({
+    schemaVersion: 1,
+    scoring: { startPercent: 0 },
+    prep: [
+      {
+        id: 'point-entree',
+        kind: 'point-entree',
+        transitions: [
+          { when: 'approved', goto: 'point-acces-valide' },
+          { when: 'refused', goto: 'point-acces-refus' },
+        ],
+      },
+      {
+        id: 'point-acces-valide',
+        kind: 'point-acces-valide',
+        transitions: [{ when: 'continue', goto: 'choix-approche' }],
+      },
+      {
+        id: 'point-acces-refus',
+        kind: 'point-acces-refus',
+        transitions: [{ when: 'retry', goto: 'point-entree' }],
+      },
+      {
+        id: 'choix-approche',
+        kind: 'choix-approche',
+        choices: [{ id: 'frontale', label: 'Frontale' }],
+      },
+    ],
+    steps: [{ id: 'debut', kind: 'debut', mediaPath: 'media/debut.mp4' }],
+  })
+}
+
+describe('advance — prep-step transitions (GM point-d’accès loop)', () => {
+  it('routes the approved verdict to point-acces-valide', () => {
+    const config = buildAccessConfig()
+    const s = advance(config, createSession(config), 'approved')
+    expect(s.currentStepId).toBe('point-acces-valide')
+  })
+
+  it('routes the refused verdict to point-acces-refus', () => {
+    const config = buildAccessConfig()
+    const s = advance(config, createSession(config), 'refused')
+    expect(s.currentStepId).toBe('point-acces-refus')
+  })
+
+  it('continues from a validated point to choix-approche', () => {
+    const config = buildAccessConfig()
+    let s = advance(config, createSession(config), 'approved')
+    s = advance(config, s, 'continue')
+    expect(s.currentStepId).toBe('choix-approche')
+  })
+
+  it('retries from a refused point back to point-entree', () => {
+    const config = buildAccessConfig()
+    let s = advance(config, createSession(config), 'refused')
+    s = advance(config, s, 'retry')
+    expect(s.currentStepId).toBe('point-entree')
+  })
+
+  it('falls through to the linear next when the dispatched event matches no transition', () => {
+    const config = buildAccessConfig()
+    const s = advance(config, createSession(config))
+    expect(s.currentStepId).toBe('point-acces-valide')
+  })
+})

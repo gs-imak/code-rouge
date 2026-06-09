@@ -337,6 +337,22 @@ describe('parseAssautSequenceConfig — M2 prep + timers + scoring', () => {
     ).toThrowError(/goto/)
   })
 
+  it('rejects a prep transition.goto that does not resolve to any step', () => {
+    expect(() =>
+      parseAssautSequenceConfig({
+        schemaVersion: 1,
+        prep: [
+          {
+            id: 'point-entree',
+            kind: 'point-entree',
+            transitions: [{ when: 'approved', goto: 'no-such-step' }],
+          },
+        ],
+        steps: [debutStep],
+      }),
+    ).toThrowError(/goto/)
+  })
+
   it('rejects a prep step id that collides with an assault step id', () => {
     expect(() =>
       parseAssautSequenceConfig({

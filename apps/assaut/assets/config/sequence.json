@@ -1,13 +1,33 @@
 {
   "$schema": "../../../../packages/shared-types/src/configs.ts:AssautSequenceConfig",
   "schemaVersion": 1,
-  "_comment": "« Assaut » flow per M2_Detail_CodeRouge.pdf + the maquettes. This is the LINEAR happy-path default: every screen the renderer knows how to draw, in maquette order. CONTENT owned by Nathanael / CDC v1.3 (edited here WITHOUT recompiling): exact timers, scoring deltas (dataRecoveredDelta), media files, response wording, and the real branching — the « préparation » hub returns, the GM-driven point-d'accès approval/refusal, and the response-driven score branches. Deltas are neutral (0) and timers nominal until then. point-acces-valide/refus are GM/WS result states layered on point-entree (not in this linear path).",
+  "_comment": "« Assaut » flow per M2_Detail_CodeRouge.pdf + the maquettes. Mostly the LINEAR happy-path default; the GM-driven point-d'accès loop IS wired: point-entree --approved--> point-acces-valide --continue--> choix-approche, and --refused--> point-acces-refus --retry--> point-entree (events dispatched by the WS access-result / the screen buttons). CONTENT owned by Nathanael / CDC v1.3 (edited here WITHOUT recompiling): exact timers, scoring deltas (dataRecoveredDelta, neutral 0 for now), media files, response wording, the exact refusal policy (retry vs penalty vs proceed), the « préparation » hub return, and the response-driven score branches.",
   "scoring": { "startPercent": 0 },
   "prep": [
     { "id": "saisie-acces", "kind": "saisie-acces", "timerSec": 120, "config": {} },
     { "id": "accueil", "kind": "accueil", "config": {} },
     { "id": "preparation", "kind": "preparation", "config": {} },
-    { "id": "point-entree", "kind": "point-entree", "config": {} },
+    {
+      "id": "point-entree",
+      "kind": "point-entree",
+      "transitions": [
+        { "when": "approved", "goto": "point-acces-valide", "dataRecoveredDelta": 0 },
+        { "when": "refused", "goto": "point-acces-refus", "dataRecoveredDelta": 0 }
+      ],
+      "config": {}
+    },
+    {
+      "id": "point-acces-valide",
+      "kind": "point-acces-valide",
+      "transitions": [{ "when": "continue", "goto": "choix-approche", "dataRecoveredDelta": 0 }],
+      "config": {}
+    },
+    {
+      "id": "point-acces-refus",
+      "kind": "point-acces-refus",
+      "transitions": [{ "when": "retry", "goto": "point-entree", "dataRecoveredDelta": 0 }],
+      "config": {}
+    },
     {
       "id": "choix-approche",
       "kind": "choix-approche",

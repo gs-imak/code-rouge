@@ -18,10 +18,12 @@ import mcgyverPhoto from '../assets/scene-mcgyver.png'
 // (immutable rule #2). The flow is data-driven by sequence.json.
 //
 // Linear-default notes: the « préparation » hub advances linearly (its real 3-way
-// branching + the GM-driven point-d'accès approval are content + WS, layered on
-// later). Screens the maquette gives no button (tuto, passive assault steps)
-// advance via a transparent overlay here; in the real game they advance on
-// media-end / timer.
+// branching is content). The GM-driven point-d'accès loop IS wired: point-entree
+// submits over WS and waits; the access-result verdict dispatches 'approved' /
+// 'refused' to drive point-acces-valide/refus, whose Continuer/Recommencer emit
+// 'continue' / 'retry' (config transitions in sequence.json). Screens the maquette
+// gives no button (tuto, passive assault steps) advance via a transparent overlay
+// here; in the real game they advance on media-end / timer.
 
 export interface SequenceRunnerProps {
   readonly step: AssautPrepStep | AssautStep
@@ -166,7 +168,7 @@ export function SequenceRunner({
           text="Point d'accès validé et disponible pour la suite."
           photoSrc={rooftopPhoto}
           buttonLabel="Continuer"
-          onSubmit={() => onSubmit()}
+          onSubmit={() => onSubmit('continue')}
         />
       )
 
@@ -178,7 +180,7 @@ export function SequenceRunner({
           title="Échec"
           text="Accès non approprié. Veuillez vous en tenir aux accès déjà identifiés."
           buttonLabel="Recommencer"
-          onSubmit={() => onSubmit()}
+          onSubmit={() => onSubmit('retry')}
         />
       )
 
