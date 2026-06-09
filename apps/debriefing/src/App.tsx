@@ -12,6 +12,8 @@ import {
 import { isKioskAvailable, startScreenPinning } from './kiosk'
 import { useGameState } from './persistence'
 import { useServerHandshake } from './sync'
+import { useSuspects } from './suspects'
+import { buildDebriefDeck } from './slides/build-slides'
 import { DEFAULT_SERVER_WS_URL } from './config'
 
 // Débriefing — Game Master companion app. M1 squelette covers:
@@ -53,6 +55,20 @@ export default function App() {
   const [resetStatus, setResetStatus] = useState<ResetStatus>({ kind: 'idle' })
   const [mgTeamDraft, setMgTeamDraft] = useState('')
   const [mgCodeDraft, setMgCodeDraft] = useState('')
+  const { suspects, addSuspect, removeSuspect } = useSuspects()
+  const [suspectDraft, setSuspectDraft] = useState('')
+  // Deck rebuilds from the latest stats + suspects; null until stats are loaded.
+  const deck = useMemo(
+    () => (stats !== null ? buildDebriefDeck(stats, suspects) : null),
+    [stats, suspects],
+  )
+
+  const onAddSuspect = useCallback(() => {
+    const name = suspectDraft.trim()
+    if (name === '') return
+    addSuspect(name)
+    setSuspectDraft('')
+  }, [suspectDraft, addSuspect])
 
   const onSendMgCode = useCallback(() => {
     const teamId = Number(mgTeamDraft.trim())
@@ -235,6 +251,50 @@ export default function App() {
       </View>
 
       <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Suspects (Espace 1)</Text>
+        <TextInput
+          style={styles.input}
+          value={suspectDraft}
+          onChangeText={setSuspectDraft}
+          autoCapitalize="words"
+          autoCorrect={false}
+          placeholder="nom du suspect identifié"
+          placeholderTextColor="#5a6469"
+          accessibilityLabel="Nom du suspect"
+          onSubmitEditing={onAddSuspect}
+        />
+        <Pressable
+          accessibilityRole="button"
+          onPress={onAddSuspect}
+          disabled={suspectDraft.trim() === ''}
+          style={({ pressed }) => [
+            styles.button,
+            suspectDraft.trim() === '' && styles.buttonDisabled,
+            pressed && styles.buttonPressed,
+          ]}
+        >
+          <Text style={styles.buttonText}>Ajouter le suspect</Text>
+        </Pressable>
+        {suspects.length === 0 ? (
+          <Text style={styles.hint}>Aucun suspect saisi.</Text>
+        ) : (
+          suspects.map((name) => (
+            <View key={name} style={styles.suspectRow}>
+              <Text style={styles.stateLine}>• {name}</Text>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`Retirer ${name}`}
+                onPress={() => removeSuspect(name)}
+                style={({ pressed }) => [styles.removeButton, pressed && styles.buttonPressed]}
+              >
+                <Text style={styles.removeButtonText}>Retirer</Text>
+              </Pressable>
+            </View>
+          ))
+        )}
+      </View>
+
+      <View style={styles.section}>
         <Text style={styles.sectionTitle}>Statistiques de session</Text>
         <Pressable
           accessibilityRole="button"
@@ -277,8 +337,24 @@ export default function App() {
             )}
           </>
         )}
+        {deck !== null && (
+          <View style={styles.deck}>
+            <Text style={styles.label}>Aperçu des slides ({deck.slides.length})</Text>
+            {deck.slides.map((slide) => (
+              <View key={slide.id} style={styles.slide}>
+                <Text style={styles.slideTitle}>{slide.title}</Text>
+                {slide.lines.map((line, i) => (
+                  <Text key={`${slide.id}-${i}`} style={styles.slideLine}>
+                    {line}
+                  </Text>
+                ))}
+              </View>
+            ))}
+          </View>
+        )}
         <Text style={styles.hint}>
-          Slides projetées (vidéoprojecteur) : chantier ultérieur — maquettes GM à venir.
+          Aperçu fonctionnel (stats + suspects). L’export projeté (HTML → images)
+          et l’habillage final arrivent avec les maquettes GM.
         </Text>
       </View>
 
@@ -502,5 +578,43 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     letterSpacing: 1.5,
     textTransform: 'uppercase',
+  },
+  suspectRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 6,
+  },
+  removeButton: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    backgroundColor: '#2a2f36',
+  },
+  removeButtonText: {
+    color: '#c8d1cf',
+    fontSize: 11,
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+  },
+  deck: {
+    marginTop: 8,
+    gap: 10,
+  },
+  slide: {
+    borderWidth: 1,
+    borderColor: '#1f262d',
+    padding: 10,
+    gap: 3,
+  },
+  slideTitle: {
+    color: '#e6d4ad',
+    fontSize: 13,
+    fontWeight: '700',
+    letterSpacing: 0.6,
+  },
+  slideLine: {
+    color: '#c8d1cf',
+    fontSize: 12,
+    lineHeight: 17,
   },
 })
