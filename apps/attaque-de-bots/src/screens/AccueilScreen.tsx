@@ -8,10 +8,24 @@ import type { ContinueProps } from '../navigation/types'
 // « Accueil » (maquette frame 1:109): welcome / briefing screen shown after
 // Connexion. Title (rendered uppercase per the maquette textCase) + briefing body
 // + « Commencer » CTA, all at exact maquette px in the 1920×1200 canvas. The
-// briefing body is content (Nathanaël) — blank until it lands rather than shipping
-// the maquette's lorem placeholder. « Alpha » is a sample team; the real name is
+// briefing body is Nathanaël's content (Figma comment on 1:109, 2026-06-08); his
+// closing line said « Appuyez sur "OK" » but this screen's CTA is « Commencer »
+// (maquette) — adapted + flagged. « Alpha » is a sample team; the real name is
 // runtime data.
-const BODY = ''
+const BODY =
+  'CYBER-ALERTE : INTRUSION DANS LES SYSTÈMES DE L’ENTREPRISE !\n\n' +
+  'Agents de la Section 13, le système subit une attaque massive de virus informatiques lancée ' +
+  'par le Réseau. Cette tablette est votre outil pour communiquer avec nos équipes techniques et ' +
+  'lutter contre les bots.\n' +
+  'Un accès direct à la messagerie des équipes informatiques vient de vous être ouvert : restez ' +
+  'connectés, des informations capitales et des indices décisifs vont y apparaître pour vous guider.\n' +
+  'Vos instructions :\n' +
+  '• Choisissez vos cibles : sélectionnez l’attaque de Bot que vous souhaitez contrer en priorité.\n' +
+  '• Neutralisez la menace : bloquez l’offensive en utilisant tout ce que vous trouverez à portée ' +
+  'de main dans l’espace autour de vous.\n' +
+  'Votre objectif est de contrer le maximum d’attaques dans le temps indiqué par le chrono sur ' +
+  'l’écran. Attention : chaque échec ou retard fera chuter votre jauge de score.\n' +
+  'Appuyez sur « Commencer » pour lancer la cyber-défense.'
 
 export function AccueilScreen({ onContinue }: ContinueProps = {}): JSX.Element {
   return (
@@ -39,7 +53,10 @@ const styles = StyleSheet.create({
     fontSize: 70,
     fontWeight: '700',
   },
-  // Briefing body (maquette [277,330 1367×552] 36px/500 centre).
+  // Briefing body (maquette [277,330 1367×552] 36px/500 centre). Sized down
+  // 36/46 → 32/42: the real briefing (≈13 lines) overflowed the maquette's
+  // lorem-sized box into the « Commencer » button at 977. The maquette never
+  // anticipated this text length — final type is Laura's call (flagged).
   body: {
     position: 'absolute',
     left: 277,
@@ -48,8 +65,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: colors.white,
     fontFamily: 'Roboto',
-    fontSize: 36,
+    fontSize: 32,
     fontWeight: '500',
-    lineHeight: 46,
+    lineHeight: 42,
   },
 })
