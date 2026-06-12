@@ -281,7 +281,7 @@ export function dispatch(
             case 'error':
               // While retries remain the player must RETRY; CONTINUE may only skip
               // the énigme once attempts are capped (the error screen shows
-              // Continuer instead of Recommancer then). Guards against advancing
+              // Continuer instead of Recommencer then). Guards against advancing
               // past an unsolved énigme while retries are still available.
               if (canRetry(config, state)) {
                 throw new FlowEngineError('CONTINUE invalid while retries remain — dispatch RETRY')

@@ -13,6 +13,8 @@ export function MessageModal({
   body,
   title = 'Message de l’équipe de la section 13',
   bodyTop = 512,
+  bodyLeft = 527,
+  bodyWidth = 850,
   okTop = 757,
   onOk,
 }: {
@@ -20,6 +22,9 @@ export function MessageModal({
   readonly title?: string
   /** Body top + OK-button top shift with the briefing length (maquette varies it). */
   readonly bodyTop?: number
+  /** Body box overrides — some briefings use a wider box (dd-accueil: [460,495 1000]). */
+  readonly bodyLeft?: number
+  readonly bodyWidth?: number
   readonly okTop?: number
   /** Dismiss the briefing (énigme accueil → saisie). Absent in the dev Gallery. */
   readonly onOk?: () => void
@@ -29,7 +34,7 @@ export function MessageModal({
       <Image source={chrome} style={styles.chrome} resizeMode="contain" />
       <Text style={styles.title}>{title}</Text>
       <Image source={close} style={styles.close} resizeMode="contain" />
-      <Text style={[styles.body, { top: bodyTop }]}>{body}</Text>
+      <Text style={[styles.body, { top: bodyTop, left: bodyLeft, width: bodyWidth }]}>{body}</Text>
       <View style={[styles.okBtn, { top: okTop }]} />
       <Text style={[styles.okLabel, { top: okTop + 18 }]}>OK</Text>
       {/* Transparent tap target over the OK button — keeps the maquette pixels exact
@@ -66,11 +71,9 @@ const styles = StyleSheet.create({
     lineHeight: 94,
   },
   close: { position: 'absolute', left: 1476, top: 293, width: 32, height: 32 },
-  // (maquette [527,~512 850] 36px/500 centre; top via the bodyTop prop).
+  // (maquette [527,~512 850] 36px/500 centre; box via the bodyTop/bodyLeft/bodyWidth props).
   body: {
     position: 'absolute',
-    left: 527,
-    width: 850,
     textAlign: 'center',
     color: colors.white,
     fontFamily: 'Roboto',

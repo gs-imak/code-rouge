@@ -15,7 +15,7 @@ import diskErr from '../assets/dd2-disk-err.png'
 // « Saisie solution Disques Durs 2 » (maquette 1:1161 / 40:5931 / 34:4596): pick the
 // blocked spots on the platter. The platter art is static per state; a ToggleGrid over
 // it makes the spots selectable (bit-string, e.g. "010010"). success / error tint the
-// panel + add a message + Continuer / Recommancer.
+// panel + add a message + Continuer / Recommencer.
 type SaisieState = NonNullable<SaisieScreenProps['state']>
 
 const PANEL: Record<SaisieState, string | undefined> = { saisie: undefined, success: colors.panelSuccess, error: colors.panelError }
@@ -46,7 +46,7 @@ export function Dd2Screen({
       {state === 'saisie' ? <PrimaryButton label="Valider" top={989} onPress={() => onValidate?.(value)} /> : null}
       {state === 'success' ? <PrimaryButton label="Continuer" top={1043} onPress={onContinue} /> : null}
       {state === 'error' ? (
-        <PrimaryButton label={canRetry ? 'Recommancer' : 'Continuer'} top={1043} onPress={canRetry ? onRetry : onContinue} />
+        <PrimaryButton label={canRetry ? 'Recommencer' : 'Continuer'} top={1043} onPress={canRetry ? onRetry : onContinue} />
       ) : null}
     </>
   )

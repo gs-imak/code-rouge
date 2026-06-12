@@ -13,7 +13,7 @@ import rightPanel from '../assets/fin-right.png'
 // « Saisie Énigme Finale » (maquette 1:1306 / 34:4720 / 34:4945): find the symbols
 // (left panel) and key the final code (right panel). Both panels are static maquette
 // art. The maquette result states carry NO CTA, so a typed entry field + Valider (and
-// the Continuer/Recommancer for the wired flow) are runner-only additions placed below
+// the Continuer/Recommencer for the wired flow) are runner-only additions placed below
 // the panels — flagged for the graphiste's interactive finale design.
 type SaisieState = NonNullable<SaisieScreenProps['state']>
 
@@ -57,7 +57,7 @@ export function FinaleScreen({
         <PrimaryButton label="Continuer" top={1040} left={1300} width={260} onPress={onContinue} />
       ) : null}
       {state === 'error' ? (
-        <PrimaryButton label={canRetry ? 'Recommancer' : 'Continuer'} top={1040} left={1300} width={260} onPress={canRetry ? onRetry : onContinue} />
+        <PrimaryButton label={canRetry ? 'Recommencer' : 'Continuer'} top={1040} left={1300} width={260} onPress={canRetry ? onRetry : onContinue} />
       ) : null}
     </>
   )
