@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
   // Briefing body (maquette [334,307 1252×704] 36px/500 lh47 LEFT). The bullet
   // lines are Figma UNORDERED list lines at indent 1 → bullet column + hanging
   // indent, matching the maquette render.
-  body: { position: 'absolute', left: 334, top: 307, width: 1252 },
+  body: { position: 'absolute', left: 334, top: 307, width: 1252, height: 704 },
   par: {
     color: colors.white,
     textAlign: 'left',
