@@ -59,7 +59,7 @@ export function ResSaisieScreen({
       ) : null}
       {state === 'error' ? (
         <PrimaryButton
-          label={canRetry ? 'Recommancer' : 'Continuer'}
+          label={canRetry ? 'Recommencer' : 'Continuer'}
           top={1028}
           left={1567}
           width={260}

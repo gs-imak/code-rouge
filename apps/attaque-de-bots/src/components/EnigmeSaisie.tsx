@@ -51,7 +51,7 @@ export function EnigmeSaisie({
   readonly onValidate?: () => void
   readonly onContinue?: () => void
   readonly onRetry?: () => void
-  /** Error state: offer Recommancer (true) vs Continuer once attempts are capped. */
+  /** Error state: offer Recommencer (true) vs Continuer once attempts are capped. */
   readonly canRetry?: boolean
   /** Success / error feedback line. */
   readonly message?: string
@@ -93,7 +93,7 @@ export function EnigmeSaisie({
       ) : null}
       {state === 'error' ? (
         canRetry ? (
-          <PrimaryButton label="Recommancer" top={746} left={1151} onPress={onRetry} />
+          <PrimaryButton label="Recommencer" top={746} left={1151} onPress={onRetry} />
         ) : (
           <PrimaryButton label="Continuer" top={746} left={1151} onPress={onContinue} />
         )

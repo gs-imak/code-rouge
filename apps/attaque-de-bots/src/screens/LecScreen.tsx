@@ -13,7 +13,7 @@ import keypad from '../assets/lec-keypad.png'
 // « Saisie Lecteur carte » (maquette 1:1221 / 41:6663 / 41:6558): key the access code
 // on the keypad. The keypad art is the static visual; a TapGrid overlay turns it into
 // real digit entry, shown in the field and validated by the engine. success / error
-// tint the panel + replace the right column with a message + Continuer / Recommancer.
+// tint the panel + replace the right column with a message + Continuer / Recommencer.
 type SaisieState = NonNullable<SaisieScreenProps['state']>
 
 const PANEL: Record<SaisieState, string | undefined> = { saisie: undefined, success: colors.panelSuccess, error: colors.panelError }
@@ -65,7 +65,7 @@ export function LecScreen({
       {state === 'error' ? (
         <>
           <Text style={styles.msg}>Le code est incorrecte</Text>
-          <PrimaryButton label={canRetry ? 'Recommancer' : 'Continuer'} top={764} left={1147} onPress={canRetry ? onRetry : onContinue} />
+          <PrimaryButton label={canRetry ? 'Recommencer' : 'Continuer'} top={764} left={1147} onPress={canRetry ? onRetry : onContinue} />
         </>
       ) : null}
     </>

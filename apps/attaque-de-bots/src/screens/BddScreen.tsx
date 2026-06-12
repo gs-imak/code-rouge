@@ -18,7 +18,7 @@ import rowErr2 from '../assets/bdd-row-err2.png'
 // holding the databases to share. The server grid is static maquette art per state
 // (one row on saisie, two on success / error); a ToggleGrid over the saisie row makes
 // the servers selectable (bit-string, e.g. "1111"). success / error tint the panel +
-// add a message + Continuer / Recommancer.
+// add a message + Continuer / Recommencer.
 type SaisieState = NonNullable<SaisieScreenProps['state']>
 
 const PANEL: Record<SaisieState, string | undefined> = { saisie: undefined, success: colors.panelSuccess, error: colors.panelError }
@@ -52,7 +52,7 @@ export function BddScreen({
       {state === 'saisie' ? <PrimaryButton label="Valider" top={989} onPress={() => onValidate?.(value)} /> : null}
       {state === 'success' ? <PrimaryButton label="Continuer" top={1044} onPress={onContinue} /> : null}
       {state === 'error' ? (
-        <PrimaryButton label={canRetry ? 'Recommancer' : 'Continuer'} top={1044} onPress={canRetry ? onRetry : onContinue} />
+        <PrimaryButton label={canRetry ? 'Recommencer' : 'Continuer'} top={1044} onPress={canRetry ? onRetry : onContinue} />
       ) : null}
     </>
   )

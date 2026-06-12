@@ -25,7 +25,7 @@ export interface ChoixScreenProps {
 
 export interface SaisieScreenProps {
   readonly state?: SaisieState
-  /** Re-keys the input widget so a Recommancer clears prior taps. */
+  /** Re-keys the input widget so a Recommencer clears prior taps. */
   readonly attempts?: number
   readonly canRetry?: boolean
   readonly onValidate?: (value: string) => void

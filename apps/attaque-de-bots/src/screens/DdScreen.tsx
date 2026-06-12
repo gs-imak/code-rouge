@@ -15,7 +15,7 @@ import widgetErr from '../assets/dd-widget-err.png'
 // « Saisie solution Disques Durs » (maquette 1:1118 / success 40:5753 / error 34:4465):
 // pick the correct disk models. The « code_motifs » block is static maquette art per
 // state; a ToggleGrid overlay makes the model row selectable (bit-string, e.g. "0110").
-// success / error tint the panel + add a message + Continuer / Recommancer.
+// success / error tint the panel + add a message + Continuer / Recommencer.
 type SaisieState = NonNullable<SaisieScreenProps['state']>
 
 const PANEL: Record<SaisieState, string | undefined> = { saisie: undefined, success: colors.panelSuccess, error: colors.panelError }
@@ -53,7 +53,7 @@ export function DdScreen({
       {state === 'saisie' ? <PrimaryButton label="Valider" top={1004} onPress={() => onValidate?.(value)} /> : null}
       {state === 'success' ? <PrimaryButton label="Continuer" top={1023} onPress={onContinue} /> : null}
       {state === 'error' ? (
-        <PrimaryButton label={canRetry ? 'Recommancer' : 'Continuer'} top={1023} onPress={canRetry ? onRetry : onContinue} />
+        <PrimaryButton label={canRetry ? 'Recommencer' : 'Continuer'} top={1023} onPress={canRetry ? onRetry : onContinue} />
       ) : null}
     </>
   )

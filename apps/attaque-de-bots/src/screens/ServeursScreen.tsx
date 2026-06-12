@@ -17,7 +17,8 @@ import iconsErr from '../assets/srv-icons-err.png'
 // power toggles to the right ON/OFF combination. The toggles art is the static visual;
 // a ToggleGrid overlay makes them switchable, emitting a bit-string (e.g. "1010")
 // validated by the engine. success / error keep the maquette panel tints + icon swap +
-// message + Continuer / Recommancer. « Recommancer » keeps the maquette spelling.
+// message + Continuer / Recommencer. (Laura's 06-11 pass fixed the « Recommancer »
+// typo on the other error frames; srv-error still carries it — normalized here, flagged.)
 type SaisieState = NonNullable<SaisieScreenProps['state']>
 
 const PANEL: Record<SaisieState, string | undefined> = { saisie: undefined, success: colors.panelSuccess, error: colors.panelError }
@@ -48,7 +49,7 @@ export function ServeursScreen({
       {state === 'saisie' ? <PrimaryButton label="Valider" top={979} onPress={() => onValidate?.(value)} /> : null}
       {state === 'success' ? <PrimaryButton label="Continuer" top={999} onPress={onContinue} /> : null}
       {state === 'error' ? (
-        <PrimaryButton label={canRetry ? 'Recommancer' : 'Continuer'} top={999} onPress={canRetry ? onRetry : onContinue} />
+        <PrimaryButton label={canRetry ? 'Recommencer' : 'Continuer'} top={999} onPress={canRetry ? onRetry : onContinue} />
       ) : null}
     </>
   )

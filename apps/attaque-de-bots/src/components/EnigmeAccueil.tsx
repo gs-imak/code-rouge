@@ -12,12 +12,16 @@ export function EnigmeAccueil({
   title,
   body,
   bodyTop,
+  bodyLeft,
+  bodyWidth,
   okTop,
   onContinue,
 }: {
   readonly title?: string
   readonly body: string
   readonly bodyTop?: number
+  readonly bodyLeft?: number
+  readonly bodyWidth?: number
   readonly okTop?: number
   /** Dismiss the briefing → the énigme's saisie phase. Absent in the dev Gallery. */
   readonly onContinue?: () => void
@@ -27,7 +31,15 @@ export function EnigmeAccueil({
       <ScreenBackground />
       <HudHeader />
       <EnigmaPanel />
-      <MessageModal title={title} body={body} bodyTop={bodyTop} okTop={okTop} onOk={onContinue} />
+      <MessageModal
+        title={title}
+        body={body}
+        bodyTop={bodyTop}
+        bodyLeft={bodyLeft}
+        bodyWidth={bodyWidth}
+        okTop={okTop}
+        onOk={onContinue}
+      />
     </>
   )
 }
